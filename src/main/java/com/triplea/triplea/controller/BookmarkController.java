@@ -2,9 +2,6 @@ package com.triplea.triplea.controller;
 
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.model.bookmark.Bookmark;
-import com.triplea.triplea.model.bookmark.BookmarkRepository;
-import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +20,7 @@ public class BookmarkController {
     @PostMapping("/api/news/{id}")
     public ResponseEntity<?> insert(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
 
-        if(false == bookmarkService.북마크추가(id,  myUserDetails.getUser()))
+        if(false == bookmarkService.insertBookmark(id,  myUserDetails.getUser()))
             throw new Exception500("bookmark insert failed");
 
         return ResponseEntity.ok().build();
@@ -32,7 +29,7 @@ public class BookmarkController {
     @DeleteMapping("/api/news/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
 
-        if(false == bookmarkService.북마크삭제(id, myUserDetails.getUser()))
+        if(false == bookmarkService.deleteBookmark(id, myUserDetails.getUser()))
             throw new Exception500("bookmark delete failed");
 
         return ResponseEntity.ok().build();

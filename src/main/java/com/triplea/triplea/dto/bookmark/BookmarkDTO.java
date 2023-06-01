@@ -3,7 +3,7 @@ package com.triplea.triplea.dto.bookmark;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter @Getter
+@Getter
 public class BookmarkDTO {
 
     private Integer count;
