@@ -9,7 +9,7 @@ import lombok.Setter;
  */
 public class NewsResponse {
 
-    @Setter @Getter
+    @Getter
     public static class NewsDTO {
         private Long newsId;
         private String source;

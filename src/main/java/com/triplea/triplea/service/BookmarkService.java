@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -15,7 +16,7 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
 
     @Transactional
-    public boolean 북마크추가(Long newsid, User user) {
+    public boolean insertBookmark(Long newsid, User user) {
 
         try {
             Bookmark bookmark = Bookmark.builder()
@@ -32,10 +33,11 @@ public class BookmarkService {
     }
 
     @Transactional
-    public boolean 북마크삭제(Long newsid, User user) {
+    public boolean deleteBookmark(Long newsid, User user) {
 
         try{
-            bookmarkRepository.deleteByNewsIdAndUser(newsid, user);
+            Optional<Bookmark> bookmarkPS = bookmarkRepository.findByNewsIdAndUser(newsid, user);
+            bookmarkPS.get().setDeleted(true);
             return true;
         }catch(Exception e){
             return false;
