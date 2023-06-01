@@ -16,8 +16,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @Import(MySecurityConfig.class)
 @WebMvcTest(UserController.class)
@@ -59,6 +63,42 @@ class UserControllerTest {
                             request.setRemoteAddr("127.0.0.1");
                             return request;
                         }))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("이메일 인증 요청")
+    void email() throws Exception {
+        //given
+        UserRequest.EmailSend email = new UserRequest.EmailSend("test@example.com");
+        ObjectMapper om = new ObjectMapper();
+        String requestBody = om.writeValueAsString(email);
+        given(userService.email(any())).willReturn("code");
+
+        //when then
+        mockMvc.perform(post("/api/email")
+                        .with(csrf())
+                        .contentType(contentType)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.data", is("code")))
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("이메일 인증 확인")
+    void emailVerified() throws Exception {
+        //given
+        UserRequest.EmailVerify email = new UserRequest.EmailVerify("test@example.com","code");
+        ObjectMapper om = new ObjectMapper();
+        String requestBody = om.writeValueAsString(email);
+
+        //when then
+        mockMvc.perform(post("/api/email/verify")
+                        .with(csrf())
+                        .contentType(contentType)
+                        .content(requestBody))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }

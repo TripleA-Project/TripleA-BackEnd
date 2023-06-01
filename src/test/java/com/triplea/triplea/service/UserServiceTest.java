@@ -1,6 +1,8 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
@@ -11,6 +13,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import javax.servlet.http.HttpSession;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class UserServiceTest {
@@ -20,6 +27,10 @@ class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
+    @Mock
+    private HttpSession session;
+    @Mock
+    private MailUtils mailUtils;
 
     private final User user = User.builder()
             .id(1L)
@@ -59,6 +70,65 @@ class UserServiceTest {
             UserRequest.Join join = UserRequest.Join.builder().build();
             //when then
             Assertions.assertThrows(Exception500.class, () -> userService.join(join, user.getUserAgent(), user.getClientIP()));
+        }
+    }
+
+    @Nested
+    @DisplayName("이메일 인증 요청")
+    class Email {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+            //given
+            UserRequest.EmailSend emailSend = new UserRequest.EmailSend(user.getEmail());
+            //when
+            userService.email(emailSend);
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.email(emailSend));
+        }
+    }
+
+    @Nested
+    @DisplayName("이메일 인증 확인")
+    class EmailVerify {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+            //given
+            UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(),"code");
+            //when
+            when(session.getAttribute(anyString()))
+                    .thenAnswer(invocation -> {
+                        String email = invocation.getArgument(0);
+                        if(!email.equals(emailVerify.getEmail())) throw new Exception400("email", "이메일이 잘못 되었습니다");
+                        return "code";
+                    });
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.emailVerified(emailVerify));
+        }
+
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+            @Test
+            @DisplayName("1: 잘못된 이메일")
+            void test1(){
+                //given
+                UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify("wrong@email.com","code");
+                //when
+                when(session.getAttribute(user.getEmail())).thenReturn("code");
+                //then
+                Assertions.assertThrows(Exception400.class, () -> userService.emailVerified(emailVerify));
+            }
+            @Test
+            @DisplayName("2: 잘못된 코드")
+            void test2(){
+                //given
+                UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(),"wrong");
+                //when
+                //then
+                Assertions.assertThrows(Exception400.class, () -> userService.emailVerified(emailVerify));
+            }
         }
     }
 }

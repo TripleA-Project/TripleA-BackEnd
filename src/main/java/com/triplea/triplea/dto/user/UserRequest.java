@@ -46,4 +46,24 @@ public class UserRequest {
                     .build();
         }
     }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EmailSend{
+        @Email
+        @NotBlank
+        private String email;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EmailVerify{
+        @Email
+        @NotBlank
+        private String email;
+        @NotBlank
+        private String code;
+    }
 }

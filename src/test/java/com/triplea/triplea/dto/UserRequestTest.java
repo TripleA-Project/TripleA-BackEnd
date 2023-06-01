@@ -365,4 +365,137 @@ class UserRequestTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("이메일 인증")
+    class Email {
+        @Nested
+        @DisplayName("이메일")
+        class EmailSend {
+            @Test
+            @DisplayName("실패1: 이메일 형식")
+            void test1() {
+                //given
+                UserRequest.EmailVerify email = new UserRequest.EmailVerify(
+                        "test","code"
+                );
+
+                //when
+                Set<ConstraintViolation<UserRequest.EmailVerify>> violations = validator.validate(email);
+
+                //then
+                assertThat(violations).isNotNull();
+                violations.forEach(
+                        error -> assertThat(error.getMessage()).isEqualTo("올바른 형식의 이메일 주소여야 합니다"));
+            }
+
+            @Test
+            @DisplayName("실패2: 이메일 blank")
+            void test2() {
+                //given
+                UserRequest.EmailVerify email = new UserRequest.EmailVerify(
+                        " ","code"
+                );
+
+                //when
+                Set<ConstraintViolation<UserRequest.EmailVerify>> violations = validator.validate(email);
+
+                //then
+                assertThat(violations).isNotNull();
+                violations.forEach(
+                        error -> {
+                            String errorMsg = error.getMessage();
+                            assertThat(errorMsg).isIn("공백일 수 없습니다","올바른 형식의 이메일 주소여야 합니다");
+                        });
+            }
+
+            @Test
+            @DisplayName("실패3: 이메일 empty")
+            void test3() {
+                //given
+                UserRequest.EmailVerify email = new UserRequest.EmailVerify(
+                        "","code"
+                );
+
+                //when
+                Set<ConstraintViolation<UserRequest.EmailVerify>> violations = validator.validate(email);
+
+                //then
+                assertThat(violations).isNotNull();
+                violations.forEach(
+                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
+            }
+
+            @Test
+            @DisplayName("실패4: 이메일 null")
+            void test4() {
+                //given
+                UserRequest.EmailVerify email = new UserRequest.EmailVerify(
+                        null,"code"
+                );
+
+                //when
+                Set<ConstraintViolation<UserRequest.EmailVerify>> violations = validator.validate(email);
+
+                //then
+                assertThat(violations).isNotNull();
+                violations.forEach(
+                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
+            }
+        }
+        @Nested
+        @DisplayName("코드")
+        class Code {
+            @Test
+            @DisplayName("실패1: 코드 blank")
+            void test1() {
+                //given
+                UserRequest.EmailVerify email = new UserRequest.EmailVerify(
+                        "test@example.com"," "
+                );
+
+                //when
+                Set<ConstraintViolation<UserRequest.EmailVerify>> violations = validator.validate(email);
+
+                //then
+                assertThat(violations).isNotNull();
+                violations.forEach(
+                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
+            }
+
+            @Test
+            @DisplayName("실패2: 코드 empty")
+            void test2() {
+                //given
+                UserRequest.EmailVerify email = new UserRequest.EmailVerify(
+                        "test@example.com",""
+                );
+
+                //when
+                Set<ConstraintViolation<UserRequest.EmailVerify>> violations = validator.validate(email);
+
+                //then
+                assertThat(violations).isNotNull();
+                violations.forEach(
+                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
+            }
+
+            @Test
+            @DisplayName("실패3: 코드 null")
+            void test3() {
+                //given
+                UserRequest.EmailVerify email = new UserRequest.EmailVerify(
+                        "test@example.com",null
+                );
+
+                //when
+                Set<ConstraintViolation<UserRequest.EmailVerify>> violations = validator.validate(email);
+
+                //then
+                assertThat(violations).isNotNull();
+                violations.forEach(
+                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
+            }
+        }
+    }
 }

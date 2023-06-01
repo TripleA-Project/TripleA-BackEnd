@@ -26,4 +26,19 @@ public class UserController {
         userService.join(join, request.getHeader("User-Agent"), request.getRemoteAddr());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
+
+    // 이메일 인증 요청
+    @PostMapping("/email")
+    public ResponseEntity<?> email(@RequestBody @Valid UserRequest.EmailSend request, Errors errors) {
+        String code = userService.email(request);
+        return ResponseEntity.ok().body(new ResponseDTO<>(code));
+    }
+
+
+    // 이메일 인증 확인
+    @PostMapping("/email/verify")
+    public ResponseEntity<?> emailVerified(@RequestBody @Valid UserRequest.EmailVerify request, Errors errors) {
+        userService.emailVerified(request);
+        return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
 }
