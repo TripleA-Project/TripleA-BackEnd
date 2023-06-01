@@ -95,12 +95,12 @@ class UserServiceTest {
         @DisplayName("성공")
         void test1() {
             //given
-            UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(),"code");
+            UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(), "code");
             //when
             when(session.getAttribute(anyString()))
                     .thenAnswer(invocation -> {
                         String email = invocation.getArgument(0);
-                        if(!email.equals(emailVerify.getEmail())) throw new Exception400("email", "이메일이 잘못 되었습니다");
+                        if (!email.equals(emailVerify.getEmail())) throw new Exception400("email", "이메일이 잘못 되었습니다");
                         return "code";
                     });
             //then
@@ -109,22 +109,23 @@ class UserServiceTest {
 
         @Nested
         @DisplayName("실패")
-        class Fail{
+        class Fail {
             @Test
             @DisplayName("1: 잘못된 이메일")
-            void test1(){
+            void test1() {
                 //given
-                UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify("wrong@email.com","code");
+                UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify("wrong@email.com", "code");
                 //when
                 when(session.getAttribute(user.getEmail())).thenReturn("code");
                 //then
                 Assertions.assertThrows(Exception400.class, () -> userService.emailVerified(emailVerify));
             }
+
             @Test
             @DisplayName("2: 잘못된 코드")
-            void test2(){
+            void test2() {
                 //given
-                UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(),"wrong");
+                UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(), "wrong");
                 //when
                 //then
                 Assertions.assertThrows(Exception400.class, () -> userService.emailVerified(emailVerify));

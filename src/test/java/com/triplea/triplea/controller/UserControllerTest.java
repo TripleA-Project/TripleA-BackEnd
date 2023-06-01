@@ -90,7 +90,7 @@ class UserControllerTest {
     @DisplayName("이메일 인증 확인")
     void emailVerified() throws Exception {
         //given
-        UserRequest.EmailVerify email = new UserRequest.EmailVerify("test@example.com","code");
+        UserRequest.EmailVerify email = new UserRequest.EmailVerify("test@example.com", "code");
         ObjectMapper om = new ObjectMapper();
         String requestBody = om.writeValueAsString(email);
 

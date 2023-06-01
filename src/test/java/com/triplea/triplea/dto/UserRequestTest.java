@@ -75,7 +75,7 @@ class UserRequestTest {
                 violations.forEach(
                         error -> {
                             String errorMsg = error.getMessage();
-                            assertThat(errorMsg).isIn("공백일 수 없습니다","올바른 형식의 이메일 주소여야 합니다");
+                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 이메일 주소여야 합니다");
                         });
             }
 
@@ -123,6 +123,7 @@ class UserRequestTest {
                         error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
         }
+
         @Nested
         @DisplayName("비밀번호")
         class Pwd {
@@ -191,7 +192,7 @@ class UserRequestTest {
                 violations.forEach(
                         error -> {
                             String errorMsg = error.getMessage();
-                            assertThat(errorMsg).isIn("공백일 수 없습니다","올바른 형식의 비밀번호여야 합니다","password must be equals passwordCheck");
+                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 비밀번호여야 합니다", "password must be equals passwordCheck");
                         });
             }
 
@@ -216,7 +217,7 @@ class UserRequestTest {
                 violations.forEach(
                         error -> {
                             String errorMsg = error.getMessage();
-                            assertThat(errorMsg).isIn("공백일 수 없습니다","올바른 형식의 비밀번호여야 합니다","password must be equals passwordCheck");
+                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 비밀번호여야 합니다", "password must be equals passwordCheck");
                         });
             }
 
@@ -241,10 +242,11 @@ class UserRequestTest {
                 violations.forEach(
                         error -> {
                             String errorMsg = error.getMessage();
-                            assertThat(errorMsg).isIn("공백일 수 없습니다","password must be equals passwordCheck");
+                            assertThat(errorMsg).isIn("공백일 수 없습니다", "password must be equals passwordCheck");
                         });
             }
         }
+
         @Nested
         @DisplayName("이름")
         class Name {
@@ -314,6 +316,7 @@ class UserRequestTest {
                         error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
         }
+
         @Nested
         @DisplayName("뉴스레터")
         class NewsLetter {
@@ -339,6 +342,7 @@ class UserRequestTest {
                         error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
         }
+
         @Nested
         @DisplayName("이메일 인증")
         class EmailVerified {
@@ -377,7 +381,7 @@ class UserRequestTest {
             void test1() {
                 //given
                 UserRequest.EmailVerify email = new UserRequest.EmailVerify(
-                        "test","code"
+                        "test", "code"
                 );
 
                 //when
@@ -394,7 +398,7 @@ class UserRequestTest {
             void test2() {
                 //given
                 UserRequest.EmailVerify email = new UserRequest.EmailVerify(
-                        " ","code"
+                        " ", "code"
                 );
 
                 //when
@@ -405,7 +409,7 @@ class UserRequestTest {
                 violations.forEach(
                         error -> {
                             String errorMsg = error.getMessage();
-                            assertThat(errorMsg).isIn("공백일 수 없습니다","올바른 형식의 이메일 주소여야 합니다");
+                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 이메일 주소여야 합니다");
                         });
             }
 
@@ -414,7 +418,7 @@ class UserRequestTest {
             void test3() {
                 //given
                 UserRequest.EmailVerify email = new UserRequest.EmailVerify(
-                        "","code"
+                        "", "code"
                 );
 
                 //when
@@ -431,7 +435,7 @@ class UserRequestTest {
             void test4() {
                 //given
                 UserRequest.EmailVerify email = new UserRequest.EmailVerify(
-                        null,"code"
+                        null, "code"
                 );
 
                 //when
@@ -443,6 +447,7 @@ class UserRequestTest {
                         error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
         }
+
         @Nested
         @DisplayName("코드")
         class Code {
@@ -451,7 +456,7 @@ class UserRequestTest {
             void test1() {
                 //given
                 UserRequest.EmailVerify email = new UserRequest.EmailVerify(
-                        "test@example.com"," "
+                        "test@example.com", " "
                 );
 
                 //when
@@ -468,7 +473,7 @@ class UserRequestTest {
             void test2() {
                 //given
                 UserRequest.EmailVerify email = new UserRequest.EmailVerify(
-                        "test@example.com",""
+                        "test@example.com", ""
                 );
 
                 //when
@@ -485,7 +490,7 @@ class UserRequestTest {
             void test3() {
                 //given
                 UserRequest.EmailVerify email = new UserRequest.EmailVerify(
-                        "test@example.com",null
+                        "test@example.com", null
                 );
 
                 //when

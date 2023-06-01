@@ -7,10 +7,11 @@ import javax.validation.constraints.*;
 
 @Getter
 public class UserRequest {
-    @Getter @Builder
+    @Getter
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Join{
+    public static class Join {
         @Email
         @NotBlank
         private String email;
@@ -28,12 +29,12 @@ public class UserRequest {
         private Boolean emailVerified;
 
         @AssertTrue(message = "password must be equals passwordCheck")
-        private boolean isPasswordMatch(){
-            if(password != null) return password.equals(passwordCheck);
+        private boolean isPasswordMatch() {
+            if (password != null) return password.equals(passwordCheck);
             return false;
         }
 
-        public User toEntity(String password, String userAgent, String ipAddress, String profile){
+        public User toEntity(String password, String userAgent, String ipAddress, String profile) {
             return User.builder()
                     .email(email)
                     .password(password)
@@ -50,7 +51,7 @@ public class UserRequest {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class EmailSend{
+    public static class EmailSend {
         @Email
         @NotBlank
         private String email;
@@ -59,7 +60,7 @@ public class UserRequest {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class EmailVerify{
+    public static class EmailVerify {
         @Email
         @NotBlank
         private String email;
