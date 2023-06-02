@@ -103,7 +103,7 @@ public class BookmarkControllerTest {
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
         List<Bookmark> all = bookmarkRepository.findAll();
-        Assertions.assertThat(all.isEmpty());
+        Assertions.assertThat(all.get(0).isDeleted() == true);
         resultActions.andExpect(status().isOk());
 
     }

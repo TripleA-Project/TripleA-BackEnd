@@ -1,6 +1,7 @@
 package com.triplea.triplea.dto.news;
 
-import com.triplea.triplea.dto.bookmark.BookmarkDTO;
+import com.triplea.triplea.dto.bookmark.BookmarkResponse;
+import com.triplea.triplea.dto.bookmark.BookmarkResponse.BookmarkDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,8 +17,8 @@ public class NewsResponse {
         private String title;
         private String description;
         private String publishedDate;
-        private BookmarkDTO bookmark;
-        public NewsDTO(ApiResponse.Data data, BookmarkDTO bookmark)
+        private BookmarkResponse.BookmarkDTO bookmark;
+        public NewsDTO(ApiResponse.Data data, BookmarkResponse.BookmarkDTO bookmark)
         {
             this.newsId = data.getId();
             this.source = data.getSource();

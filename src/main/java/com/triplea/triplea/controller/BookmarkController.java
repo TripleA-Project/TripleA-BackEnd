@@ -20,8 +20,7 @@ public class BookmarkController {
     @PostMapping("/api/news/{id}")
     public ResponseEntity<?> insert(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
 
-        if(false == bookmarkService.insertBookmark(id,  myUserDetails.getUser()))
-            throw new Exception500("bookmark insert failed");
+        bookmarkService.insertBookmark(id,  myUserDetails.getUser());
 
         return ResponseEntity.ok().build();
     }
@@ -29,8 +28,7 @@ public class BookmarkController {
     @DeleteMapping("/api/news/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
 
-        if(false == bookmarkService.deleteBookmark(id, myUserDetails.getUser()))
-            throw new Exception500("bookmark delete failed");
+        bookmarkService.deleteBookmark(id, myUserDetails.getUser());
 
         return ResponseEntity.ok().build();
     }
