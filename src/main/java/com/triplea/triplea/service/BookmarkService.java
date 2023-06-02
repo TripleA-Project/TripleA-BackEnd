@@ -2,8 +2,8 @@ package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.model.bookmark.Bookmark;
-import com.triplea.triplea.model.bookmark.BookmarkRepository;
+import com.triplea.triplea.model.bookmark.BookmarkNews;
+import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,21 +17,21 @@ import java.util.Optional;
 @Service
 public class BookmarkService {
 
-    private final BookmarkRepository bookmarkRepository;
+    private final BookmarkNewsRepository bookmarkNewsRepository;
 
     @Transactional
     public void insertBookmark(Long newsid, User user) {
 
         try {
-            Bookmark bookmark = Bookmark.builder()
+            BookmarkNews bookmarkNews = BookmarkNews.builder()
                     .newsId(newsid)
                     .user(user)
                     .isDeleted(false)
                     .build();
 
-            Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+            BookmarkNews savedBookmarkNews = bookmarkNewsRepository.save(bookmarkNews);
 
-            if(savedBookmark == null || savedBookmark.getId() == null) {
+            if(savedBookmarkNews == null || savedBookmarkNews.getId() == null) {
                 log.error("Database error when inserting bookmark: Save operation returned null");
                 throw new Exception500("Database error");
             }
@@ -45,13 +45,13 @@ public class BookmarkService {
     public void deleteBookmark(Long newsid, User user) {
 
         try{
-            Optional<Bookmark> bookmarkPS = bookmarkRepository.findByNewsIdAndUser(newsid, user);
+            Optional<BookmarkNews> bookmarkPS = bookmarkNewsRepository.findByNewsIdAndUser(newsid, user);
             if(false == bookmarkPS.isPresent()) {
                 log.error("Bookmark not found for news {} and user {}", newsid, user);
                 throw new Exception400("bookmark", "Bookmark not found");
             }
 
-                bookmarkPS.get().setDeleted(true);
+                bookmarkPS.get().deleteBookmark();
 
         }catch(DataAccessException e){
             log.error("Database error when deleting bookmark", e);

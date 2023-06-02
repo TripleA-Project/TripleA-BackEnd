@@ -2,9 +2,8 @@ package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
-import com.triplea.triplea.dto.bookmark.BookmarkResponse.BookmarkDTO;
-import com.triplea.triplea.model.bookmark.Bookmark;
-import com.triplea.triplea.model.bookmark.BookmarkRepository;
+import com.triplea.triplea.model.bookmark.BookmarkNews;
+import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.news.NewsRepository;
 import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,7 @@ public class NewsService {
 
     private final NewsRepository newsRepository;
 
-    private final BookmarkRepository bookmarkRepository;
+    private final BookmarkNewsRepository bookmarkNewsRepository;
 
     @Value("${moya.token}")
     private String moyaToken;
@@ -48,10 +47,10 @@ public class NewsService {
             List<NewsDTO> newsDTOList = new ArrayList<>();
             for (Data data : datas) {
 
-                List<Bookmark> bookmarkList = bookmarkRepository.findByNewsId(data.getId());
-                Optional<Bookmark> opBookmark = bookmarkRepository.findByNewsIdAndUser(data.getId(), user);
+                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
+                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
                 NewsDTO newsDTO = new NewsDTO(data, bookmarkDTO);
                 newsDTOList.add(newsDTO);

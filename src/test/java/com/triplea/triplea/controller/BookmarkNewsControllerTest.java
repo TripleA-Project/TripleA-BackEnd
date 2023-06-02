@@ -1,10 +1,8 @@
 package com.triplea.triplea.controller;
 
-import com.triplea.triplea.core.auth.session.MyUserDetails;
-import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.dummy.DummyEntity;
-import com.triplea.triplea.model.bookmark.Bookmark;
-import com.triplea.triplea.model.bookmark.BookmarkRepository;
+import com.triplea.triplea.model.bookmark.BookmarkNews;
+import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import com.triplea.triplea.service.BookmarkService;
@@ -12,25 +10,19 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("dev")
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class BookmarkControllerTest {
+public class BookmarkNewsControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,14 +40,14 @@ public class BookmarkControllerTest {
     private BookmarkService bookmarkService;
 
     @Autowired
-    private BookmarkRepository bookmarkRepository;
+    private BookmarkNewsRepository bookmarkNewsRepository;
     @Autowired
     private UserRepository userRepository;
 
     @BeforeEach
     public void setup() {
 
-        bookmarkRepository.deleteAll();
+        bookmarkNewsRepository.deleteAll();
         userRepository.deleteAll();
 
         String email = "dotori@nate.com";
@@ -78,9 +70,9 @@ public class BookmarkControllerTest {
 
         resultActions.andExpect(status().isOk());
 
-        List<Bookmark> bookmarkList = bookmarkRepository.findByNewsId(newsId);
-        Assertions.assertThat(bookmarkList.size() == 1);
-        Assertions.assertThat(bookmarkList.get(0).getNewsId() == newsId);
+        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(newsId);
+        Assertions.assertThat(bookmarkNewsList.size() == 1);
+        Assertions.assertThat(bookmarkNewsList.get(0).getNewsId() == newsId);
     }
 
     @DisplayName("북마크 삭제")
@@ -91,18 +83,18 @@ public class BookmarkControllerTest {
         Long newsId = 999L;
 
         Optional<User> userPS = userRepository.findUserByEmail("dotori@nate.com");
-        Bookmark bookmark = Bookmark.builder()
+        BookmarkNews bookmarkNews = BookmarkNews.builder()
                 .user(userPS.get())
                 .newsId(newsId)
                 .isDeleted(false)
                 .build();
-        Bookmark bookmarkPS = bookmarkRepository.save(bookmark);
+        BookmarkNews bookmarkNewsPS = bookmarkNewsRepository.save(bookmarkNews);
 
         ResultActions resultActions = mockMvc
                 .perform(delete("/api/news/" + newsId).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
-        List<Bookmark> all = bookmarkRepository.findAll();
+        List<BookmarkNews> all = bookmarkNewsRepository.findAll();
         Assertions.assertThat(all.get(0).isDeleted() == true);
         resultActions.andExpect(status().isOk());
 
