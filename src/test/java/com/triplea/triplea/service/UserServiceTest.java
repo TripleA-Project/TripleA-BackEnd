@@ -238,4 +238,53 @@ class UserServiceTest {
             Assertions.assertDoesNotThrow(() -> userService.subscribe(user));
         }
     }
+
+    @Nested
+    @DisplayName("구독 확인")
+    class SubscribeSuccess {
+        @Test
+        @DisplayName("성공")
+        void test1() throws IOException {
+            //given
+            String orderCode = "orderCode";
+            Customer customer = Customer.builder()
+                    .id(1L)
+                    .user(user)
+                    .customerCode("customerCode")
+                    .build();
+            //when
+            when(customerRepository.findCustomerByUserId(anyLong()))
+                    .thenReturn(Optional.ofNullable(customer));
+            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
+            Response mockResponse = new Response.Builder()
+                    .code(200)
+                    .message("OK")
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("https://example.com").build())
+                    .body(body)
+                    .build();
+            when(subscriber.getOrder(anyString()))
+                    .thenReturn(mockResponse);
+            when(subscriber.getSubscriptionId(any(Response.class)))
+                    .thenReturn(1L);
+            userService.subscribeOk(orderCode, user);
+            //then
+            verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
+            verify(subscriber, times(1)).getOrder(orderCode);
+            verify(subscriber, times(1)).getSubscriptionId(mockResponse);
+            Assertions.assertDoesNotThrow(() -> userService.subscribeOk(orderCode, user));
+        }
+
+        @Test
+        @DisplayName("실패: customer 없음")
+        void test2() {
+            //given
+            String orderCode = "orderCode";
+            //when
+            when(customerRepository.findCustomerByUserId(anyLong()))
+                    .thenReturn(Optional.empty());
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.subscribeOk(orderCode, user));
+        }
+    }
 }

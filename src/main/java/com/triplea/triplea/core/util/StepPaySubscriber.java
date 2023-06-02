@@ -109,11 +109,47 @@ public class StepPaySubscriber {
      * @throws IOException
      */
     public Response getPaymentLink(String orderCode) throws IOException {
+        String successUrl = "";
         Request request = new Request.Builder()
-                .url("https://api.steppay.kr/api/v1/orders/" + orderCode + "/pay")
+                .url("https://api.steppay.kr/api/v1/orders/" + orderCode + "/pay?successUrl=" + successUrl)
                 .get()
                 .headers(Headers.of("accept", "*/*", "Secret-Token", secretToken))
                 .build();
         return CLIENT.newCall(request).execute();
+    }
+
+    /**
+     * step pay 주문 상세조회 API Request
+     * @param orderCode
+     * @return Response
+     * @throws IOException
+     */
+    public Response getOrder(String orderCode) throws IOException {
+        Request request = new Request.Builder()
+                .url("https://api.steppay.kr/api/v1/orders/" + orderCode)
+                .get()
+                .headers(Headers.of("accept", "*/*", "Secret-Token", secretToken))
+                .build();
+        return CLIENT.newCall(request).execute();
+    }
+
+    /**
+     * step pay 주문 상세조회 API Response
+     * @param getOrder
+     * @return Long subscriptionId
+     * @throws IOException
+     */
+    public Long getSubscriptionId(Response getOrder) throws IOException {
+        if (getOrder.isSuccessful()) {
+            String json = getOrder.body() != null ? getOrder.body().string() : "";
+            if (!json.isEmpty()) {
+                JsonNode rootNode = OM.readTree(json);
+                JsonNode subscription = rootNode.path("subscriptions");
+                if (subscription.isArray()) {
+                    return subscription.get(0).path("id").asLong();
+                } else throw new Exception500("Step Pay 구독 결과가 없습니다");
+            } else throw new Exception500("Step Pay 주문 조회 API Response 실패");
+        }
+        throw new Exception500("Step Pay 주문 조회 API 실패");
     }
 }

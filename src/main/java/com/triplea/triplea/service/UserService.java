@@ -93,7 +93,25 @@ public class UserService {
         } catch (IOException e) {
             throw new Exception500("결제링크 생성 실패: " + e.getMessage());
         }
-        return null;
+        throw new Exception500("구독 실패");
+    }
+
+    // 구독 확인
+    @Transactional
+    public void subscribeOk(String orderCode, User user) {
+        Customer customer = customerRepository.findCustomerByUserId(user.getId()).orElseThrow(
+                () -> new Exception400("customer", "잘못된 요청입니다"));
+        try (Response response = subscriber.getOrder(orderCode)) {
+            if (response.isSuccessful()) {
+                Long subscriptionId = subscriber.getSubscriptionId(response);
+                customer.subscribe(subscriptionId);
+                user.changeMembership(User.Membership.PREMIUM);
+                return;
+            }
+        } catch (Exception e) {
+            throw new Exception500("주문 상세조회 실패: " + e.getMessage());
+        }
+        throw new Exception500("subscriptionId 가져오기 실패");
     }
 
     /**

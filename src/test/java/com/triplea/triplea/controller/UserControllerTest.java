@@ -130,4 +130,18 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
+
+    @Test
+    @DisplayName("구독 확인")
+    void test() throws Exception {
+        //given
+        String orderCode = "orderCode";
+        String accessToken = MyJwtProvider.create(user);
+        //when then
+        mockMvc.perform(get("/api/subscribe/success?order_code="+orderCode)
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
 }

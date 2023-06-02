@@ -48,4 +48,11 @@ public class UserController {
         UserResponse.Payment payment = userService.subscribe(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(payment));
     }
+
+    // 구독 확인
+    @GetMapping("/subscribe/success")
+    public ResponseEntity<?> subscribeOk(@RequestParam("order_code") String orderCode, @AuthenticationPrincipal MyUserDetails myUserDetails) {
+        userService.subscribeOk(orderCode, myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
 }
