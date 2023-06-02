@@ -11,8 +11,8 @@ import javax.persistence.*;
 @Getter @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "bookmakr_tb")
-public class Bookmark extends Timestamped {
+@Table(name = "bookmakr_news_tb")
+public class BookmarkNews extends Timestamped {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -24,7 +24,7 @@ public class Bookmark extends Timestamped {
     private boolean isDeleted;
 
 
-    public Bookmark(User user, Long newsId) {
+    public BookmarkNews(User user, Long newsId) {
         this.user = user;
         this.newsId = newsId;
         this.isDeleted = false;

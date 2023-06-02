@@ -6,10 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
+public interface BookmarkNewsRepository extends JpaRepository<BookmarkNews, Long> {
 
-    List<Bookmark> findByNewsId(Long newsId);
+    List<BookmarkNews> findByNewsId(Long newsId);
 
-    Optional<Bookmark> findByNewsIdAndUser(Long newsId, User user);
+    Optional<BookmarkNews> findByNewsIdAndUser(Long newsId, User user);
 
 }
