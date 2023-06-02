@@ -1,9 +1,13 @@
 package com.triplea.triplea.dto.user;
 
 import com.triplea.triplea.model.user.User;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.*;
+import java.util.List;
 
 @Getter
 public class UserRequest {
@@ -66,5 +70,40 @@ public class UserRequest {
         private String email;
         @NotBlank
         private String code;
+    }
+
+    @Getter @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Customer{
+        @NotBlank
+        private String name;
+        @Email
+        @NotBlank
+        private String email;
+    }
+
+    @Getter @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Order{
+        @NotNull
+        private List<Item> items;
+        @NotNull
+        private Long customerId;
+        @NotNull
+        private String customerCode;
+
+        @Getter @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Item{
+            private final String currency = "KRW";
+            private final int minimumQuantity = 1;
+            @NotNull
+            private String productCode;
+            @NotNull
+            private String priceCode;
+        }
     }
 }

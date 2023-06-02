@@ -1,15 +1,15 @@
 package com.triplea.triplea.controller;
 
+import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.user.UserRequest;
+import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -40,5 +40,12 @@ public class UserController {
     public ResponseEntity<?> emailVerified(@RequestBody @Valid UserRequest.EmailVerify request, Errors errors) {
         userService.emailVerified(request);
         return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
+
+    // 구독
+    @GetMapping("/subscribe")
+    public ResponseEntity<?> subscribe(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+        UserResponse.Payment payment = userService.subscribe(myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(payment));
     }
 }

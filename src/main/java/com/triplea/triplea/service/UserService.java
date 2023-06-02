@@ -3,14 +3,23 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
+import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.dto.user.UserRequest;
+import com.triplea.triplea.dto.user.UserResponse;
+import com.triplea.triplea.model.customer.Customer;
+import com.triplea.triplea.model.customer.CustomerRepository;
+import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -19,9 +28,15 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final HttpSession session;
     private final MailUtils mailUtils;
+    private final StepPaySubscriber subscriber;
+    @Value("${step-pay.product-code}")
+    private String productCode;
+    @Value("${step-pay.price-code}")
+    private String priceCode;
 
     // 회원가입
     @Transactional
@@ -55,5 +70,73 @@ public class UserService {
             throw new Exception400("email", "이메일이 잘못 되었습니다");
         }
         if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
+    }
+
+    // 구독
+    public UserResponse.Payment subscribe(User user) {
+        String orderCode;
+        // 이미 구독을 한 적 있으면 새로 고객 생성을 하지 않기 위해
+        UserRequest.Order order = customerRepository.findCustomerByUserId(user.getId())
+                .map(this::createOrderWithExistingCustomer)
+                .orElseGet(() -> createOrderWithNewCustomer(user));
+        // 주문 생성
+        try (Response getOrder = subscriber.postOrder(order)) {
+            orderCode = subscriber.getOrderCode(getOrder);
+        } catch (IOException e) {
+            throw new Exception500("주문 생성 실패: " + e.getMessage());
+        }
+        // 결제 링크
+        try (Response getLink = subscriber.getPaymentLink(orderCode)) {
+            if (getLink.isSuccessful()) {
+                return new UserResponse.Payment(getLink.request().url().url());
+            }
+        } catch (IOException e) {
+            throw new Exception500("결제링크 생성 실패: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 이미 구독한 적이 있다면 해당 customer 정보로 주문 생성
+     */
+    private UserRequest.Order createOrderWithExistingCustomer(Customer customer) {
+        return UserRequest.Order.builder()
+                .customerId(customer.getId())
+                .customerCode(customer.getCustomerCode())
+                .items(List.of(UserRequest.Order.Item.builder()
+                        .productCode(productCode)
+                        .priceCode(priceCode)
+                        .build()))
+                .build();
+    }
+
+    /**
+     * 구독한 적이 없다면 step pay 고객 생성 API로 고객 등록 후 주문 생성
+     */
+    private UserRequest.Order createOrderWithNewCustomer(User user) throws Exception500 {
+        try (Response postCustomer = subscriber.postCustomer(user)) {
+            UserRequest.Order order = subscriber.responseCustomer(postCustomer, productCode, priceCode);
+            createCustomer(order, user);
+            return order;
+        } catch (IOException e) {
+            throw new Exception500("고객 생성 실패: " + e.getMessage());
+        }
+    }
+
+    /**
+     * customer 저장
+     */
+    @Transactional
+    public void createCustomer(UserRequest.Order order, User user) {
+        Customer customer = Customer.builder()
+                .id(order.getCustomerId())
+                .customerCode(order.getCustomerCode())
+                .user(user)
+                .build();
+        try {
+            customerRepository.save(customer);
+        } catch (Exception e) {
+            throw new Exception500("고객 저장 실패: " + e.getMessage());
+        }
     }
 }

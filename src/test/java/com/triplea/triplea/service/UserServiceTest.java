@@ -3,20 +3,28 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
+import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.dto.user.UserRequest;
+import com.triplea.triplea.model.customer.Customer;
+import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
+import okhttp3.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -26,11 +34,15 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private CustomerRepository customerRepository;
+    @Mock
     private BCryptPasswordEncoder passwordEncoder;
     @Mock
     private HttpSession session;
     @Mock
     private MailUtils mailUtils;
+    @Mock
+    private StepPaySubscriber subscriber;
 
     private final User user = User.builder()
             .id(1L)
@@ -130,6 +142,100 @@ class UserServiceTest {
                 //then
                 Assertions.assertThrows(Exception400.class, () -> userService.emailVerified(emailVerify));
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("구독")
+    class Subscribe {
+        @Test
+        @DisplayName("성공 1: customer 생성")
+        void test1() throws IOException {
+            //given
+            String productCode = "product_1";
+            String priceCode = "price_1";
+            ReflectionTestUtils.setField(userService, "productCode", productCode);
+            ReflectionTestUtils.setField(userService, "priceCode", priceCode);
+            //when
+            when(customerRepository.findCustomerByUserId(anyLong()))
+                    .thenReturn(Optional.empty());
+            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
+            Response mockResponse = new Response.Builder()
+                    .code(200)
+                    .message("OK")
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("https://example.com").build())
+                    .body(body)
+                    .build();
+            when(subscriber.postCustomer(any(User.class)))
+                    .thenReturn(mockResponse);
+            when(subscriber.responseCustomer(any(Response.class), anyString(), anyString()))
+                    .thenReturn(UserRequest.Order.builder()
+                            .customerId(1L)
+                            .customerCode("customerCode")
+                            .items(List.of(UserRequest.Order.Item.builder()
+                                    .productCode(productCode)
+                                    .priceCode(priceCode)
+                                    .build()))
+                            .build());
+            when(subscriber.postOrder(any(UserRequest.Order.class)))
+                    .thenReturn(mockResponse);
+            when(subscriber.getOrderCode(any(Response.class)))
+                    .thenReturn("orderCode");
+            when(subscriber.getPaymentLink(anyString()))
+                    .thenReturn(mockResponse);
+            userService.subscribe(user);
+            //then
+            verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
+            verify(subscriber, times(1)).postCustomer(user);
+            verify(subscriber, times(1)).responseCustomer(any(Response.class), anyString(), anyString());
+            verify(customerRepository, times(1)).save(any(Customer.class));
+            verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
+            verify(subscriber, times(1)).getOrderCode(any(Response.class));
+            verify(subscriber, times(1)).getPaymentLink(anyString());
+            Assertions.assertDoesNotThrow(() -> userService.subscribe(user));
+        }
+
+        @Test
+        @DisplayName("성공 2: customer 있음")
+        void test2() throws IOException {
+            //given
+            String productCode = "product_1";
+            String priceCode = "price_1";
+            ReflectionTestUtils.setField(userService, "productCode", productCode);
+            ReflectionTestUtils.setField(userService, "priceCode", priceCode);
+            Customer customer = Customer.builder()
+                    .id(1L)
+                    .user(user)
+                    .customerCode("customerCode")
+                    .build();
+            //when
+            when(customerRepository.findCustomerByUserId(1L))
+                    .thenReturn(Optional.ofNullable(customer));
+            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
+            Response mockResponse = new Response.Builder()
+                    .code(200)
+                    .message("OK")
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("https://example.com").build())
+                    .body(body)
+                    .build();
+            when(subscriber.postOrder(any(UserRequest.Order.class)))
+                    .thenReturn(mockResponse);
+            when(subscriber.getOrderCode(any(Response.class)))
+                    .thenReturn("orderCode");
+            when(subscriber.getPaymentLink(anyString()))
+                    .thenReturn(mockResponse);
+            userService.subscribe(user);
+            //then
+            verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
+            verify(subscriber, times(0)).postCustomer(user);
+            verify(subscriber, times(0)).responseCustomer(any(Response.class), anyString(), anyString());
+            verify(customerRepository, times(0)).save(any(Customer.class));
+            verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
+            verify(subscriber, times(1)).getOrderCode(any(Response.class));
+            verify(subscriber, times(1)).getPaymentLink(anyString());
+            Assertions.assertDoesNotThrow(() -> userService.subscribe(user));
         }
     }
 }

@@ -1,8 +1,10 @@
 package com.triplea.triplea.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.dto.user.UserRequest;
+import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,10 +22,11 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@Import(MySecurityConfig.class)
+@Import({MySecurityConfig.class, MyJwtProvider.class})
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
@@ -37,6 +40,18 @@ class UserControllerTest {
             new MediaType(MediaType.APPLICATION_JSON.getType(),
                     MediaType.APPLICATION_JSON.getSubtype(),
                     StandardCharsets.UTF_8);
+
+    private final User user = User.builder()
+            .id(1L)
+            .email("test@example.com")
+            .password("123456")
+            .fullName("tester")
+            .newsLetter(true)
+            .emailVerified(true)
+            .userAgent("Custom User Agent")
+            .clientIP("127.0.0.1")
+            .profile("profile1")
+            .build();
 
     @Test
     @DisplayName("회원가입")
@@ -99,6 +114,19 @@ class UserControllerTest {
                         .with(csrf())
                         .contentType(contentType)
                         .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("구독")
+    void subscribe() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.create(user);
+        //when then
+        mockMvc.perform(get("/api/subscribe")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
