@@ -1,7 +1,8 @@
 package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.dto.bookmark.BookmarkDTO;
+import com.triplea.triplea.dto.bookmark.BookmarkResponse;
+import com.triplea.triplea.dto.bookmark.BookmarkResponse.BookmarkDTO;
 import com.triplea.triplea.model.bookmark.Bookmark;
 import com.triplea.triplea.model.bookmark.BookmarkRepository;
 import com.triplea.triplea.model.news.NewsRepository;
@@ -12,8 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +33,8 @@ public class NewsService {
     @Value("${moya.token}")
     private String moyaToken;
 
-    @Transactional
-    public List<NewsDTO> 전체뉴스조회(User user) {
+    @Transactional(readOnly = true)
+    public List<NewsDTO> searchAllNews(User user) {
 
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.moya.ai/globalnews?token=" + moyaToken;
@@ -50,7 +51,7 @@ public class NewsService {
                 List<Bookmark> bookmarkList = bookmarkRepository.findByNewsId(data.getId());
                 Optional<Bookmark> opBookmark = bookmarkRepository.findByNewsIdAndUser(data.getId(), user);
 
-                BookmarkDTO bookmarkDTO = new BookmarkDTO(bookmarkList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkList.size(), opBookmark.isPresent());
 
                 NewsDTO newsDTO = new NewsDTO(data, bookmarkDTO);
                 newsDTOList.add(newsDTO);

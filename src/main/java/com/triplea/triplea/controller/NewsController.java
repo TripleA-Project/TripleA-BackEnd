@@ -22,7 +22,7 @@ public class NewsController {
     @GetMapping("/api/news/latest")
     public ResponseEntity<?> getGlobalNews(@AuthenticationPrincipal MyUserDetails myUserDetails){
 
-        List<NewsResponse.NewsDTO> newsDTOList = newsService.전체뉴스조회(myUserDetails.getUser());
+        List<NewsResponse.NewsDTO> newsDTOList = newsService.searchAllNews(myUserDetails.getUser());
 
         ResponseDTO<?> responseDTO = new ResponseDTO<>(newsDTOList);
 

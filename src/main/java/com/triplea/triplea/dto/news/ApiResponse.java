@@ -36,7 +36,6 @@ public class ApiResponse {
     public static class GlobalNewsDTO{
 
         private Long nextPage;
-
         private List<Data> datas;
 
     }
