@@ -16,7 +16,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class StepPaySubscriber {
-    private final OkHttpClient CLIENT;
+    private final OkHttpClient CLIENT = new OkHttpClient();
     private final MediaType MEDIATYPE = MediaType.parse("application/json");
     private final ObjectMapper OM;
 
