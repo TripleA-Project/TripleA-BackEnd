@@ -62,4 +62,11 @@ public class UserController {
         userService.subscribeCancel(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
+
+    // 구독내역 조회용 세션키
+    @GetMapping("/subscribe/session")
+    public ResponseEntity<?> subscribeSession(@AuthenticationPrincipal MyUserDetails myUserDetails){
+        UserResponse.Session session = userService.subscribeSession(myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(session));
+    }
 }

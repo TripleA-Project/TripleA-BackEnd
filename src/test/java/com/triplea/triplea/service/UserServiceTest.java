@@ -5,6 +5,7 @@ import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.dto.user.UserRequest;
+import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
@@ -303,7 +304,7 @@ class UserServiceTest {
             customer.subscribe(1L);
             //when
             when(customerRepository.findCustomerByUserId(anyLong()))
-                    .thenReturn(Optional.ofNullable(customer));
+                    .thenReturn(Optional.of(customer));
             ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
             Response mockResponse = new Response.Builder()
                     .code(200)
@@ -330,6 +331,76 @@ class UserServiceTest {
                     .thenReturn(Optional.empty());
             //then
             Assertions.assertThrows(Exception400.class, () -> userService.subscribeCancel(user));
+        }
+    }
+
+    @Nested
+    @DisplayName("구독 세션")
+    class SubscribeSession {
+        @Test
+        @DisplayName("성공")
+        void test1() throws IOException {
+            //given
+            Customer customer = Customer.builder()
+                    .id(1L)
+                    .user(user)
+                    .customerCode("customerCode")
+                    .build();
+            customer.subscribe(1L);
+            //when
+            when(customerRepository.findCustomerByUserId(anyLong()))
+                    .thenReturn(Optional.of(customer));
+            ResponseBody body = ResponseBody.create("session", MediaType.parse("application/json"));
+            Response mockResponse = new Response.Builder()
+                    .code(200)
+                    .message("OK")
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("https://example.com").build())
+                    .body(body)
+                    .build();
+            when(subscriber.getSession(anyLong())).thenReturn(mockResponse);
+            UserResponse.Session result = userService.subscribeSession(user);
+            //then
+            verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
+            verify(subscriber, times(1)).getSession(anyLong());
+            Assertions.assertEquals("session", result.getSession());
+        }
+
+        @Test
+        @DisplayName("실패1: customer 없음")
+        void test2() {
+            //given
+            //when
+            when(customerRepository.findCustomerByUserId(anyLong()))
+                    .thenReturn(Optional.empty());
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.subscribeSession(user));
+        }
+
+        @Test
+        @DisplayName("실패2: session key 없음")
+        void test3() throws IOException {
+            //given
+            Customer customer = Customer.builder()
+                    .id(1L)
+                    .user(user)
+                    .customerCode("customerCode")
+                    .build();
+            customer.subscribe(1L);
+            //when
+            when(customerRepository.findCustomerByUserId(anyLong()))
+                    .thenReturn(Optional.of(customer));
+            ResponseBody body = ResponseBody.create("", MediaType.parse("application/json"));
+            Response mockResponse = new Response.Builder()
+                    .code(200)
+                    .message("OK")
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("https://example.com").build())
+                    .body(body)
+                    .build();
+            when(subscriber.getSession(anyLong())).thenReturn(mockResponse);
+            //then
+            Assertions.assertThrows(Exception500.class, () -> userService.subscribeSession(user));
         }
     }
 }

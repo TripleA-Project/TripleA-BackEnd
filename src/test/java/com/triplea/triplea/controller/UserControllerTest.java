@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.dto.user.UserRequest;
+import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -16,11 +17,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -122,11 +125,15 @@ class UserControllerTest {
     void subscribe() throws Exception {
         //given
         String accessToken = MyJwtProvider.create(user);
-        //when then
+        //when
+        String url = "https://example.com";
+        when(userService.subscribe(any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
+        //then
         mockMvc.perform(get("/api/subscribe")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.payment", is(url)))
                 .andReturn();
     }
 
@@ -154,6 +161,22 @@ class UserControllerTest {
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("구독 세션")
+    void subscribeSession() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.create(user);
+        //when
+        when(userService.subscribeSession(any(User.class))).thenReturn(new UserResponse.Session("session"));
+        //then
+        mockMvc.perform(get("/api/subscribe/session")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.session", is("session")))
                 .andReturn();
     }
 }

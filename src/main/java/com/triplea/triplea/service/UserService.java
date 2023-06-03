@@ -124,6 +124,22 @@ public class UserService {
         }
     }
 
+    // 구독내역 조회용 세션키
+    public UserResponse.Session subscribeSession(User user) {
+        Customer customer = getCustomer(user);
+        Long customerId = customer.getId();
+        try (Response response = subscriber.getSession(customerId)) {
+            if (response.isSuccessful()) {
+                String body = response.body() != null ? response.body().string() : "";
+                if (!body.isEmpty()) return new UserResponse.Session(body);
+                throw new Exception500("Step Pay 세션 생성 API Response 실패");
+            }
+            throw new Exception500("Step Pay 세션 생성회 API 실패");
+        } catch (Exception e) {
+            throw new Exception500("세션 생성 실패: " + e.getMessage());
+        }
+    }
+
     /**
      * 이미 구독한 적이 있다면 해당 customer 정보로 주문 생성
      */

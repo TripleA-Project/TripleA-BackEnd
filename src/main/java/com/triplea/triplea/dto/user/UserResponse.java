@@ -13,4 +13,11 @@ public class UserResponse {
     public static class Payment{
         private URL payment;
     }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Session{
+        private String session;
+    }
 }

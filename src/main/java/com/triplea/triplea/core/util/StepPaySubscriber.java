@@ -171,6 +171,22 @@ public class StepPaySubscriber {
     }
 
     /**
+     * step pay 세션 생성 API Request
+     * @param customerId 고객번호
+     * @return Response
+     * @throws IOException execute
+     */
+    public Response getSession(Long customerId) throws IOException {
+        Request request = new Request.Builder()
+                .url("https://api.steppay.kr/api/v1/session/" + customerId)
+                .get()
+                .headers(Headers.of("accept", "*/*", "Secret-Token", secretToken))
+                .build();
+
+        return CLIENT.newCall(request).execute();
+    }
+
+    /**
      * step pay 구독 상세조회 API Request, Response: 현재 구독 상태 확인
      * @param subscriptionId 구독 ID
      * @return boolean
