@@ -152,4 +152,21 @@ public class StepPaySubscriber {
         }
         throw new Exception500("Step Pay 주문 조회 API 실패");
     }
+
+    /**
+     * step pay 구독 취소 API Request
+     * @param subscriptionId
+     * @return Response
+     * @throws IOException
+     */
+    public Response cancelSubscription(Long subscriptionId) throws IOException {
+        RequestBody body = RequestBody.create("{\"whenToCancel\":\"NOW\"}", MEDIATYPE);
+        Request request = new Request.Builder()
+                .url("https://api.steppay.kr/api/v1/subscriptions/" + subscriptionId + "/cancel")
+                .post(body)
+                .headers(Headers.of("accept", "*/*", "content-type", MEDIATYPE.type(), "Secret-Token", secretToken))
+                .build();
+
+        return CLIENT.newCall(request).execute();
+    }
 }

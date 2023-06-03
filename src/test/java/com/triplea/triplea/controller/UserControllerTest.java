@@ -22,8 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @Import({MySecurityConfig.class, MyJwtProvider.class})
@@ -133,12 +132,25 @@ class UserControllerTest {
 
     @Test
     @DisplayName("구독 확인")
-    void test() throws Exception {
+    void subscribeOk() throws Exception {
         //given
         String orderCode = "orderCode";
         String accessToken = MyJwtProvider.create(user);
         //when then
         mockMvc.perform(get("/api/subscribe/success?order_code="+orderCode)
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("구독 취소")
+    void subscribeCancel() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.create(user);
+        //when then
+        mockMvc.perform(delete("/api/subscribe")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

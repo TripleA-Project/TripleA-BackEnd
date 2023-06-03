@@ -99,8 +99,7 @@ public class UserService {
     // 구독 확인
     @Transactional
     public void subscribeOk(String orderCode, User user) {
-        Customer customer = customerRepository.findCustomerByUserId(user.getId()).orElseThrow(
-                () -> new Exception400("customer", "잘못된 요청입니다"));
+        Customer customer = getCustomer(user);
         try (Response response = subscriber.getOrder(orderCode)) {
             if (response.isSuccessful()) {
                 Long subscriptionId = subscriber.getSubscriptionId(response);
@@ -112,6 +111,17 @@ public class UserService {
             throw new Exception500("주문 상세조회 실패: " + e.getMessage());
         }
         throw new Exception500("subscriptionId 가져오기 실패");
+    }
+
+    // 구독 취소
+    @Transactional
+    public void subscribeCancel(User user) {
+        Customer customer = getCustomer(user);
+        try (Response response = subscriber.cancelSubscription(customer.getSubscriptionId())) {
+            if (response.isSuccessful()) customer.deactivateSubscription();
+        } catch (Exception e) {
+            throw new Exception500("구독 취소 실패: " + e.getMessage());
+        }
     }
 
     /**
@@ -156,5 +166,13 @@ public class UserService {
         } catch (Exception e) {
             throw new Exception500("고객 저장 실패: " + e.getMessage());
         }
+    }
+
+    /**
+     * user id로 customer 찾고 없으면 예외처리
+     */
+    private Customer getCustomer(User user) {
+        return customerRepository.findCustomerByUserId(user.getId()).orElseThrow(
+                () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 }

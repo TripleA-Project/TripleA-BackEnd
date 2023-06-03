@@ -55,4 +55,11 @@ public class UserController {
         userService.subscribeOk(orderCode, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
+
+    // 구독 취소
+    @DeleteMapping("/subscribe")
+    public ResponseEntity<?> subscribeCancel(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+        userService.subscribeCancel(myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
 }
