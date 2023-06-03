@@ -169,4 +169,29 @@ public class StepPaySubscriber {
 
         return CLIENT.newCall(request).execute();
     }
+
+    /**
+     * step pay 구독 상세조회 API Request, Response: 현재 구독 상태 확인
+     * @param subscriptionId 구독 ID
+     * @return boolean
+     * @throws IOException execute
+     */
+    public boolean isSubscribe(Long subscriptionId) throws IOException {
+        Request request = new Request.Builder()
+                .url("https://api.steppay.kr/api/v1/subscriptions/" + subscriptionId)
+                .get()
+                .headers(Headers.of("accept", "*/*", "Secret-Token", secretToken))
+                .build();
+
+        Response response = CLIENT.newCall(request).execute();
+        if (response.isSuccessful()) {
+            String json = response.body() != null ? response.body().string() : "";
+            if (!json.isEmpty()) {
+                JsonNode rootNode = OM.readTree(json);
+                String status = rootNode.path("status").asText();
+                return status.equals("ACTIVE");
+            } else throw new Exception500("Step Pay 구독 상세 조회 API Response 실패");
+        }
+        throw new Exception500("Step Pay 구독 상세 조회 API 실패");
+    }
 }
