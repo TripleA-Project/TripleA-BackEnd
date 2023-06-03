@@ -16,18 +16,18 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class StepPaySubscriber {
-    private final OkHttpClient CLIENT = new OkHttpClient();
+    private final OkHttpClient CLIENT;
     private final MediaType MEDIATYPE = MediaType.parse("application/json");
-    private final ObjectMapper OM = new ObjectMapper();
+    private final ObjectMapper OM;
 
     @Value("${step-pay.secret-token}")
     private String secretToken;
 
     /**
      * step pay 고객 생성 API Request
-     * @param user
+     * @param user 로그인한 사용자
      * @return Response
-     * @throws IOException
+     * @throws IOException execute
      */
     public Response postCustomer(User user) throws IOException {
         UserRequest.Customer customer = UserRequest.Customer.builder()
@@ -45,11 +45,11 @@ public class StepPaySubscriber {
 
     /**
      * step pay 고객 생성 API Response: customerId, customerCode
-     * @param getCustomer
-     * @param productCode
-     * @param priceCode
+     * @param getCustomer 고객 생성 API 의 Response
+     * @param productCode 상품 코드
+     * @param priceCode 가격 코드
      * @return Order
-     * @throws IOException
+     * @throws IOException json
      */
     public UserRequest.Order responseCustomer(Response getCustomer, String productCode, String priceCode) throws IOException {
         if (getCustomer.isSuccessful()) {
@@ -71,9 +71,9 @@ public class StepPaySubscriber {
 
     /**
      * step pay 주문 생성 API Request
-     * @param order
+     * @param order RequestBody
      * @return Response
-     * @throws IOException
+     * @throws IOException execute
      */
     public Response postOrder(UserRequest.Order order) throws IOException {
         RequestBody requestBody = RequestBody.create(OM.writeValueAsString(order), MEDIATYPE);
@@ -87,9 +87,9 @@ public class StepPaySubscriber {
 
     /**
      * step pay 주문 생성 API Response
-     * @param postOrder
+     * @param postOrder 주문 생성 API 의 Response
      * @return String orderCode
-     * @throws IOException
+     * @throws IOException json
      */
     public String getOrderCode(Response postOrder) throws IOException {
         if (postOrder.isSuccessful()) {
@@ -104,9 +104,9 @@ public class StepPaySubscriber {
 
     /**
      * step pay 주문 결제링크 리다이렉트 API Request
-     * @param orderCode
+     * @param orderCode 주문 코드
      * @return Response
-     * @throws IOException
+     * @throws IOException execute
      */
     public Response getPaymentLink(String orderCode) throws IOException {
         String successUrl = "";
@@ -120,9 +120,9 @@ public class StepPaySubscriber {
 
     /**
      * step pay 주문 상세조회 API Request
-     * @param orderCode
+     * @param orderCode 주문 코드
      * @return Response
-     * @throws IOException
+     * @throws IOException execute
      */
     public Response getOrder(String orderCode) throws IOException {
         Request request = new Request.Builder()
@@ -135,9 +135,9 @@ public class StepPaySubscriber {
 
     /**
      * step pay 주문 상세조회 API Response
-     * @param getOrder
+     * @param getOrder 주문 상세 조회 API 의 Response
      * @return Long subscriptionId
-     * @throws IOException
+     * @throws IOException json
      */
     public Long getSubscriptionId(Response getOrder) throws IOException {
         if (getOrder.isSuccessful()) {
@@ -155,9 +155,9 @@ public class StepPaySubscriber {
 
     /**
      * step pay 구독 취소 API Request
-     * @param subscriptionId
+     * @param subscriptionId 구독 ID
      * @return Response
-     * @throws IOException
+     * @throws IOException execute
      */
     public Response cancelSubscription(Long subscriptionId) throws IOException {
         RequestBody body = RequestBody.create("{\"whenToCancel\":\"NOW\"}", MEDIATYPE);
