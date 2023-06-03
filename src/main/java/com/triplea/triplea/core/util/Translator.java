@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.dto.news.NewsRequest;
+import lombok.RequiredArgsConstructor;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -12,10 +13,11 @@ import java.io.IOException;
 import java.util.StringJoiner;
 
 @Component
+@RequiredArgsConstructor
 public class Translator {
     private final OkHttpClient CLIENT = new OkHttpClient();
     private final MediaType MEDIATYPE = MediaType.parse("application/json");
-    private final ObjectMapper OM = new ObjectMapper();
+    private final ObjectMapper OM;
     @Value("${translate.token}")
     private String TOKEN;
 
