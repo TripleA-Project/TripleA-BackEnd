@@ -10,7 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.StringJoiner;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Component
 @RequiredArgsConstructor
@@ -30,12 +31,12 @@ public class Translator {
                 .build();
         try (Response response = CLIENT.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                String json = response.body() != null ? response.body().string() : "";
-                if (!json.isEmpty()) {
-                    StringJoiner result = new StringJoiner(" ");
-                    JsonNode rootNode = OM.readTree(json);
-                    for (JsonNode translation : rootNode.path("translation")) result.add(translation.asText());
-                    return result.toString().trim();
+                if (response.body() != null) {
+                    JsonNode rootNode = OM.readTree(response.body().string());
+                    return StreamSupport.stream(rootNode.path("translation").spliterator(), false)
+                            .map(JsonNode::asText)
+                            .collect(Collectors.joining(" "))
+                            .trim();
                 }
                 throw new Exception500("translate Response 실패");
             }
