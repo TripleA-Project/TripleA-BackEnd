@@ -1,13 +1,10 @@
 package com.triplea.triplea.model.category;
 
-//import com.triplea.triplea.model.bookmark.BookmarkCategory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity @Getter
 @NoArgsConstructor
@@ -17,7 +14,6 @@ public class Category {
     private Long id;
     private String category;
     private String mainCategory;
-
 
     @Builder
     public Category(Long id, String category, String mainCategory) {
