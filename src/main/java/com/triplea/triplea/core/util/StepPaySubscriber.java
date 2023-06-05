@@ -53,8 +53,9 @@ public class StepPaySubscriber {
      */
     public UserRequest.Order responseCustomer(Response getCustomer, String productCode, String priceCode) throws IOException {
         if (getCustomer.isSuccessful()) {
-            if (getCustomer.body() != null) {
-                JsonNode rootNode = OM.readTree(getCustomer.body().string());
+            String json = getCustomer.body() != null ? getCustomer.body().string() : "";
+            if (!json.isEmpty()) {
+                JsonNode rootNode = OM.readTree(json);
                 return UserRequest.Order.builder()
                         .customerId(rootNode.path("id").asLong())
                         .customerCode(rootNode.path("code").asText())
@@ -92,8 +93,9 @@ public class StepPaySubscriber {
      */
     public String getOrderCode(Response postOrder) throws IOException {
         if (postOrder.isSuccessful()) {
-            if (postOrder.body() != null) {
-                JsonNode rootNode = OM.readTree(postOrder.body().string());
+            String json = postOrder.body() != null ? postOrder.body().string() : "";
+            if (!json.isEmpty()) {
+                JsonNode rootNode = OM.readTree(json);
                 return rootNode.path("orderCode").asText();
             } else throw new Exception500("Step Pay 주문 생성 API Response 실패");
         }
@@ -139,8 +141,9 @@ public class StepPaySubscriber {
      */
     public Long getSubscriptionId(Response getOrder) throws IOException {
         if (getOrder.isSuccessful()) {
-            if (getOrder.body() != null) {
-                JsonNode rootNode = OM.readTree(getOrder.body().string());
+            String json = getOrder.body() != null ? getOrder.body().string() : "";
+            if (!json.isEmpty()) {
+                JsonNode rootNode = OM.readTree(json);
                 JsonNode subscription = rootNode.path("subscriptions");
                 if (!subscription.isEmpty()) return subscription.get(0).path("id").asLong();
                 else throw new Exception500("Step Pay 구독 결과가 없습니다");
@@ -197,8 +200,9 @@ public class StepPaySubscriber {
 
         Response response = CLIENT.newCall(request).execute();
         if (response.isSuccessful()) {
-            if (response.body() != null) {
-                JsonNode rootNode = OM.readTree(response.body().string());
+            String json = response.body() != null ? response.body().string() : "";
+            if (!json.isEmpty()) {
+                JsonNode rootNode = OM.readTree(json);
                 String status = rootNode.path("status").asText();
                 return status.equals("ACTIVE");
             } else throw new Exception500("Step Pay 구독 상세 조회 API Response 실패");
