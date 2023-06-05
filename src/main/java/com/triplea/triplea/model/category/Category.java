@@ -1,6 +1,6 @@
 package com.triplea.triplea.model.category;
 
-import com.triplea.triplea.model.bookmark.BookmarkCategory;
+//import com.triplea.triplea.model.bookmark.BookmarkCategory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +18,6 @@ public class Category {
     private String category;
     private String mainCategory;
 
-    @OneToMany(mappedBy = "category", orphanRemoval = true)
-    private List<BookmarkCategory> bookmarkCategories = new ArrayList<>();
 
     @Builder
     public Category(Long id, String category, String mainCategory) {

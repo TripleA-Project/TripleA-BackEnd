@@ -27,6 +27,7 @@ public class UserController {
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
+
     // 이메일 인증 요청
     @PostMapping("/email")
     public ResponseEntity<?> email(@RequestBody @Valid UserRequest.EmailSend request, Errors errors) {
