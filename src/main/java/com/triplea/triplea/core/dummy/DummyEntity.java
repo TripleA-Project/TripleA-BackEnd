@@ -12,10 +12,9 @@ public class DummyEntity {
                 .password(passwordEncoder.encode("1234"))
                 .fullName(fullName)
                 .newsLetter(true)
-                .emailVerified(true)
-                .userAgent("hello")
-                .clientIP("123.123.123.123")
-
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .clientIP("192.168.1.100")
+                .profile("profile1")
                 .build();
     }
 
@@ -27,6 +26,9 @@ public class DummyEntity {
                 .fullName(fullName)
                 .email(email)
                 .newsLetter(true)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .clientIP("192.168.1.100")
+                .profile("profile1")
                 .build();
     }
 }
