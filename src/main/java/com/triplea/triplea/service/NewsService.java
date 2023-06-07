@@ -7,7 +7,6 @@ import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.model.bookmark.BookmarkNews;
 import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
-import com.triplea.triplea.model.news.NewsRepository;
 import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Response;
@@ -32,8 +31,6 @@ import static com.triplea.triplea.dto.news.NewsResponse.NewsDTO;
 @RequiredArgsConstructor
 @Service
 public class NewsService {
-
-    private final NewsRepository newsRepository;
 
     private final BookmarkNewsRepository bookmarkNewsRepository;
 
