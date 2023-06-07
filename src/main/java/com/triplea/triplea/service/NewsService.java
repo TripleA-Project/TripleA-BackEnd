@@ -38,7 +38,7 @@ public class NewsService {
     private final BookmarkNewsRepository bookmarkNewsRepository;
 
 
-    private final int maxDataSize = 1000;
+    private final int globalNewsMaxSize = 100;
 
     private final MoyaNewsProvider newsProvider;
 
@@ -49,7 +49,7 @@ public class NewsService {
     @Transactional(readOnly = true)
     public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
-        if(Size > maxDataSize) {
+        if(Size > globalNewsMaxSize) {
             throw new Exception400("Size", "Request exceeds maximum data size(1000).");
         }
 
@@ -100,7 +100,7 @@ public class NewsService {
     @Transactional(readOnly = true)
     public NewsResponse.News searchSymbolNews(User user, String symbol, int size, long page) {
 
-        if (size > maxDataSize) {
+        if (size > globalNewsMaxSize) {
             throw new Exception400("size", "Request exceeds maximum data size(1000).");
         }
 
