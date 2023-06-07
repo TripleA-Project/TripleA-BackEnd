@@ -1,5 +1,6 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MoyaNewsProvider;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
@@ -17,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import org.springframework.web.util.UriComponentsBuilder;
+
 import java.io.IOException;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,35 +37,108 @@ public class NewsService {
 
     private final BookmarkNewsRepository bookmarkNewsRepository;
 
+
+    private final int globalNewsMaxSize = 100;
+
     private final MoyaNewsProvider newsProvider;
+
 
     @Value("${moya.token}")
     private String moyaToken;
 
     @Transactional(readOnly = true)
-    public List<NewsDTO> searchAllNews(User user) {
+    public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
+        if(Size > globalNewsMaxSize) {
+            throw new Exception400("Size", "Request exceeds maximum data size(1000).");
+        }
+
+        //API 쿼리 파라미터 의미
+        //limit: 가져올 뉴스 개수
+        //offset: 받은 Data 배열 인덱스 0 부터의 거리. 100이면 100번째 뉴스부터 limit 개수만큼 받는다
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://api.moya.ai/globalnews?token=" + moyaToken;
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/globalnews")
+                .queryParam("token", moyaToken)
+                .queryParam("limit", Size);
+
+        if (page != 0)
+            builder.queryParam("nextPage", page);
+
+        String url = builder.toUriString();
 
         ResponseEntity<GlobalNewsDTO> response = restTemplate.getForEntity(url, GlobalNewsDTO.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
             GlobalNewsDTO globalNewsDTO = response.getBody();
+
             List<Data> datas = globalNewsDTO.getDatas();
 
-            List<NewsDTO> newsDTOList = new ArrayList<>();
-            for (Data data : datas) {
+            List<NewsDTO> newsDTOList = datas.stream()
+                    .map(data -> {
+                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
+                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
 
-                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
-                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                        return new NewsDTO(data, bookmarkDTO);
+                    })
+                    .collect(Collectors.toList());
 
-                NewsDTO newsDTO = new NewsDTO(data, bookmarkDTO);
-                newsDTOList.add(newsDTO);
-            }
-            return newsDTOList;
+            NewsResponse.News news = NewsResponse.News.builder()
+                    .news(newsDTOList)
+                    .nextPage(globalNewsDTO.getNextPage())
+                    .build();
+
+            return news;
+
+        } else {
+            // 에러 처리
+            throw new Exception500("MOYA API 실패");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public NewsResponse.News searchSymbolNews(User user, String symbol, int size, long page) {
+
+        if (size > globalNewsMaxSize) {
+            throw new Exception400("size", "Request exceeds maximum data size(1000).");
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/globalnews")
+                .queryParam("token", moyaToken)
+                .queryParam("symbol", symbol)
+                .queryParam("limit", size);
+
+        if (page != 0)
+            builder.queryParam("nextPage", page);
+
+        String url = builder.toUriString();
+
+        ResponseEntity<GlobalNewsDTO> response = restTemplate.getForEntity(url, GlobalNewsDTO.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            GlobalNewsDTO globalNewsDTO = response.getBody();
+
+            List<Data> datas = globalNewsDTO.getDatas();
+
+            List<NewsDTO> newsDTOList = datas.stream()
+                    .map(data -> {
+                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
+                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+
+                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+
+                        return new NewsDTO(data, bookmarkDTO);
+                    })
+                    .collect(Collectors.toList());
+
+            NewsResponse.News news = NewsResponse.News.builder()
+                    .news(newsDTOList)
+                    .nextPage(globalNewsDTO.getNextPage())
+                    .build();
+
+            return news;
 
         } else {
             // 에러 처리
@@ -113,5 +189,6 @@ public class NewsService {
                 .nextPage(nextPage)
                 .news(newsList)
                 .build();
+
     }
 }
