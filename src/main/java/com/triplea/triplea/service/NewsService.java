@@ -49,8 +49,8 @@ public class NewsService {
     @Transactional(readOnly = true)
     public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
-        if(page + Size > maxDataSize) {
-            throw new Exception400("page + Size", "Request exceeds maximum data size(1000).");
+        if(Size > maxDataSize) {
+            throw new Exception400("Size", "Request exceeds maximum data size(1000).");
         }
 
         //API 쿼리 파라미터 의미
@@ -59,8 +59,10 @@ public class NewsService {
         RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/globalnews")
                 .queryParam("token", moyaToken)
-                .queryParam("limit", Size)
-                .queryParam("offset", page);
+                .queryParam("limit", Size);
+
+        if (page != 0)
+            builder.queryParam("nextPage", page);
 
         String url = builder.toUriString();
 
