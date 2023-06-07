@@ -48,12 +48,9 @@ public class NewsService {
     private String moyaToken;
 
     @Transactional(readOnly = true)
-    public NewsResponse.GNewsDTO searchAllNews(User user, Pageable pageable) {
+    public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
-        int pageSize = pageable.getPageSize();//size
-        long pageNumber = pageable.getPageNumber();//number
-
-        if(pageNumber + pageSize > maxDataSize) {
+        if(page + Size > maxDataSize) {
             throw new Exception400("Pageable", "Request exceeds maximum data size(1000).");
         }
 
@@ -63,8 +60,8 @@ public class NewsService {
         RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/globalnews")
                 .queryParam("token", moyaToken)
-                .queryParam("limit", pageSize)
-                .queryParam("offset", pageNumber);
+                .queryParam("limit", Size)
+                .queryParam("offset", page);
 
         String url = builder.toUriString();
 
@@ -86,11 +83,12 @@ public class NewsService {
                     })
                     .collect(Collectors.toList());
 
-            NewsResponse.GNewsDTO gNewsDTO = new NewsResponse.GNewsDTO();
-            gNewsDTO.setNextPage(globalNewsDTO.getNextPage());
-            gNewsDTO.setNews(newsDTOList);
+            NewsResponse.News news = NewsResponse.News.builder()
+                    .news(newsDTOList)
+                    .nextPage(globalNewsDTO.getNextPage())
+                    .build();
 
-            return gNewsDTO;
+            return news;
 
         } else {
             // 에러 처리
@@ -98,15 +96,10 @@ public class NewsService {
         }
     }
 
-
-
     @Transactional(readOnly = true)
-    public NewsResponse.GNewsDTO searchSymbolNews(User user, String symbol, Pageable pageable) {
+    public NewsResponse.News searchSymbolNews(User user, String symbol, int size, long page) {
 
-        int pageSize = pageable.getPageSize();//size
-        int pageNumber = pageable.getPageNumber();//page
-
-        if (pageSize > maxDataSize) {
+        if (size > maxDataSize) {
             throw new Exception400("Pageable", "Request exceeds maximum data size(1000).");
         }
 
@@ -114,10 +107,10 @@ public class NewsService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/globalnews")
                 .queryParam("token", moyaToken)
                 .queryParam("symbol", symbol)
-                .queryParam("limit", pageSize);
+                .queryParam("limit", size);
 
-        if (pageNumber != 0)
-            builder.queryParam("nextPage", pageNumber);
+        if (page != 0)
+            builder.queryParam("nextPage", page);
 
         String url = builder.toUriString();
 
@@ -139,11 +132,12 @@ public class NewsService {
                     })
                     .collect(Collectors.toList());
 
-            NewsResponse.GNewsDTO gNewsDTO = new NewsResponse.GNewsDTO();
-            gNewsDTO.setNextPage(globalNewsDTO.getNextPage());
-            gNewsDTO.setNews(newsDTOList);
+            NewsResponse.News news = NewsResponse.News.builder()
+                    .news(newsDTOList)
+                    .nextPage(globalNewsDTO.getNextPage())
+                    .build();
 
-            return gNewsDTO;
+            return news;
 
         } else {
             // 에러 처리

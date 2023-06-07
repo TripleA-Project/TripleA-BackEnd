@@ -30,22 +30,22 @@ public class NewsController {
     private final NewsService newsService;
 
     @GetMapping("/news/latest")
-    public ResponseEntity<?> getGlobalNews(@AuthenticationPrincipal MyUserDetails myUserDetails, Pageable pageable){
+    public ResponseEntity<?> getGlobalNews(@AuthenticationPrincipal MyUserDetails myUserDetails, @RequestParam("size") int size, @RequestParam("page") Long page){
 
-        NewsResponse.GNewsDTO gNewsDTO = newsService.searchAllNews(myUserDetails.getUser(), pageable);
+        NewsResponse.News news = newsService.searchAllNews(myUserDetails.getUser(), size, page);
 
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(gNewsDTO);
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(news);
         return ResponseEntity.ok().body(responseDTO);
     }
 
     @GetMapping("/news")
     public ResponseEntity<?> getSymbolNews(@RequestParam(value = "symbol") @Valid String symbol,
                                            @AuthenticationPrincipal MyUserDetails myUserDetails,
-                                           Pageable pageable){
+                                           @RequestParam("size") int size, @RequestParam("page") Long page){
 
-        NewsResponse.GNewsDTO gNewsDTO = newsService.searchSymbolNews(myUserDetails.getUser(), symbol, pageable);
+        NewsResponse.News news = newsService.searchSymbolNews(myUserDetails.getUser(), symbol, size, page);
 
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(gNewsDTO);
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(news);
         return ResponseEntity.ok().body(responseDTO);
 
     }

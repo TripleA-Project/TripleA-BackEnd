@@ -69,7 +69,6 @@ public class NewsControllerTest {
     @Test
     public void getGlobalNews() throws Exception {
 
-        NewsResponse.GNewsDTO gNewsDTO = new NewsResponse.GNewsDTO();
         ApiResponse.Data data = new ApiResponse.Data();
         data.setSymbol("EZU");
         data.setSource("talkmarkets.com");
@@ -77,10 +76,12 @@ public class NewsControllerTest {
         NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, bookmarkDTO);
         List<NewsResponse.NewsDTO> list = new ArrayList<>();
         list.add(newsDTO);
-        gNewsDTO.setNews(list);
-        gNewsDTO.setNextPage(12345L);
+        NewsResponse.News news = NewsResponse.News.builder()
+                .news(list)
+                .nextPage(12345L)
+                .build();
 
-        Mockito.when(newsService.searchAllNews(Mockito.any(User.class), Mockito.any(Pageable.class))).thenReturn(gNewsDTO);
+        Mockito.when(newsService.searchAllNews(Mockito.any(User.class), Mockito.any(Integer.class), Mockito.any(Long.class))).thenReturn(news);
 
         ResultActions resultActions = mockMvc.perform(get("/api/news/latest?size=10&page=5")
                 .contentType(MediaType.APPLICATION_JSON));
@@ -106,7 +107,7 @@ public class NewsControllerTest {
     @WithUserDetails(value = "dotori@nate.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @Test
     public void getSymbolNews() throws Exception {
-        NewsResponse.GNewsDTO gNewsDTO = new NewsResponse.GNewsDTO();
+
         ApiResponse.Data data = new ApiResponse.Data();
         data.setSymbol("EZU");
         data.setSource("talkmarkets.com");
@@ -114,10 +115,12 @@ public class NewsControllerTest {
         NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, bookmarkDTO);
         List<NewsResponse.NewsDTO> list = new ArrayList<>();
         list.add(newsDTO);
-        gNewsDTO.setNews(list);
-        gNewsDTO.setNextPage(12345L);
+        NewsResponse.News news = NewsResponse.News.builder()
+                .news(list)
+                .nextPage(12345L)
+                .build();
 
-        Mockito.when(newsService.searchSymbolNews(Mockito.any(User.class), Mockito.anyString(), Mockito.any(Pageable.class))).thenReturn(gNewsDTO);
+        Mockito.when(newsService.searchSymbolNews(Mockito.any(User.class), Mockito.anyString(), Mockito.any(Integer.class), Mockito.any(Long.class))).thenReturn(news);
 
         ResultActions resultActions = mockMvc.perform(get("/api/news?symbol=EZU&size=10&page=5")
                 .contentType(MediaType.APPLICATION_JSON));

@@ -48,11 +48,4 @@ public class NewsResponse {
             this.bookmark = bookmark;
         }
     }
-
-    @Setter
-    @Getter
-    public static class GNewsDTO {
-        private Long nextPage;
-        List<NewsDTO> news;
-    }
 }
