@@ -130,13 +130,9 @@ public class UserService {
         Long customerId = customer.getId();
         try (Response response = subscriber.getSession(customerId)) {
             if (response.isSuccessful()) {
-                if (response.body() != null){
-                    String bodyContent = response.body().string();
-                    if(false == bodyContent.isEmpty())
-                        return new UserResponse.Session(bodyContent);
-                    else
-                        throw new Exception500("Step Pay response body is empty");
-                }
+
+                String json = response.body() != null ? response.body().string() : "";
+                if (!json.isEmpty()) return new UserResponse.Session(json);
 
                 throw new Exception500("Step Pay 세션 생성 API Response 실패");
             }
