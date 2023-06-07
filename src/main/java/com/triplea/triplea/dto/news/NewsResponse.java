@@ -5,6 +5,8 @@ import com.triplea.triplea.dto.bookmark.BookmarkResponse.BookmarkDTO;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /*
 클라에대한 응답 클래스
  */
@@ -27,5 +29,12 @@ public class NewsResponse {
             this.publishedDate = data.getPublishedDate();
             this.bookmark = bookmark;
         }
+    }
+
+    @Setter
+    @Getter
+    public static class GNewsDTO {
+        private Long nextPage;
+        List<NewsDTO> news;
     }
 }
