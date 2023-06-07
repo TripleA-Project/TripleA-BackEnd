@@ -1,6 +1,6 @@
 package com.triplea.triplea.model.bookmark;
 
-import com.triplea.triplea.core.util.Timestamped;
+import com.triplea.triplea.core.util.CreatedTimestamped;
 import com.triplea.triplea.model.user.User;
 import lombok.*;
 
@@ -11,8 +11,8 @@ import javax.persistence.*;
 @Getter @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "bookmakr_news_tb")
-public class BookmarkNews extends Timestamped {
+@Table(name = "bookmark_news_tb")
+public class BookmarkNews extends CreatedTimestamped {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

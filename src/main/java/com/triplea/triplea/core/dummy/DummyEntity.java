@@ -7,10 +7,13 @@ public class DummyEntity {
     public User newUser(String email, String fullName){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return User.builder()
+                .email(email)
                 .password(passwordEncoder.encode("1234"))
                 .fullName(fullName)
-                .email(email)
                 .newsLetter(true)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .clientIP("192.168.1.100")
+                .profile("profile1")
                 .build();
     }
 
@@ -22,6 +25,9 @@ public class DummyEntity {
                 .fullName(fullName)
                 .email(email)
                 .newsLetter(true)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .clientIP("192.168.1.100")
+                .profile("profile1")
                 .build();
     }
 }
