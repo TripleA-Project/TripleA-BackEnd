@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -51,7 +50,7 @@ public class NewsService {
     public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
         if(page + Size > maxDataSize) {
-            throw new Exception400("Pageable", "Request exceeds maximum data size(1000).");
+            throw new Exception400("page + Size", "Request exceeds maximum data size(1000).");
         }
 
         //API 쿼리 파라미터 의미
@@ -100,7 +99,7 @@ public class NewsService {
     public NewsResponse.News searchSymbolNews(User user, String symbol, int size, long page) {
 
         if (size > maxDataSize) {
-            throw new Exception400("Pageable", "Request exceeds maximum data size(1000).");
+            throw new Exception400("size", "Request exceeds maximum data size(1000).");
         }
 
         RestTemplate restTemplate = new RestTemplate();

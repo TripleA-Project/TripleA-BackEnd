@@ -1,7 +1,6 @@
 package com.triplea.triplea.controller;
 
 import com.triplea.triplea.core.auth.session.MyUserDetails;
-import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.service.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
