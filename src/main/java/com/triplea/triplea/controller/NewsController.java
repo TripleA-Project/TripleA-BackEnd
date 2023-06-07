@@ -29,7 +29,7 @@ public class NewsController {
 
     private final NewsService newsService;
 
-    @GetMapping("/api/news/latest")
+    @GetMapping("/news/latest")
     public ResponseEntity<?> getGlobalNews(@AuthenticationPrincipal MyUserDetails myUserDetails, Pageable pageable){
 
         NewsResponse.GNewsDTO gNewsDTO = newsService.searchAllNews(myUserDetails.getUser(), pageable);
@@ -38,7 +38,7 @@ public class NewsController {
         return ResponseEntity.ok().body(responseDTO);
     }
 
-    @GetMapping("/api/news")
+    @GetMapping("/news")
     public ResponseEntity<?> getSymbolNews(@RequestParam(value = "symbol") @Valid String symbol,
                                            @AuthenticationPrincipal MyUserDetails myUserDetails,
                                            Pageable pageable){

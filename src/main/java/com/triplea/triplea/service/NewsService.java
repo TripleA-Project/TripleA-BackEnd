@@ -12,8 +12,6 @@ import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,7 +23,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,7 +48,7 @@ public class NewsService {
     private String moyaToken;
 
     @Transactional(readOnly = true)
-    public GNewsDTO searchAllNews(User user, Pageable pageable) {
+    public NewsResponse.GNewsDTO searchAllNews(User user, Pageable pageable) {
 
         int pageSize = pageable.getPageSize();//size
         long pageNumber = pageable.getPageNumber();//number
@@ -89,7 +86,7 @@ public class NewsService {
                     })
                     .collect(Collectors.toList());
 
-            GNewsDTO gNewsDTO = new GNewsDTO();
+            NewsResponse.GNewsDTO gNewsDTO = new NewsResponse.GNewsDTO();
             gNewsDTO.setNextPage(globalNewsDTO.getNextPage());
             gNewsDTO.setNews(newsDTOList);
 
@@ -104,27 +101,27 @@ public class NewsService {
 
 
     @Transactional(readOnly = true)
-    public GNewsDTO searchSymbolNews(User user, String symbol, Pageable pageable) {
+    public NewsResponse.GNewsDTO searchSymbolNews(User user, String symbol, Pageable pageable) {
 
         int pageSize = pageable.getPageSize();//size
         int pageNumber = pageable.getPageNumber();//page
 
-        if(pageSize > maxDataSize) {
+        if (pageSize > maxDataSize) {
             throw new Exception400("Pageable", "Request exceeds maximum data size(1000).");
         }
-        
+
         RestTemplate restTemplate = new RestTemplate();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/globalnews")
                 .queryParam("token", moyaToken)
                 .queryParam("symbol", symbol)
                 .queryParam("limit", pageSize);
 
-        if(pageNumber != 0)
+        if (pageNumber != 0)
             builder.queryParam("nextPage", pageNumber);
 
         String url = builder.toUriString();
 
-        ResponseEntity< GlobalNewsDTO> response = restTemplate.getForEntity(url, GlobalNewsDTO.class);
+        ResponseEntity<GlobalNewsDTO> response = restTemplate.getForEntity(url, GlobalNewsDTO.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
             GlobalNewsDTO globalNewsDTO = response.getBody();
@@ -142,7 +139,7 @@ public class NewsService {
                     })
                     .collect(Collectors.toList());
 
-            GNewsDTO gNewsDTO = new GNewsDTO();
+            NewsResponse.GNewsDTO gNewsDTO = new NewsResponse.GNewsDTO();
             gNewsDTO.setNextPage(globalNewsDTO.getNextPage());
             gNewsDTO.setNews(newsDTOList);
 
@@ -152,6 +149,7 @@ public class NewsService {
             // 에러 처리
             throw new Exception500("MOYA API 실패");
         }
+    }
 
     // 뉴스 조회(키워드)
     public NewsResponse.News getNewsByKeyword(String keyword, int size, Long page, User user) {
