@@ -28,13 +28,24 @@ public class MyJwtProvider {
         SECRET = secret;
     }
 
+
+
     public static String create(User user) {
+
         String jwt = JWT.create()
                 .withSubject(SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
-                .withClaim("id", user.getId())
+                .withClaim("email", user.getEmail())
                 .sign(Algorithm.HMAC512(SECRET));
         return TOKEN_PREFIX + jwt;
+    }
+    public String createRefreshToken(String email){
+        String refreshToken = JWT.create()
+                .withSubject(SUBJECT)
+                .withExpiresAt(new Date(System.currentTimeMillis() + EXP * 7))
+                .withClaim("email", email)
+                .sign(Algorithm.HMAC512(SECRET));
+        return refreshToken;
     }
 
     public static DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {

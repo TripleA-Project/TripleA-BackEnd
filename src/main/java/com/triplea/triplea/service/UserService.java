@@ -38,6 +38,13 @@ public class UserService {
     @Value("${step-pay.price-code}")
     private String priceCode;
 
+    //로그인
+    public User findByEmail(String email){
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 E-MAIL 입니다."));
+        return user;
+    }
+
     // 회원가입
     @Transactional
     public void join(UserRequest.Join join, String userAgent, String ipAddress) {
