@@ -13,12 +13,18 @@ public class Category {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String category;
-    private String mainCategory;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private MainCategory mainCategory;
 
     @Builder
-    public Category(Long id, String category, String mainCategory) {
+    public Category(Long id, String category) {
         this.id = id;
         this.category = category;
+    }
+
+    public void syncMainCategory(MainCategory mainCategory){
+        if(this.mainCategory != null) this.mainCategory.getCategories().remove(this);
         this.mainCategory = mainCategory;
+        mainCategory.getCategories().add(this);
     }
 }
