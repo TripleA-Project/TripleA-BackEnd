@@ -1,9 +1,11 @@
 package com.triplea.triplea.model.category;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -16,9 +18,11 @@ public class MainCategory {
     private String mainCategoryEng;
     private String mainCategoryKor;
     @OneToMany(mappedBy = "mainCategory", fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Category> categories;
+    private List<Category> categories = new ArrayList<>();
 
-    public MainCategory(String mainCategoryEng) {
+    @Builder
+    public MainCategory(Long id, String mainCategoryEng) {
+        this.id = id;
         this.mainCategoryEng = mainCategoryEng;
     }
 

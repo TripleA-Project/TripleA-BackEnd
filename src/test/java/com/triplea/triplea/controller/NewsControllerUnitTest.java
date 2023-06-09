@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @Import({MySecurityConfig.class, MyJwtProvider.class})
 @WebMvcTest(NewsController.class)
-public class NewControllerUnitTest {
+public class NewsControllerUnitTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,7 +52,7 @@ public class NewControllerUnitTest {
 
     @Test
     @DisplayName("뉴스 조회(키워드)")
-    void test() throws Exception {
+    void newsKeyword() throws Exception {
         //given
         String keyword = "solutions";
         Integer size = 10;
@@ -60,9 +60,29 @@ public class NewControllerUnitTest {
         String accessToken = MyJwtProvider.create(user);
         //when
         when(newsService.getNewsByKeyword(anyString(), anyInt(), anyLong(), any(User.class)))
-                .thenReturn(new NewsResponse.News(null, new ArrayList<>()));
+                .thenReturn(new NewsResponse.News(keyword, null, new ArrayList<>()));
         //then
         mockMvc.perform(get("/api/news/keyword?keyword=" + keyword + "&size=" + size + "&page=" + page)
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("뉴스 조회(카테고리)")
+    void newsCategory() throws Exception {
+        //given
+        Long categoryId = 1L;
+        String category = "News";
+        Integer size = 10;
+        Long page = 0L;
+        String accessToken = MyJwtProvider.create(user);
+        //when
+        when(newsService.getNewsByKeyword(anyString(), anyInt(), anyLong(), any(User.class)))
+                .thenReturn(new NewsResponse.News(category, null, new ArrayList<>()));
+        //then
+        mockMvc.perform(get("/api/news/category/" + categoryId + "?size=" + size + "&page=" + page)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

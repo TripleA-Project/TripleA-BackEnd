@@ -47,7 +47,7 @@ class CategoryServiceTest {
         @DisplayName("성공")
         void test() {
             //given
-            MainCategory mainCategory = new MainCategory("Finance");
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
             mainCategory.translateMainCategory("금융");
             //when
             when(mainCategoryRepository.findAll()).thenReturn(List.of(mainCategory));
@@ -71,7 +71,7 @@ class CategoryServiceTest {
             void test1() {
                 //given
                 String category = "융";
-                MainCategory mainCategory = new MainCategory("Finance");
+                MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
                 mainCategory.translateMainCategory("금융");
                 //when
                 when(mainCategoryRepository.findAll()).thenReturn(List.of(mainCategory));
@@ -89,7 +89,7 @@ class CategoryServiceTest {
             void test2() {
                 //given
                 String category = "카테고리";
-                MainCategory mainCategory = new MainCategory("Finance");
+                MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
                 mainCategory.translateMainCategory("금융");
                 //when
                 when(mainCategoryRepository.findAll()).thenReturn(List.of(mainCategory));
@@ -143,7 +143,7 @@ class CategoryServiceTest {
         @DisplayName("성공1: 결과 있음")
         void test1() {
             //given
-            MainCategory mainCategory = new MainCategory("Finance");
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
             mainCategory.translateMainCategory("금융");
             BookmarkCategory bookmarkCategory = BookmarkCategory.builder()
                     .user(user)
