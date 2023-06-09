@@ -4,9 +4,6 @@ import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
 
 import java.util.List;
 
@@ -18,6 +15,7 @@ public class NewsResponse {
     @Builder @Getter
     @AllArgsConstructor
     public static class News{
+        private String search;
         private Long nextPage;
         private List<NewsDTO> news;
     }

@@ -593,7 +593,7 @@ public class CategoryService {
                 .map(s -> {
                     String[] cate = s.split("\t");
                     hm.put(cate[0], cate[1]);
-                    return new MainCategory(cate[0]);
+                    return MainCategory.builder().mainCategoryEng(cate[0]).build();
                 }).collect(Collectors.toList());
         mainCategoryRepository.saveAll(mainCategoryList);
     }

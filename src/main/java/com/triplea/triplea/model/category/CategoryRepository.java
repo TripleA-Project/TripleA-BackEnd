@@ -7,6 +7,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface CategoryRepository extends JpaRepository<Category,Long> {
-    @Query("select c from Category c where c.mainCategory=:main")
-    List<Category> findCategoriesByMainCategory(@Param("main") String main);
+    @Query("select c from Category c where c.mainCategory.id=:main")
+    List<Category> findCategoriesByMainCategory(@Param("main") Long mainCategoryId);
 }
