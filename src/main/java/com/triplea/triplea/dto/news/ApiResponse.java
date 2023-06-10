@@ -2,6 +2,7 @@ package com.triplea.triplea.dto.news;
 
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /*
@@ -59,5 +60,51 @@ public class ApiResponse {
 
     }
 
+    @Builder @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoyaSymbol{
+        private Long id;
+        private String symbol;
+        private String companyName;
+        private String exchange;
+        private String industry;
+        private String website;
+        private String description;
+        private String CEO;
+        private String issueType;
+        private String sector;
+        private String logo;
+        private String marketType;
+    }
 
+    @Builder @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoyaBuzz{
+        private Float sentiment;
+        private Integer count;
+        private Integer positiveCount;
+        private Integer negativeCount;
+        private LocalDate publishedDate;
+    }
+
+    @Builder @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Tiingo{
+        private LocalDate date;
+        private Float open;
+        private Float high;
+        private Float low;
+        private Float close;
+        private Long volume;
+        private Float adjOpen;
+        private Float adjHigh;
+        private Float adjLow;
+        private Float adjClose;
+        private Long adjVolume;
+        private Float divCash;
+        private Float splitFactor;
+    }
 }
