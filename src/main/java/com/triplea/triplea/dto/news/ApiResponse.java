@@ -107,4 +107,16 @@ public class ApiResponse {
         private Float divCash;
         private Float splitFactor;
     }
+
+    @Builder @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TiingoSymbol{
+        private String ticker;
+        private String name;
+        private String description;
+        private String startDate;
+        private String endDate;
+        private String exchangeCode;
+    }
 }

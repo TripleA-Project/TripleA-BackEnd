@@ -114,6 +114,7 @@ class NewsServiceTest {
                     .thenReturn(newsResponse);
             when(newsProvider.getNewsDetails(any(Response.class)))
                     .thenReturn(data);
+            when(newsProvider.getSymbol(anyString(), anyBoolean())).thenReturn(new ApiResponse.MoyaSymbol());
 
             NewsResponse.News result = newsService.getNewsByKeyword(keyword, size, page, user);
             //then
@@ -263,6 +264,7 @@ class NewsServiceTest {
                     .thenReturn(newsResponse);
             when(newsProvider.getNewsDetails(any(Response.class)))
                     .thenReturn(data);
+            when(newsProvider.getSymbol(anyString(), anyBoolean())).thenReturn(new ApiResponse.MoyaSymbol());
 
             NewsResponse.News result = newsService.getNewsByCategory(categoryId, size, page, user);
             //then

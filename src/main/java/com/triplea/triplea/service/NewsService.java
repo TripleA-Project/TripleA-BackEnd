@@ -1,9 +1,13 @@
 package com.triplea.triplea.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.exception.Exception400;
+import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MoyaNewsProvider;
+import com.triplea.triplea.core.util.Timestamped;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsRequest;
@@ -14,9 +18,11 @@ import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,10 +31,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.triplea.triplea.dto.news.ApiResponse.Data;
@@ -238,24 +249,46 @@ public class NewsService {
         List<Long> newsIdsSubset = newsIds.subList(startIndex, endIndex);
         return newsIdsSubset.stream()
                 .map(newsId -> {
-                    // 내가 북마크한 뉴스인지 여부
-                    boolean isBookmark = user != null & bookmarkNewsRepository.findByNewsIdAndUser(newsId, user).isPresent();
-                    // 총 북마크한 수
-                    int bookmarkCount = bookmarkNewsRepository.countBookmarkNewsByNewsId(newsId);
-
                     // 뉴스 ID로 뉴스 조회
                     try (Response newsResponse = newsProvider.getNewsById(newsId)) {
                         ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
+                        ApiResponse.MoyaSymbol moyaSymbol = newsProvider.getSymbol(newsDetails.getSymbol(), true);
                         return new NewsResponse.NewsDTO(
                                 newsDetails,
-                                BookmarkResponse.BookmarkDTO.builder()
-                                        .isBookmark(isBookmark)
-                                        .count(bookmarkCount)
-                                        .build()
+                                getLogo(newsDetails.getSymbol(), moyaSymbol.getLogo()),
+                                bookmark(newsId, user)
                         );
                     } catch (IOException e) {
                         throw new Exception500("뉴스 조회 실패: " + e.getMessage());
                     }
                 }).collect(Collectors.toList());
+    }
+
+    /**
+     * @param newsId 뉴스 ID
+     * @param user   로그인한 유저
+     * @return 북마크여부(boolean), 총 북마크 수
+     */
+    private BookmarkResponse.BookmarkDTO bookmark(Long newsId, User user) {
+        // 내가 북마크한 뉴스인지 여부
+        boolean isBookmark = user != null & bookmarkNewsRepository.findByNewsIdAndUser(newsId, user).isPresent();
+        // 총 북마크한 수
+        int bookmarkCount = bookmarkNewsRepository.countBookmarkNewsByNewsId(newsId);
+
+        return BookmarkResponse.BookmarkDTO.builder()
+                .isBookmark(isBookmark)
+                .count(bookmarkCount)
+                .build();
+    }
+
+    /**
+     * logo 가 없으면 대체하기 위한 메소드
+     * @param symbol symbol
+     * @param logo logo 검증
+     * @return String
+     */
+    private String getLogo(String symbol, String logo){
+        if (logo == null || logo.equals("null")) logo = "https://storage.googleapis.com/iex/api/logos/" + symbol + ".png";
+        return logo;
     }
 }

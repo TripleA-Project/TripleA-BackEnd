@@ -27,6 +27,9 @@ public class MoyaNewsProvider {
     @Value("${moya.token}")
     private String token;
 
+    @Value("${tiingo.token}")
+    private String tiingoToken;
+
     /**
      * MoYa API 카테고리로 뉴스 ID 조회
      * @param category 대분류 카테고리
@@ -132,5 +135,95 @@ public class MoyaNewsProvider {
             throw new Exception400("newsId", "뉴스를 찾을 수 없습니다");
         }
         throw new Exception500("MoYa 뉴스 상세 조회 API 실패");
+    }
+
+    /**
+     * MoYa API 로 symbol 검색
+     * @param symbol symbol
+     * @param getLogo logo 를 가져오려는 목적인지 true/false 로 확인
+     * @return MoyaSymbol
+     */
+    public ApiResponse.MoyaSymbol getSymbol(String symbol, boolean getLogo) {
+        HttpUrl.Builder url = HttpUrl.parse("https://api.moya.ai/stock").newBuilder();
+        url.addQueryParameter("search", symbol);
+        url.addQueryParameter("token", token);
+        Request request = new Request.Builder()
+                .url(url.build().toString())
+                .get()
+                .header("accept", "*/*")
+                .build();
+        try (Response response = CLIENT.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                String json = response.body() != null ? response.body().string() : "";
+                if (!json.isEmpty() && !json.equals("[]")) {
+                    JsonNode rootNode = OM.readTree(json).get(0);
+                    if (rootNode.path("symbol").asText().equals(symbol)) {
+                        return ApiResponse.MoyaSymbol.builder()
+                                .id(rootNode.path("id").asLong())
+                                .symbol(rootNode.path("symbol").asText())
+                                .companyName(rootNode.path("companyName").asText())
+                                .exchange(rootNode.path("exchange").asText())
+                                .industry(rootNode.path("industry").asText())
+                                .website(rootNode.path("website").asText())
+                                .description(rootNode.path("description").asText())
+                                .CEO(rootNode.path("CEO").asText())
+                                .issueType(rootNode.path("issueType").asText())
+                                .sector(rootNode.path("sector").asText())
+                                .logo(rootNode.path("logo").asText())
+                                .marketType(rootNode.path("marketType").asText())
+                                .build();
+                    }
+                }
+//                throw new Exception400("symbol", "심볼을 찾을 수 없습니다");
+                if (!getLogo) {
+                    ApiResponse.TiingoSymbol tiingoSymbol = getAnotherSymbol(symbol);
+                    return ApiResponse.MoyaSymbol.builder()
+                            .symbol(tiingoSymbol.getTicker())
+                            .companyName(tiingoSymbol.getName())
+                            .description(tiingoSymbol.getDescription())
+                            .exchange(tiingoSymbol.getExchangeCode())
+                            .marketType(tiingoSymbol.getExchangeCode())
+                            .build();
+                }
+            }
+//            throw new Exception500("MoYa 심볼 조회 API 실패");
+            return new ApiResponse.MoyaSymbol();
+        } catch (Exception e) {
+            throw new Exception500("심볼 조회 실패: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tiingo API 로 symbol(ticker) 조회
+     * @param symbol symbol
+     * @return TiingoSymbol
+     */
+    private ApiResponse.TiingoSymbol getAnotherSymbol(String symbol) {
+        HttpUrl.Builder url = HttpUrl.parse("https://api.tiingo.com/tiingo/daily/" + symbol).newBuilder();
+        url.addQueryParameter("token", tiingoToken);
+        Request request = new Request.Builder()
+                .url(url.build().toString())
+                .get()
+                .header("accept", "*/*")
+                .build();
+        try (Response response = CLIENT.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                String json = response.body() != null ? response.body().string() : "";
+                JsonNode rootNode = OM.readTree(json);
+                if (rootNode.path("detail") == null) {
+                    return ApiResponse.TiingoSymbol.builder()
+                            .ticker(rootNode.path("ticker").asText())
+                            .name(rootNode.path("name").asText())
+                            .description(rootNode.path("description").asText())
+                            .startDate(rootNode.path("startDate").asText())
+                            .endDate(rootNode.path("endDate").asText())
+                            .exchangeCode(rootNode.path("exchangeCode").asText())
+                            .build();
+                }
+            }
+            return new ApiResponse.TiingoSymbol();
+        } catch (Exception e) {
+            throw new Exception500("심볼 조회 실패: " + e.getMessage());
+        }
     }
 }
