@@ -3,7 +3,6 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MoyaNewsProvider;
-import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.model.bookmark.BookmarkNews;
@@ -75,10 +74,10 @@ public class NewsService {
 
             List<NewsDTO> newsDTOList = datas.stream()
                     .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
+                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                        NewsResponse.BookmarkDTO bookmarkDTO = new NewsResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
                         return new NewsDTO(data, bookmarkDTO);
                     })
@@ -124,10 +123,10 @@ public class NewsService {
 
             List<NewsDTO> newsDTOList = datas.stream()
                     .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
+                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                        NewsResponse.BookmarkDTO bookmarkDTO = new NewsResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
                         return new NewsDTO(data, bookmarkDTO);
                     })
@@ -164,7 +163,7 @@ public class NewsService {
             newsList = newsIdsSubset.stream()
                     .map(newsId -> {
                         // 내가 북마크한 뉴스인지 여부
-                        boolean isBookmark = user != null & bookmarkNewsRepository.findByNewsIdAndUser(newsId, user).isPresent();
+                        boolean isBookmark = user != null & bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsId, user.getId()).isPresent();
                         // 총 북마크한 수
                         int bookmarkCount = bookmarkNewsRepository.countBookmarkNewsByNewsId(newsId);
 
@@ -173,7 +172,7 @@ public class NewsService {
                             ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
                             return new NewsResponse.NewsDTO(
                                     newsDetails,
-                                    BookmarkResponse.BookmarkDTO.builder()
+                                    NewsResponse.BookmarkDTO.builder()
                                             .isBookmark(isBookmark)
                                             .count(bookmarkCount)
                                             .build()

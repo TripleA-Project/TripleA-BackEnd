@@ -1,14 +1,12 @@
 package com.triplea.triplea.dto.news;
 
-import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+
 
 import java.util.List;
 
-import java.util.List;
 
 /*
 클라에대한 응답 클래스
@@ -21,6 +19,20 @@ public class NewsResponse {
         private Long nextPage;
         private List<NewsDTO> news;
     }
+
+    @Getter
+    public static class BookmarkDTO {
+
+        private Integer count;
+        private Boolean isBookmark;
+
+        @Builder
+        public BookmarkDTO(Integer count, Boolean isBookmark) {
+            this.count = count;
+            this.isBookmark = isBookmark;
+        }
+    }
+
     @Getter
     public static class NewsDTO {
         private Long newsId;
@@ -28,8 +40,8 @@ public class NewsResponse {
         private String title;
         private String description;
         private String publishedDate;
-        private BookmarkResponse.BookmarkDTO bookmark;
-        public NewsDTO(ApiResponse.Data data, BookmarkResponse.BookmarkDTO bookmark)
+        private BookmarkDTO bookmark;
+        public NewsDTO(ApiResponse.Data data, BookmarkDTO bookmark)
         {
             this.newsId = data.getId();
             this.source = data.getSource();
@@ -39,7 +51,7 @@ public class NewsResponse {
             this.bookmark = bookmark;
         }
 
-        public NewsDTO(ApiResponse.Details details, BookmarkResponse.BookmarkDTO bookmark) {
+        public NewsDTO(ApiResponse.Details details, BookmarkDTO bookmark) {
             this.newsId = details.getId();
             this.source = details.getSource();
             this.title = details.getTitle();

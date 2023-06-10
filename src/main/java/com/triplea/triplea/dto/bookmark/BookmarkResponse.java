@@ -1,19 +1,25 @@
 package com.triplea.triplea.dto.bookmark;
 
-import lombok.Builder;
 import lombok.Getter;
 
 public class BookmarkResponse {
+
     @Getter
-    public static class BookmarkDTO {
+    public static class BookmarkSymbolDTO {
+        private Long symbolId;
+        private String symbol;
+        private String companyName;
+        private String sector;
+        private String logo;
+        private String marketType;
 
-        private Integer count;
-        private Boolean isBookmark;
-
-        @Builder
-        public BookmarkDTO(Integer count, Boolean isBookmark) {
-            this.count = count;
-            this.isBookmark = isBookmark;
+        public BookmarkSymbolDTO(Long symbolId, String symbol, String companyName, String sector, String logo, String marketType) {
+            this.symbolId = symbolId;
+            this.symbol = symbol;
+            this.companyName = companyName;
+            this.sector = sector;
+            this.logo = logo;
+            this.marketType = marketType;
         }
     }
 }

@@ -98,7 +98,7 @@ class NewsServiceTest {
                     .thenReturn(keywordResponse);
             when(newsProvider.getNewsId(any(Response.class)))
                     .thenReturn(List.of(1L));
-            when(bookmarkNewsRepository.findByNewsIdAndUser(anyLong(),any(User.class)))
+            when(bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(anyLong(),anyLong()))
                     .thenReturn(Optional.empty());
             when(bookmarkNewsRepository.countBookmarkNewsByNewsId(anyLong()))
                     .thenReturn(0);
@@ -111,7 +111,7 @@ class NewsServiceTest {
             //then
             verify(newsProvider, times(1)).getNewsIdByKeyword(keyword);
             verify(newsProvider, times(1)).getNewsId(any(Response.class));
-            verify(bookmarkNewsRepository, times(1)).findByNewsIdAndUser(anyLong(), any(User.class));
+            verify(bookmarkNewsRepository, times(1)).findNonDeletedByNewsIdAndUserId(anyLong(), anyLong());
             verify(bookmarkNewsRepository, times(1)).countBookmarkNewsByNewsId(anyLong());
             verify(newsProvider, times(1)).getNewsById(anyLong());
             verify(newsProvider, times(1)).getNewsDetails(any(Response.class));

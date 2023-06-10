@@ -15,7 +15,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class BookmarkService {
+public class BookmarkNewsService {
 
     private final BookmarkNewsRepository bookmarkNewsRepository;
 
@@ -45,7 +45,7 @@ public class BookmarkService {
     public void deleteBookmark(Long newsid, User user) {
 
         try{
-            Optional<BookmarkNews> bookmarkPS = bookmarkNewsRepository.findByNewsIdAndUser(newsid, user);
+            Optional<BookmarkNews> bookmarkPS = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsid, user.getId());
             if(false == bookmarkPS.isPresent()) {
                 log.error("Bookmark not found for news {} and user {}", newsid, user);
                 throw new Exception400("bookmark", "Bookmark not found");
