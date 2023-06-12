@@ -22,19 +22,20 @@ public class BookmarkNewsService {
     @Transactional
     public void insertBookmark(Long newsid, User user) {
 
+        Optional<BookmarkNews> nonDeletedByNewsIdAndUserId = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsid, user.getId());
+        if(nonDeletedByNewsIdAndUserId.isPresent()){
+            log.error("Attempted to add a bookmark that already exists. newsId: " + newsid + ", user: " + user.getEmail());
+            throw new Exception400("BookmarkNews", "news ID " + newsid + " already exists");
+        }
+
+        BookmarkNews bookmarkNews = BookmarkNews.builder()
+                .newsId(newsid)
+                .user(user)
+                .isDeleted(false)
+                .build();
+
         try {
-            BookmarkNews bookmarkNews = BookmarkNews.builder()
-                    .newsId(newsid)
-                    .user(user)
-                    .isDeleted(false)
-                    .build();
-
-            BookmarkNews savedBookmarkNews = bookmarkNewsRepository.save(bookmarkNews);
-
-            if(savedBookmarkNews == null || savedBookmarkNews.getId() == null) {
-                log.error("Database error when inserting bookmark: Save operation returned null");
-                throw new Exception500("Database error");
-            }
+            bookmarkNewsRepository.save(bookmarkNews);
         } catch (DataAccessException  e) {
             log.error("Database error when inserting bookmark", e);
             throw new Exception500("Database error");
