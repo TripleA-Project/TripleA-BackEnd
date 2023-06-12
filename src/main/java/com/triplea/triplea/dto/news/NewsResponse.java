@@ -4,6 +4,7 @@ import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
@@ -62,8 +63,9 @@ public class NewsResponse {
 
     @Getter
     public static class Details{
+        private User user;
         private Long newsId;
-        private List<Symbol> symbol;
+        private Symbol symbol;
         private String source;
         private String title;
         private String description;
@@ -73,12 +75,13 @@ public class NewsResponse {
         private String publishedDate;
         private String content;
         private Category category;
-        private List keyword;
+        private List<String> keyword;
         private BookmarkResponse.BookmarkDTO bookmark;
         private Integer sentiment;
 
         @Builder
-        public Details(ApiResponse.Details details, List<NewsResponse.Details.Symbol> symbol, String description, Category category, BookmarkResponse.BookmarkDTO bookmark) {
+        public Details(NewsResponse.Details.User user, ApiResponse.Details details, NewsResponse.Details.Symbol symbol, String description, Category category, BookmarkResponse.BookmarkDTO bookmark) {
+            this.user = user;
             this.newsId = details.getId();
             this.symbol = symbol;
             this.source = details.getSource();
@@ -96,6 +99,13 @@ public class NewsResponse {
             this.sentiment = details.getSentiment();
         }
 
+        @Getter @Builder
+        @AllArgsConstructor
+        public static class User{
+            private com.triplea.triplea.model.user.User.Membership membership;
+            private Integer leftBenefitCount;
+        }
+
         @Getter
         public static class Symbol{
             private String name;
@@ -103,28 +113,24 @@ public class NewsResponse {
             private String sector;
             private String logo;
             private String marketType;
-            private Integer buzz;
-            private Integer positiveBuzz;
-            private Integer negativeBuzz;
-            private List<Price> price;
+            private Price price;
 
-            public Symbol(ApiResponse.MoyaSymbol symbol, String logo, ApiResponse.MoyaBuzz buzz, List<Price> price) {
+            @Builder
+            public Symbol(ApiResponse.MoyaSymbol symbol, String logo, Price price) {
                 this.name = symbol.getSymbol();
                 this.companyName = symbol.getCompanyName();
                 this.sector = symbol.getSector();
                 this.logo = logo;
                 this.marketType = symbol.getMarketType();
-                this.buzz = buzz.getCount();
-                this.positiveBuzz = buzz.getPositiveCount();
-                this.negativeBuzz = buzz.getNegativeCount();
                 this.price = price;
             }
 
             @Getter @Builder
+            @NoArgsConstructor
             @AllArgsConstructor
             public static class Price{
-                private List<ApiResponse.Tiingo> today;
-                private List<ApiResponse.Tiingo> yesterday;
+                private ApiResponse.Tiingo today;
+                private ApiResponse.Tiingo yesterday;
             }
         }
 

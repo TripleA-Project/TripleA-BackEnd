@@ -2,7 +2,6 @@ package com.triplea.triplea.dto.news;
 
 import lombok.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /*
@@ -82,30 +81,30 @@ public class ApiResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MoyaBuzz{
-        private Float sentiment;
+        private Double sentiment;
         private Integer count;
         private Integer positiveCount;
         private Integer negativeCount;
-        private LocalDate publishedDate;
+        private String publishedDate;
     }
 
     @Builder @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Tiingo{
-        private LocalDate date;
-        private Float open;
-        private Float high;
-        private Float low;
-        private Float close;
+        private String date;
+        private Double open;
+        private Double high;
+        private Double low;
+        private Double close;
         private Long volume;
-        private Float adjOpen;
-        private Float adjHigh;
-        private Float adjLow;
-        private Float adjClose;
+        private Double adjOpen;
+        private Double adjHigh;
+        private Double adjLow;
+        private Double adjClose;
         private Long adjVolume;
-        private Float divCash;
-        private Float splitFactor;
+        private Double divCash;
+        private Double splitFactor;
     }
 
     @Builder @Getter
