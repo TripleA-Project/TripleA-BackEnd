@@ -49,7 +49,7 @@ public class NewsService {
     public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
         if(Size > globalNewsMaxSize) {
-            throw new Exception400("Size", "Request exceeds maximum data size(1000).");
+            throw new Exception400("Size", "Request exceeds maximum data size " + globalNewsMaxSize);
         }
 
         //API 쿼리 파라미터 의미
@@ -100,7 +100,7 @@ public class NewsService {
     public NewsResponse.News searchSymbolNews(User user, String symbol, int size, long page) {
 
         if (size > globalNewsMaxSize) {
-            throw new Exception400("size", "Request exceeds maximum data size(1000).");
+            throw new Exception400("size", "Request exceeds maximum data size. " + globalNewsMaxSize);
         }
 
         RestTemplate restTemplate = new RestTemplate();

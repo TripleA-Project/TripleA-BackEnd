@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.dummy.DummyEntity;
+import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.model.bookmark.BookmarkNews;
@@ -144,17 +145,17 @@ public class BookmarkSymbolControllerTest {
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOList = new ArrayList<>();
 
         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
-                551013L, "AA", "Alcoa Corp", null, "https://storage.googleapis.com/iex/api/logos/AA.png",
+                551013L, "AA", "Alcoa Corp", null, LogoUtil.makeLogo("AA"),
                 "NYSE");
         bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
 
         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO2 = new BookmarkResponse.BookmarkSymbolDTO(
-                550840L, "BB", "BlackBerry Ltd", null, "https://storage.googleapis.com/iex/api/logos/BB.png",
+                550840L, "BB", "BlackBerry Ltd", null, LogoUtil.makeLogo("BB"),
                 "NYSE");
         bookmarkSymbolDTOList.add(bookmarkSymbolDTO2);
 
         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO3 = new BookmarkResponse.BookmarkSymbolDTO(
-                552917L, "CC", "Chemours Company", null, "https://storage.googleapis.com/iex/api/logos/CC.png",
+                552917L, "CC", "Chemours Company", null, LogoUtil.makeLogo("CC"),
                 "NYSE");
         bookmarkSymbolDTOList.add(bookmarkSymbolDTO3);
 

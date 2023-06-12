@@ -1,6 +1,7 @@
 package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
@@ -68,8 +69,7 @@ public class BookmarkSymbolService {
 
                             String logo ;
                             if(dto.getLogo() == null) {
-                                String logobase = "https://storage.googleapis.com/iex/api/logos/<symbol>.png";
-                                logo = logobase.replace("<symbol>", search);
+                                logo = LogoUtil.makeLogo(search);
                             }
                             else{
                                 logo = dto.getLogo();
