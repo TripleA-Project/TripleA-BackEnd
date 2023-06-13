@@ -14,4 +14,13 @@ public class NewsRequest {
         private final String target_language = "ko";
         private String[] contents;
     }
+
+    @Getter @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Page{
+        private int startIndex;
+        private int endIndex;
+        private Long nextPage;
+    }
 }

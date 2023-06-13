@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.dto.category.CategoryRequest;
 import com.triplea.triplea.dto.news.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import okhttp3.*;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +26,25 @@ public class MoyaNewsProvider {
 
     @Value("${moya.token}")
     private String token;
+
+    /**
+     * MoYa API 카테고리로 뉴스 ID 조회
+     * @param category 대분류 카테고리
+     * @return Response
+     * @throws IOException execute
+     */
+    public Response getNewsIdByCategory(String category) throws IOException {
+        CategoryRequest categoryRequest = new CategoryRequest(category);
+        HttpUrl.Builder url = HttpUrl.parse("https://api.moya.ai/global-category").newBuilder();
+        url.addQueryParameter("token", token);
+        RequestBody requestBody = RequestBody.create(OM.writeValueAsString(categoryRequest), MEDIATYPE);
+        Request request = new Request.Builder()
+                .url(url.build().toString())
+                .post(requestBody)
+                .header("accept", "*/*")
+                .build();
+        return CLIENT.newCall(request).execute();
+    }
 
     /**
      * MoYa API 키워드로 뉴스 ID 조회
@@ -49,18 +71,16 @@ public class MoyaNewsProvider {
      * @throws IOException json
      */
     public List<Long> getNewsId(Response getNewsId) throws IOException {
+        List<Long> newsIds = new ArrayList<>();
         if (getNewsId.isSuccessful()) {
             if (getNewsId.body() != null) {
-                List<Long> newsIds = new ArrayList<>();
                 JsonNode rootNode = OM.readTree(getNewsId.body().string());
-                for (JsonNode node : rootNode) {
-                    newsIds.add(node.path("id").asLong());
-                }
-                return newsIds;
+                newsIds = StreamSupport.stream(rootNode.spliterator(), false)
+                        .map(node -> node.path("id").asLong())
+                        .collect(Collectors.toList());
             }
-            throw new Exception500("MoYa API Response 실패");
         }
-        throw new Exception500("MoYa API 실패");
+        return newsIds;
     }
 
     /**

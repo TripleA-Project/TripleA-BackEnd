@@ -4,9 +4,8 @@ import com.triplea.triplea.core.util.LogoUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-
 import java.util.List;
+
 
 
 /*
@@ -17,6 +16,7 @@ public class NewsResponse {
     @Builder @Getter
     @AllArgsConstructor
     public static class News{
+        private String search;
         private Long nextPage;
         private List<NewsDTO> news;
     }

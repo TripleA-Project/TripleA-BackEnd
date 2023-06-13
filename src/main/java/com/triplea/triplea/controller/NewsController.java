@@ -6,17 +6,11 @@ import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.NewsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import javax.validation.Valid;
-import java.util.List;
 
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -52,6 +46,15 @@ public class NewsController {
         User user = null;
         if(myUserDetails != null) user = myUserDetails.getUser();
         NewsResponse.News newsList = newsService.getNewsByKeyword(keyword, size, page, user);
+        return ResponseEntity.ok().body(new ResponseDTO<>(newsList));
+    }
+
+    // 뉴스 조회(카테고리)
+    @GetMapping("/news/category/{id}")
+    public ResponseEntity<?> getNewsByCategory(@PathVariable Long id, @RequestParam("size") int size, @RequestParam("page") Long page, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        User user = null;
+        if(myUserDetails != null) user = myUserDetails.getUser();
+        NewsResponse.News newsList = newsService.getNewsByCategory(id, size, page, user);
         return ResponseEntity.ok().body(new ResponseDTO<>(newsList));
     }
 
