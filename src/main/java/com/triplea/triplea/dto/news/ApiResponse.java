@@ -76,4 +76,22 @@ public class ApiResponse {
         private String marketType;
     }
 
+    @Builder @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Tiingo{
+        private String date;
+        private Double open;
+        private Double high;
+        private Double low;
+        private Double close;
+        private Long volume;
+        private Double adjOpen;
+        private Double adjHigh;
+        private Double adjLow;
+        private Double adjClose;
+        private Long adjVolume;
+        private Double divCash;
+        private Double splitFactor;
+    }
 }

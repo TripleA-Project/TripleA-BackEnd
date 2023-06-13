@@ -16,6 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +33,9 @@ public class BookmarkSymbolService {
 
     @Value("${moya.token}")
     private String moyaToken;
+
+    @Value("${tiingo.token}")
+    private String tiingoToken;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -56,7 +62,7 @@ public class BookmarkSymbolService {
                 try {
                     response = restTemplate.getForEntity(url, ApiResponse.BookmarkSymbolDTO[].class);
                 } catch (RestClientException e) {
-                    log.error("https://api.moya.ai/stock", e.getMessage());
+                    log.error(url, e.getMessage());
                     throw new Exception500("API 호출 실패");
                 }
 
@@ -75,13 +81,53 @@ public class BookmarkSymbolService {
                                 logo = dto.getLogo();
                             }
 
+                            LocalDate today = LocalDate.now();
+                            LocalDate twoWeeksAgo = today.minusWeeks(2);
+
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d");
+
+                            String todayStr = today.format(formatter);
+                            String twoWeeksAgoStr = twoWeeksAgo.format(formatter);
+
+                            String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>/prices";
+                            tiingoUrl = tiingoUrl.replace("<ticker>", search);
+                            builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                                    .queryParam("token", tiingoToken)
+                                    .queryParam("startDate", twoWeeksAgoStr)
+                                    .queryParam("endDate", todayStr)
+                                    .queryParam("sort", "-date");
+
+                            url = builder.toUriString();
+
+                            ResponseEntity<ApiResponse.Tiingo[]> tiingoresponse;
+
+                            try {
+                                tiingoresponse = restTemplate.getForEntity(url, ApiResponse.Tiingo[].class);
+                            } catch (RestClientException e) {
+                                log.error(url, e.getMessage());
+                                throw new Exception500("API 호출 실패");
+                            }
+
+                            ApiResponse.Tiingo[] tiingoList = tiingoresponse.getBody();
+
+                            if (tiingoList.length < 2) {
+                                // 이 경우에 대한 에러 처리나 대체 방안이 필요합니다.
+                                throw new Exception500("Tiingo API 응답이 2개 이상의 데이터를 포함하지 않습니다.");
+                            }
+
+                            BookmarkResponse.Price price = BookmarkResponse.Price.builder()
+                                    .today(tiingoList[0])
+                                    .yesterday(tiingoList[1])
+                                    .build();
+
                             BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
                                     dto.getId(),
                                     dto.getSymbol(),
                                     dto.getCompanyName(),
                                     dto.getSector(),
                                     logo,
-                                    dto.getMarketType()
+                                    dto.getMarketType(),
+                                    price
                             );
 
                             bookmarkSymbolDTOList.add(bookmarkSymbolDTO);

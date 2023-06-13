@@ -7,6 +7,7 @@ import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
+import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.model.bookmark.BookmarkNews;
 import com.triplea.triplea.model.bookmark.BookmarkSymbol;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
@@ -49,8 +50,10 @@ public class BookmarkSymbolControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    //// <---모야 API 호출 하지 않고 테스트 하기 위한 세팅
     @MockBean
     private BookmarkSymbolService bookmarkSymbolService;
+    //// --->
 
     @Autowired
     private BookmarkSymbolRepository bookmarkSymbolRepository;
@@ -144,19 +147,22 @@ public class BookmarkSymbolControllerTest {
         //// <---모야 API 호출 하지 않고 테스트 하기 위한 세팅
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOList = new ArrayList<>();
 
-        BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
+        ApiResponse.Tiingo[] tiingoList = { ApiResponse.Tiingo.builder().build(), ApiResponse.Tiingo.builder().build()};
+        BookmarkResponse.Price price = new BookmarkResponse.Price(tiingoList[0], tiingoList[1]);
+
+                BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
                 551013L, "AA", "Alcoa Corp", null, LogoUtil.makeLogo("AA"),
-                "NYSE");
+                "NYSE", price);
         bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
 
         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO2 = new BookmarkResponse.BookmarkSymbolDTO(
                 550840L, "BB", "BlackBerry Ltd", null, LogoUtil.makeLogo("BB"),
-                "NYSE");
+                "NYSE", price);
         bookmarkSymbolDTOList.add(bookmarkSymbolDTO2);
 
         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO3 = new BookmarkResponse.BookmarkSymbolDTO(
                 552917L, "CC", "Chemours Company", null, LogoUtil.makeLogo("CC"),
-                "NYSE");
+                "NYSE", price);
         bookmarkSymbolDTOList.add(bookmarkSymbolDTO3);
 
         Mockito.when(bookmarkSymbolService.recommendBookmark()).thenReturn(bookmarkSymbolDTOList);
