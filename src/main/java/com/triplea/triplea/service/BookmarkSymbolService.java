@@ -112,7 +112,6 @@ public class BookmarkSymbolService {
                             ApiResponse.Tiingo[] tiingoList = tiingoresponse.getBody();
 
                             if (tiingoList.length < 2) {
-                                // 이 경우에 대한 에러 처리나 대체 방안이 필요합니다.
                                 throw new Exception500("Tiingo API 응답이 2개 이상의 데이터를 포함하지 않습니다.");
                             }
 
@@ -220,7 +219,6 @@ public class BookmarkSymbolService {
                             ApiResponse.Tiingo[] tiingoList = tiingoresponse.getBody();
 
                             if (tiingoList.length < 2) {
-                                // 이 경우에 대한 에러 처리나 대체 방안이 필요합니다.
                                 throw new Exception500("Tiingo API 응답이 2개 이상의 데이터를 포함하지 않습니다.");
                             }
 
