@@ -238,7 +238,7 @@ public class NewsService {
         return newsIdsSubset.stream()
                 .map(newsId -> {
                     // 내가 북마크한 뉴스인지 여부
-                    boolean isBookmark = user != null & bookmarkNewsRepository.findByNewsIdAndUser(newsId, user).isPresent();
+                    boolean isBookmark = user != null & bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsId, user.getId()).isPresent();
                     // 총 북마크한 수
                     int bookmarkCount = bookmarkNewsRepository.countBookmarkNewsByNewsId(newsId);
 
@@ -247,7 +247,7 @@ public class NewsService {
                         ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
                         return new NewsResponse.NewsDTO(
                                 newsDetails,
-                                BookmarkResponse.BookmarkDTO.builder()
+                                NewsResponse.BookmarkDTO.builder()
                                         .isBookmark(isBookmark)
                                         .count(bookmarkCount)
                                         .build()
