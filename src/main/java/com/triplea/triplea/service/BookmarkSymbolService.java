@@ -5,7 +5,6 @@ import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
-import com.triplea.triplea.model.symbol.SymbolRepository;
 import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +28,6 @@ import java.util.List;
 public class BookmarkSymbolService {
 
     private final BookmarkSymbolRepository bookmarkSymbolRepository;
-
-    private final SymbolRepository symbolRepository;
 
     @Value("${moya.token}")
     private String moyaToken;

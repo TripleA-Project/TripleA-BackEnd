@@ -1,6 +1,5 @@
 package com.triplea.triplea.model.bookmark;
 
-import com.triplea.triplea.core.util.CreatedTimestamped;
 import com.triplea.triplea.model.user.User;
 import lombok.*;
 
@@ -21,13 +20,6 @@ public class BookmarkSymbol {
     private Long symbolId;
 
     private boolean isDeleted;
-
-
-    public BookmarkSymbol(User user, Long symbolId) {
-        this.user = user;
-        this.symbolId = symbolId;
-        this.isDeleted = false;
-    }
 
     public void deleteBookmark(){
         this.isDeleted = true;

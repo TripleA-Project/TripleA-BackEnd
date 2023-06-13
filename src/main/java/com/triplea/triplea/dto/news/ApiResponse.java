@@ -1,7 +1,6 @@
 package com.triplea.triplea.dto.news;
 
 import lombok.*;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import java.util.List;
 
