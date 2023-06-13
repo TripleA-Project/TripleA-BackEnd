@@ -2,8 +2,11 @@ package com.triplea.triplea.model.bookmark;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookmarkSymbolRepository extends JpaRepository<BookmarkSymbol, Long> {
 
@@ -16,4 +19,16 @@ public interface BookmarkSymbolRepository extends JpaRepository<BookmarkSymbol, 
             "ORDER BY COUNT(b.symbol_id) DESC " +
             "LIMIT 10", nativeQuery = true)
     List<String> findMostFrequentSymbols();
+
+
+
+    @Query("select bn from BookmarkNews bn where bn.isDeleted=false and bn.newsId=:newsId and bn.user.id=:userId and bn.user.isActive=true")
+    Optional<BookmarkNews> findNonDeletedByNewsIdAndUserId(@Param("newsId") Long newsId, @Param("userId") Long userId);
+
+    @Query(value = "SELECT s.symbol " +
+            "FROM symbol_tb s " +
+            "INNER JOIN bookmark_symbol_tb bs " +
+            "ON s.id = bs.symbol_id " +
+            "WHERE bs.is_deleted = false AND bs.user_id = :userId", nativeQuery = true)
+    List<String> findNonDeletedSymbolByUserId(@Param("userId") Long userId);
 }
