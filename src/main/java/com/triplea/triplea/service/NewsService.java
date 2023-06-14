@@ -16,12 +16,14 @@ import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -36,6 +38,7 @@ import static com.triplea.triplea.dto.news.ApiResponse.Data;
 import static com.triplea.triplea.dto.news.ApiResponse.GlobalNewsDTO;
 import static com.triplea.triplea.dto.news.NewsResponse.NewsDTO;
 
+@Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
@@ -88,7 +91,32 @@ public class NewsService {
 
                 BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                newsDTOList.add(new NewsDTO(data, bookmarkDTO));
+                builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
+                        .queryParam("token", moyaToken)
+                        .queryParam("search", data.getSymbol());
+
+                ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
+                try {
+                    bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
+                } catch (RestClientException e) {
+                    log.error(url, e.getMessage());
+                    throw new Exception500("API 호출 실패");
+                }
+
+                ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+
+                String companyName = "";
+                if (dtos != null) {
+                    for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
+                        //symbol 글자 완전 일치하는것만 가져온다
+                        if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
+                            companyName = dto.getCompanyName();
+                            break;
+                        }
+                    }
+                }
+
+                newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
             }
 
             NewsResponse.News news = NewsResponse.News.builder()
@@ -136,7 +164,32 @@ public class NewsService {
 
                 BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                newsDTOList.add(new NewsDTO(data,  bookmarkDTO));
+                builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
+                        .queryParam("token", moyaToken)
+                        .queryParam("search", data.getSymbol());
+
+                ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
+                try {
+                    bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
+                } catch (RestClientException e) {
+                    log.error(url, e.getMessage());
+                    throw new Exception500("API 호출 실패");
+                }
+
+                ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+
+                String companyName = "";
+                if (dtos != null) {
+                    for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
+                        //symbol 글자 완전 일치하는것만 가져온다
+                        if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
+                            companyName = dto.getCompanyName();
+                            break;
+                        }
+                    }
+                }
+
+                newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
             }
 
             NewsResponse.News news = NewsResponse.News.builder()
