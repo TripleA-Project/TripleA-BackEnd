@@ -3,6 +3,7 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.core.util.MoyaNewsProvider;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
@@ -57,7 +58,7 @@ public class NewsService {
     public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
         if(Size > globalNewsMaxSize) {
-            throw new Exception400("Size", "Request exceeds maximum data size(1000).");
+            throw new Exception400("Size", "Request exceeds maximum data size " + globalNewsMaxSize);
         }
 
         //API 쿼리 파라미터 의미
@@ -80,16 +81,15 @@ public class NewsService {
 
             List<Data> datas = globalNewsDTO.getDatas();
 
-            List<NewsDTO> newsDTOList = datas.stream()
-                    .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+            List<NewsDTO> newsDTOList = new ArrayList<>();
+            for(Data data : datas){
+                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
+                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                        return new NewsDTO(data, bookmarkDTO);
-                    })
-                    .collect(Collectors.toList());
+                newsDTOList.add(new NewsDTO(data, bookmarkDTO));
+            }
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
@@ -108,7 +108,7 @@ public class NewsService {
     public NewsResponse.News searchSymbolNews(User user, String symbol, int size, long page) {
 
         if (size > globalNewsMaxSize) {
-            throw new Exception400("size", "Request exceeds maximum data size(1000).");
+            throw new Exception400("size", "Request exceeds maximum data size. " + globalNewsMaxSize);
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -129,16 +129,15 @@ public class NewsService {
 
             List<Data> datas = globalNewsDTO.getDatas();
 
-            List<NewsDTO> newsDTOList = datas.stream()
-                    .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+            List<NewsDTO> newsDTOList = new ArrayList<>();
+            for(Data data : datas){
+                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
+                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                        return new NewsDTO(data, bookmarkDTO);
-                    })
-                    .collect(Collectors.toList());
+                newsDTOList.add(new NewsDTO(data,  bookmarkDTO));
+            }
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
@@ -239,7 +238,7 @@ public class NewsService {
         return newsIdsSubset.stream()
                 .map(newsId -> {
                     // 내가 북마크한 뉴스인지 여부
-                    boolean isBookmark = user != null & bookmarkNewsRepository.findByNewsIdAndUser(newsId, user).isPresent();
+                    boolean isBookmark = user != null & bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsId, user.getId()).isPresent();
                     // 총 북마크한 수
                     int bookmarkCount = bookmarkNewsRepository.countBookmarkNewsByNewsId(newsId);
 
