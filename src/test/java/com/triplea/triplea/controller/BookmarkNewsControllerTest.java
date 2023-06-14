@@ -5,7 +5,7 @@ import com.triplea.triplea.model.bookmark.BookmarkNews;
 import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
-import com.triplea.triplea.service.BookmarkService;
+import com.triplea.triplea.service.BookmarkNewsService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("북마크 API")
+@DisplayName("북마크뉴스 API")
 //@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
 @ActiveProfiles("dev")
 @AutoConfigureMockMvc
@@ -37,7 +37,7 @@ public class BookmarkNewsControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private BookmarkService bookmarkService;
+    private BookmarkNewsService bookmarkNewsService;
 
     @Autowired
     private BookmarkNewsRepository bookmarkNewsRepository;
@@ -70,7 +70,7 @@ public class BookmarkNewsControllerTest {
 
         resultActions.andExpect(status().isOk());
 
-        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(newsId);
+        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(newsId);
         Assertions.assertThat(bookmarkNewsList.size() == 1);
         Assertions.assertThat(bookmarkNewsList.get(0).getNewsId() == newsId);
     }
