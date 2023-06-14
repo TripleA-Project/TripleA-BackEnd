@@ -68,7 +68,8 @@ public class NewsControllerTest {
         data.setSymbol("EZU");
         data.setSource("talkmarkets.com");
         BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(1, true);
-        NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, bookmarkDTO);
+        String companyName = "";
+        NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, companyName, bookmarkDTO);
         List<NewsResponse.NewsDTO> list = new ArrayList<>();
         list.add(newsDTO);
         NewsResponse.News news = NewsResponse.News.builder()
@@ -109,7 +110,8 @@ public class NewsControllerTest {
         data.setSymbol("EZU");
         data.setSource("talkmarkets.com");
         BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(1, true);
-        NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, bookmarkDTO);
+        String companyName = "";
+        NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, companyName, bookmarkDTO);
         List<NewsResponse.NewsDTO> list = new ArrayList<>();
         list.add(newsDTO);
         NewsResponse.News news = NewsResponse.News.builder()
