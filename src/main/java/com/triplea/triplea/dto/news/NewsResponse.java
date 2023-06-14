@@ -1,6 +1,7 @@
 package com.triplea.triplea.dto.news;
 
 import com.triplea.triplea.core.util.LogoUtil;
+import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,19 +23,6 @@ public class NewsResponse {
     }
 
     @Getter
-    public static class BookmarkDTO {
-
-        private Integer count;
-        private Boolean isBookmark;
-
-        @Builder
-        public BookmarkDTO(Integer count, Boolean isBookmark) {
-            this.count = count;
-            this.isBookmark = isBookmark;
-        }
-    }
-
-    @Getter
     public static class NewsDTO {
         private Long newsId;
         private String symbol;
@@ -45,8 +33,8 @@ public class NewsResponse {
         private String thumbnail;
         private Integer sentiment;
         private String publishedDate;
-        private BookmarkDTO bookmark;
-        public NewsDTO(ApiResponse.Data data, BookmarkDTO bookmark)
+        private BookmarkResponse.BookmarkDTO bookmark;
+        public NewsDTO(ApiResponse.Data data, BookmarkResponse.BookmarkDTO bookmark)
         {
             this.newsId = data.getId();
             this.symbol = data.getSymbol();
@@ -60,7 +48,7 @@ public class NewsResponse {
             this.bookmark = bookmark;
         }
 
-        public NewsDTO(ApiResponse.Details details, BookmarkDTO bookmark) {
+        public NewsDTO(ApiResponse.Details details, BookmarkResponse.BookmarkDTO bookmark) {
             this.newsId = details.getId();
             this.source = details.getSource();
             this.title = details.getTitle();

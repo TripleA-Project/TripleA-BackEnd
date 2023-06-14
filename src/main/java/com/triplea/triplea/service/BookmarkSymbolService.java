@@ -71,14 +71,6 @@ public class BookmarkSymbolService {
                         //symbol 글자 완전 일치하는것만 가져온다
                         if (dto.getSymbol().equals(search.toUpperCase())) {
 
-                            String logo ;
-                            if(dto.getLogo() == null) {
-                                logo = LogoUtil.makeLogo(search);
-                            }
-                            else{
-                                logo = dto.getLogo();
-                            }
-
                             LocalDate today = LocalDate.now();
                             LocalDate twoWeeksAgo = today.minusWeeks(2);
 
@@ -117,10 +109,39 @@ public class BookmarkSymbolService {
                                     .yesterday(tiingoList[1])
                                     .build();
 
+                            String logo = dto.getLogo();
+                            if(logo == null) {
+                                logo = LogoUtil.makeLogo(search);
+                            }
+                            String symbolcopy = dto.getSymbol();
+                            if(symbolcopy == null)
+                                symbolcopy = symbol;
+
+                            String companyName = dto.getCompanyName();
+                            if(companyName == null){
+                                tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
+                                tiingoUrl = tiingoUrl.replace("<ticker>", search);
+                                builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                                        .queryParam("token", tiingoToken);
+
+                                url = builder.toUriString();
+
+                                ResponseEntity<ApiResponse.TiingoSymbol> tiingoSymbolResponse;
+
+                                try {
+                                    tiingoSymbolResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
+                                } catch (RestClientException e) {
+                                    log.error(url, e.getMessage());
+                                    throw new Exception500("API 호출 실패");
+                                }
+
+                                companyName = tiingoSymbolResponse.getBody().getName();
+                            }
+
                             BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
                                     dto.getId(),
-                                    dto.getSymbol(),
-                                    dto.getCompanyName(),
+                                    symbolcopy,
+                                    companyName,
                                     dto.getSector(),
                                     logo,
                                     dto.getMarketType(),
@@ -178,14 +199,6 @@ public class BookmarkSymbolService {
                         //symbol 글자 완전 일치하는것만 가져온다
                         if (dto.getSymbol().equals(search.toUpperCase())) {
 
-                            String logo ;
-                            if(dto.getLogo() == null) {
-                                logo = LogoUtil.makeLogo(search);
-                            }
-                            else{
-                                logo = dto.getLogo();
-                            }
-
                             LocalDate today = LocalDate.now();
                             LocalDate twoWeeksAgo = today.minusWeeks(2);
 
@@ -223,6 +236,35 @@ public class BookmarkSymbolService {
                                     .today(tiingoList[0])
                                     .yesterday(tiingoList[1])
                                     .build();
+
+                            String logo = dto.getLogo();
+                            if(logo == null) {
+                                logo = LogoUtil.makeLogo(search);
+                            }
+                            String symbolcopy = dto.getSymbol();
+                            if(symbolcopy == null)
+                                symbolcopy = symbol;
+
+                            String companyName = dto.getCompanyName();
+                            if(companyName == null){
+                                tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
+                                tiingoUrl = tiingoUrl.replace("<ticker>", search);
+                                builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                                        .queryParam("token", tiingoToken);
+
+                                url = builder.toUriString();
+
+                                ResponseEntity<ApiResponse.TiingoSymbol> tiingoSymbolResponse;
+
+                                try {
+                                    tiingoSymbolResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
+                                } catch (RestClientException e) {
+                                    log.error(url, e.getMessage());
+                                    throw new Exception500("API 호출 실패");
+                                }
+
+                                companyName = tiingoSymbolResponse.getBody().getName();
+                            }
 
                             BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
                                     dto.getId(),

@@ -17,6 +17,19 @@ public class BookmarkResponse {
     }
 
     @Getter
+    public static class BookmarkDTO {
+
+        private Integer count;
+        private Boolean isBookmark;
+
+        @Builder
+        public BookmarkDTO(Integer count, Boolean isBookmark) {
+            this.count = count;
+            this.isBookmark = isBookmark;
+        }
+    }
+
+    @Getter
     public static class BookmarkSymbolDTO {
         private Long symbolId;
         private String symbol;

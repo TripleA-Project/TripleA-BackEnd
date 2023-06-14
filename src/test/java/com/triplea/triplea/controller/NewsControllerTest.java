@@ -43,8 +43,10 @@ public class NewsControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    //<--- API 호출 피하기위한 세팅
     @MockBean
     private NewsService newsService;
+    //--->
 
     @BeforeEach
     public void setup() {
@@ -61,10 +63,11 @@ public class NewsControllerTest {
     @Test
     public void getGlobalNews() throws Exception {
 
+        //<--- API 호출 피하기위한 세팅
         ApiResponse.Data data = new ApiResponse.Data();
         data.setSymbol("EZU");
         data.setSource("talkmarkets.com");
-        NewsResponse.BookmarkDTO bookmarkDTO = new NewsResponse.BookmarkDTO(1, true);
+        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(1, true);
         NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, bookmarkDTO);
         List<NewsResponse.NewsDTO> list = new ArrayList<>();
         list.add(newsDTO);
@@ -74,8 +77,9 @@ public class NewsControllerTest {
                 .build();
 
         Mockito.when(newsService.searchAllNews(Mockito.any(User.class), Mockito.any(Integer.class), Mockito.any(Long.class))).thenReturn(news);
+        //--->
 
-        ResultActions resultActions = mockMvc.perform(get("/api/news/latest?size=10&page=5")
+        ResultActions resultActions = mockMvc.perform(get("/api/news/latest?size=100&page=55563896")
                 .contentType(MediaType.APPLICATION_JSON));
 
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
@@ -100,10 +104,11 @@ public class NewsControllerTest {
     @Test
     public void getSymbolNews() throws Exception {
 
+        //<--- API 호출 피하기위한 세팅
         ApiResponse.Data data = new ApiResponse.Data();
         data.setSymbol("EZU");
         data.setSource("talkmarkets.com");
-        NewsResponse.BookmarkDTO bookmarkDTO = new NewsResponse.BookmarkDTO(1, true);
+        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(1, true);
         NewsResponse.NewsDTO newsDTO = new NewsResponse.NewsDTO(data, bookmarkDTO);
         List<NewsResponse.NewsDTO> list = new ArrayList<>();
         list.add(newsDTO);
@@ -113,8 +118,9 @@ public class NewsControllerTest {
                 .build();
 
         Mockito.when(newsService.searchSymbolNews(Mockito.any(User.class), Mockito.anyString(), Mockito.any(Integer.class), Mockito.any(Long.class))).thenReturn(news);
+        //--->
 
-        ResultActions resultActions = mockMvc.perform(get("/api/news?symbol=EZU&size=10&page=5")
+        ResultActions resultActions = mockMvc.perform(get("/api/news?symbol=EZU&size=10&page=55563896")
                 .contentType(MediaType.APPLICATION_JSON));
 
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();

@@ -3,7 +3,9 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.core.util.MoyaNewsProvider;
+import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsRequest;
 import com.triplea.triplea.dto.news.NewsResponse;
@@ -79,16 +81,15 @@ public class NewsService {
 
             List<Data> datas = globalNewsDTO.getDatas();
 
-            List<NewsDTO> newsDTOList = datas.stream()
-                    .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+            List<NewsDTO> newsDTOList = new ArrayList<>();
+            for(Data data : datas){
+                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
+                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        NewsResponse.BookmarkDTO bookmarkDTO = new NewsResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                        return new NewsDTO(data, bookmarkDTO);
-                    })
-                    .collect(Collectors.toList());
+                newsDTOList.add(new NewsDTO(data, bookmarkDTO));
+            }
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
@@ -128,16 +129,15 @@ public class NewsService {
 
             List<Data> datas = globalNewsDTO.getDatas();
 
-            List<NewsDTO> newsDTOList = datas.stream()
-                    .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+            List<NewsDTO> newsDTOList = new ArrayList<>();
+            for(Data data : datas){
+                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
+                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        NewsResponse.BookmarkDTO bookmarkDTO = new NewsResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                        return new NewsDTO(data, bookmarkDTO);
-                    })
-                    .collect(Collectors.toList());
+                newsDTOList.add(new NewsDTO(data,  bookmarkDTO));
+            }
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
@@ -247,7 +247,7 @@ public class NewsService {
                         ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
                         return new NewsResponse.NewsDTO(
                                 newsDetails,
-                                NewsResponse.BookmarkDTO.builder()
+                                BookmarkResponse.BookmarkDTO.builder()
                                         .isBookmark(isBookmark)
                                         .count(bookmarkCount)
                                         .build()
