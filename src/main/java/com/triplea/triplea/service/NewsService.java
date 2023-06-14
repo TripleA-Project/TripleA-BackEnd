@@ -31,6 +31,7 @@ import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -39,6 +40,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -49,12 +51,17 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.triplea.triplea.dto.news.ApiResponse.Data;
 import static com.triplea.triplea.dto.news.ApiResponse.GlobalNewsDTO;
 import static com.triplea.triplea.dto.news.NewsResponse.NewsDTO;
 
+@Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
@@ -81,8 +88,8 @@ public class NewsService {
     @Transactional(readOnly = true)
     public NewsResponse.News searchAllNews(User user, int Size, long page) {
 
-        if(Size > globalNewsMaxSize) {
-            throw new Exception400("Size", "Request exceeds maximum data size(1000).");
+        if (Size > globalNewsMaxSize) {
+            throw new Exception400("Size", "Request exceeds maximum data size " + globalNewsMaxSize);
         }
 
         //API 쿼리 파라미터 의미
@@ -105,16 +112,40 @@ public class NewsService {
 
             List<Data> datas = globalNewsDTO.getDatas();
 
-            List<NewsDTO> newsDTOList = datas.stream()
-                    .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+            List<NewsDTO> newsDTOList = new ArrayList<>();
+            for (Data data : datas) {
+                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
+                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                        return new NewsDTO(data, bookmarkDTO);
-                    })
-                    .collect(Collectors.toList());
+                builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
+                        .queryParam("token", moyaToken)
+                        .queryParam("search", data.getSymbol());
+
+                ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
+                try {
+                    bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
+                } catch (RestClientException e) {
+                    log.error(url, e.getMessage());
+                    throw new Exception500("API 호출 실패");
+                }
+
+                ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+
+                String companyName = "";
+                if (dtos != null) {
+                    for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
+                        //symbol 글자 완전 일치하는것만 가져온다
+                        if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
+                            companyName = dto.getCompanyName();
+                            break;
+                        }
+                    }
+                }
+
+                newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
+            }
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
@@ -133,7 +164,7 @@ public class NewsService {
     public NewsResponse.News searchSymbolNews(User user, String symbol, int size, long page) {
 
         if (size > globalNewsMaxSize) {
-            throw new Exception400("size", "Request exceeds maximum data size(1000).");
+            throw new Exception400("size", "Request exceeds maximum data size. " + globalNewsMaxSize);
         }
 
         RestTemplate restTemplate = new RestTemplate();
@@ -154,16 +185,40 @@ public class NewsService {
 
             List<Data> datas = globalNewsDTO.getDatas();
 
-            List<NewsDTO> newsDTOList = datas.stream()
-                    .map(data -> {
-                        List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findByNewsId(data.getId());
-                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findByNewsIdAndUser(data.getId(), user);
+            List<NewsDTO> newsDTOList = new ArrayList<>();
+            for (Data data : datas) {
+                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
+                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                        BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
 
-                        return new NewsDTO(data, bookmarkDTO);
-                    })
-                    .collect(Collectors.toList());
+                builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
+                        .queryParam("token", moyaToken)
+                        .queryParam("search", data.getSymbol());
+
+                ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
+                try {
+                    bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
+                } catch (RestClientException e) {
+                    log.error(url, e.getMessage());
+                    throw new Exception500("API 호출 실패");
+                }
+
+                ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+
+                String companyName = "";
+                if (dtos != null) {
+                    for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
+                        //symbol 글자 완전 일치하는것만 가져온다
+                        if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
+                            companyName = dto.getCompanyName();
+                            break;
+                        }
+                    }
+                }
+
+                newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
+            }
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
@@ -348,7 +403,7 @@ public class NewsService {
      */
     private BookmarkResponse.BookmarkDTO getBookmark(Long newsId, User user) {
         // 내가 북마크한 뉴스인지 여부
-        boolean isBookmark = user != null & bookmarkNewsRepository.findByNewsIdAndUser(newsId, user).isPresent();
+        boolean isBookmark = user != null & bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsId, user.getId()).isPresent();
         // 총 북마크한 수
         int bookmarkCount = bookmarkNewsRepository.countBookmarkNewsByNewsId(newsId);
 

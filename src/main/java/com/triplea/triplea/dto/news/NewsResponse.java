@@ -1,5 +1,6 @@
 package com.triplea.triplea.dto.news;
 
+import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.category.CategoryResponse;
 import com.triplea.triplea.dto.symbol.SymbolResponse;
@@ -21,7 +22,7 @@ public class NewsResponse {
     @Builder
     @Getter
     @AllArgsConstructor
-    public static class News {
+    public static class News{
         private String search;
         private Long nextPage;
         private List<NewsDTO> news;
@@ -31,8 +32,8 @@ public class NewsResponse {
     public static class NewsDTO {
         private Long newsId;
         private String symbol;
-        private String companyName;
         private String logo;
+        private String companyName;
         private String source;
         private String title;
         private String description;
@@ -41,10 +42,12 @@ public class NewsResponse {
         private Integer sentiment;
         private BookmarkResponse.BookmarkDTO bookmark;
 
-        public NewsDTO(ApiResponse.Data data, String logo, BookmarkResponse.BookmarkDTO bookmark) {
+        public NewsDTO(ApiResponse.Data data, String companyName ,BookmarkResponse.BookmarkDTO bookmark)
+        {
             this.newsId = data.getId();
             this.symbol = data.getSymbol();
-            this.logo = logo;
+            this.logo = LogoUtil.makeLogo(data.getSymbol());
+            this.companyName = companyName;
             this.source = data.getSource();
             this.title = data.getTitle();
             this.description = data.getDescription();
