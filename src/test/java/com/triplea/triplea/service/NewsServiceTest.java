@@ -1,24 +1,42 @@
 package com.triplea.triplea.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.triplea.triplea.core.exception.Exception400;
+import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.core.util.MoyaNewsProvider;
+import com.triplea.triplea.core.util.StepPaySubscriber;
+import com.triplea.triplea.core.util.provide.MoyaNewsProvider;
+import com.triplea.triplea.core.util.provide.TiingoStockProvider;
+import com.triplea.triplea.core.util.provide.symbol.MoyaSymbolProvider;
+import com.triplea.triplea.core.util.provide.symbol.TiingoSymbolProvider;
+import com.triplea.triplea.core.util.translate.Papago;
+import com.triplea.triplea.core.util.translate.WiseSTGlobal;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsResponse;
+import com.triplea.triplea.dto.stock.StockRequest;
+import com.triplea.triplea.dto.stock.StockResponse;
+import com.triplea.triplea.dto.symbol.SymbolRequest;
 import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.category.Category;
 import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
+import com.triplea.triplea.model.customer.Customer;
+import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.model.user.UserRepository;
 import okhttp3.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +57,27 @@ class NewsServiceTest {
     @Mock
     CategoryRepository categoryRepository;
     @Mock
+    UserRepository userRepository;
+    @Mock
+    CustomerRepository customerRepository;
+    @Mock
     MoyaNewsProvider newsProvider;
+    @Mock
+    MoyaSymbolProvider moyaSymbolProvider;
+    @Mock
+    TiingoSymbolProvider tiingoSymbolProvider;
+    @Mock
+    TiingoStockProvider stockProvider;
+    @Mock
+    StepPaySubscriber subscriber;
+    @Mock
+    Papago papagoTranslator;
+    @Mock
+    WiseSTGlobal wiseTranslator;
+    @Mock
+    RedisTemplate<String, String> redisTemplate;
+    @Mock
+    ValueOperations valueOperations;
 
     private final User user = User.builder()
             .id(1L)
@@ -106,7 +144,7 @@ class NewsServiceTest {
                     .thenReturn(keywordResponse);
             when(newsProvider.getNewsId(any(Response.class)))
                     .thenReturn(List.of(1L));
-            when(bookmarkNewsRepository.findByNewsIdAndUser(anyLong(),any(User.class)))
+            when(bookmarkNewsRepository.findByNewsIdAndUser(anyLong(), any(User.class)))
                     .thenReturn(Optional.empty());
             when(bookmarkNewsRepository.countBookmarkNewsByNewsId(anyLong()))
                     .thenReturn(0);
@@ -114,7 +152,9 @@ class NewsServiceTest {
                     .thenReturn(newsResponse);
             when(newsProvider.getNewsDetails(any(Response.class)))
                     .thenReturn(data);
-            when(newsProvider.getSymbol(anyString(), anyBoolean())).thenReturn(new ApiResponse.MoyaSymbol());
+            when(moyaSymbolProvider.getSymbolInfo(anyString())).thenReturn(new SymbolRequest.MoyaSymbol());
+            when(tiingoSymbolProvider.getSymbolInfo(anyString())).thenReturn(new SymbolRequest.MoyaSymbol());
+            when(moyaSymbolProvider.getLogo(any(SymbolRequest.MoyaSymbol.class))).thenReturn(null);
 
             NewsResponse.News result = newsService.getNewsByKeyword(keyword, size, page, user);
             //then
@@ -124,6 +164,9 @@ class NewsServiceTest {
             verify(bookmarkNewsRepository, times(1)).countBookmarkNewsByNewsId(anyLong());
             verify(newsProvider, times(1)).getNewsById(anyLong());
             verify(newsProvider, times(1)).getNewsDetails(any(Response.class));
+            verify(moyaSymbolProvider, times(1)).getSymbolInfo(anyString());
+            verify(tiingoSymbolProvider, times(1)).getSymbolInfo(anyString());
+            verify(moyaSymbolProvider, times(1)).getLogo(any(SymbolRequest.MoyaSymbol.class));
             Assertions.assertNull(result.getNextPage());
             Assertions.assertEquals(1, result.getNews().size());
             Assertions.assertEquals(data.getId(), result.getNews().get(0).getNewsId());
@@ -135,6 +178,7 @@ class NewsServiceTest {
             Assertions.assertEquals(0, result.getNews().get(0).getBookmark().getCount());
             Assertions.assertDoesNotThrow(() -> newsService.getNewsByKeyword(keyword, size, page, user));
         }
+
         @Test
         @DisplayName("성공2: 비회원")
         void test2() throws IOException {
@@ -163,6 +207,7 @@ class NewsServiceTest {
             Assertions.assertEquals(Collections.emptyList(), result.getNews());
             Assertions.assertDoesNotThrow(() -> newsService.getNewsByKeyword(keyword, size, page, null));
         }
+
         @Test
         @DisplayName("실패: response null")
         void test3() throws IOException {
@@ -256,7 +301,7 @@ class NewsServiceTest {
                     .thenReturn(categoryResponse);
             when(newsProvider.getNewsId(any(Response.class)))
                     .thenReturn(List.of(1L));
-            when(bookmarkNewsRepository.findByNewsIdAndUser(anyLong(),any(User.class)))
+            when(bookmarkNewsRepository.findByNewsIdAndUser(anyLong(), any(User.class)))
                     .thenReturn(Optional.empty());
             when(bookmarkNewsRepository.countBookmarkNewsByNewsId(anyLong()))
                     .thenReturn(0);
@@ -264,7 +309,9 @@ class NewsServiceTest {
                     .thenReturn(newsResponse);
             when(newsProvider.getNewsDetails(any(Response.class)))
                     .thenReturn(data);
-            when(newsProvider.getSymbol(anyString(), anyBoolean())).thenReturn(new ApiResponse.MoyaSymbol());
+            when(moyaSymbolProvider.getSymbolInfo(anyString())).thenReturn(new SymbolRequest.MoyaSymbol());
+            when(tiingoSymbolProvider.getSymbolInfo(anyString())).thenReturn(new SymbolRequest.MoyaSymbol());
+            when(moyaSymbolProvider.getLogo(any(SymbolRequest.MoyaSymbol.class))).thenReturn(null);
 
             NewsResponse.News result = newsService.getNewsByCategory(categoryId, size, page, user);
             //then
@@ -274,6 +321,9 @@ class NewsServiceTest {
             verify(bookmarkNewsRepository, times(1)).countBookmarkNewsByNewsId(anyLong());
             verify(newsProvider, times(1)).getNewsById(anyLong());
             verify(newsProvider, times(1)).getNewsDetails(any(Response.class));
+            verify(moyaSymbolProvider, times(1)).getSymbolInfo(anyString());
+            verify(tiingoSymbolProvider, times(1)).getSymbolInfo(anyString());
+            verify(moyaSymbolProvider, times(1)).getLogo(any(SymbolRequest.MoyaSymbol.class));
             Assertions.assertNull(result.getNextPage());
             Assertions.assertEquals(1, result.getNews().size());
             Assertions.assertEquals(data.getId(), result.getNews().get(0).getNewsId());
@@ -285,6 +335,7 @@ class NewsServiceTest {
             Assertions.assertEquals(0, result.getNews().get(0).getBookmark().getCount());
             Assertions.assertDoesNotThrow(() -> newsService.getNewsByCategory(categoryId, size, page, user));
         }
+
         @Test
         @DisplayName("성공2: 비회원")
         void test2() throws IOException {
@@ -332,6 +383,7 @@ class NewsServiceTest {
             Assertions.assertEquals(Collections.emptyList(), result.getNews());
             Assertions.assertDoesNotThrow(() -> newsService.getNewsByCategory(categoryId, size, page, null));
         }
+
         @Test
         @DisplayName("실패: response null")
         void test3() throws IOException {
@@ -371,6 +423,275 @@ class NewsServiceTest {
                     .thenReturn(Collections.emptyList());
             //then
             Assertions.assertThrows(Exception500.class, () -> newsService.getNewsByCategory(categoryId, size, page, user));
+        }
+    }
+
+    @Nested
+    @DisplayName("뉴스 상세 조회")
+    class NewsDetails {
+        @Nested
+        @DisplayName("성공")
+        class Success {
+            @Test
+            @DisplayName("1: PREMIUM")
+            void test1() throws IOException {
+                //given
+                user.changeMembership(User.Membership.PREMIUM);
+                Long id = 1L;
+                //when
+                String mainCategoryEng = "News";
+                String mainCategoryKor = "뉴스";
+                String categoryEng = "NewsPolitics";
+                MainCategory mainCategory = MainCategory.builder()
+                        .id(1L)
+                        .mainCategoryEng(mainCategoryEng)
+                        .build();
+                mainCategory.translateMainCategory(mainCategoryKor);
+                ApiResponse.Details data = ApiResponse.Details.builder()
+                        .id(1L)
+                        .symbol("symbol")
+                        .source("source")
+                        .title("title")
+                        .description("desc")
+                        .summary("summary")
+                        .thumbnail("thumbnail")
+                        .url("url")
+                        .publishedDate("2019-03-26T14:30:00.000Z")
+                        .content("content")
+                        .category(categoryEng)
+                        .keyword1("k1")
+                        .keyword2("k2")
+                        .keyword3("k3")
+                        .sentiment(1)
+                        .build();
+                List<ApiResponse.Details> datas = List.of(data);
+                ObjectMapper om = new ObjectMapper();
+                String json = om.writeValueAsString(datas);
+                ResponseBody newsbody = ResponseBody.create(json, MediaType.parse("application/json"));
+                Response newsResponse = new Response.Builder()
+                        .code(200)
+                        .message("OK")
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("https://example.com").build())
+                        .body(newsbody)
+                        .build();
+                SymbolRequest.MoyaSymbol moyaSymbol = SymbolRequest.MoyaSymbol.builder().build();
+                SymbolRequest.MoyaSymbol tiingoSymbol = SymbolRequest.MoyaSymbol.builder()
+                        .symbol(data.getSymbol())
+                        .companyName("company")
+                        .build();
+                StockRequest.TiingoStock today = StockRequest.TiingoStock.builder().build();
+                StockRequest.TiingoStock yesterday = StockRequest.TiingoStock.builder().build();
+                StockResponse.Price price = StockResponse.Price.builder()
+                        .today(today)
+                        .yesterday(yesterday)
+                        .build();
+                Customer customer = Customer.builder()
+                        .id(1L)
+                        .user(user)
+                        .customerCode("customerCode")
+                        .build();
+                customer.subscribe(1L);
+                NewsResponse.TranslateOut translate = NewsResponse.TranslateOut.builder()
+                        .title("제목")
+                        .description("설명")
+                        .summary("요약")
+                        .content("내용")
+                        .build();
+                when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+                when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
+                when(newsProvider.getNewsDetails(any(Response.class))).thenReturn(data);
+                when(mainCategoryRepository.findMainCategoryBySubCategory(anyString())).thenReturn(Optional.of(mainCategory));
+                when(moyaSymbolProvider.getSymbolInfo(anyString())).thenReturn(moyaSymbol);
+                when(tiingoSymbolProvider.getSymbolInfo(anyString())).thenReturn(tiingoSymbol);
+                when(moyaSymbolProvider.getLogo(any(SymbolRequest.MoyaSymbol.class))).thenReturn("logo");
+                when(stockProvider.getStocks(anyString(), any(LocalDate.class), any(LocalDate.class))).thenReturn(price);
+                when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
+                when(subscriber.isSubscribe(anyLong())).thenReturn(true);
+                when(wiseTranslator.translateArticle(any(ApiResponse.Details.class))).thenReturn(translate);
+                NewsResponse.Details result = newsService.getNewsDetails(id, user);
+                //then
+                verify(newsProvider, times(1)).getNewsById(anyLong());
+                verify(newsProvider, times(1)).getNewsDetails(any());
+                verify(mainCategoryRepository, times(1)).findMainCategoryBySubCategory(anyString());
+                verify(moyaSymbolProvider, times(1)).getSymbolInfo(anyString());
+                verify(tiingoSymbolProvider, times(1)).getSymbolInfo(anyString());
+                verify(moyaSymbolProvider, times(1)).getLogo(any());
+                verify(stockProvider, times(1)).getStocks(anyString(), any(), any());
+                verify(customerRepository, times(1)).findCustomerByUserId(anyLong());
+                verify(subscriber, times(1)).isSubscribe(anyLong());
+                verify(wiseTranslator, times(1)).translateArticle(any());
+                Assertions.assertEquals(id, result.getNewsId());
+                Assertions.assertEquals(user.getMembership(), result.getUser().getMembership());
+                Assertions.assertNull(result.getUser().getHistoryNewsIds());
+                Assertions.assertDoesNotThrow(() -> newsService.getNewsDetails(id, user));
+            }
+
+            @Test
+            @DisplayName("2: BASIC")
+            void test2() throws IOException {
+                //given
+                Long id = 1L;
+                //when
+                String mainCategoryEng = "News";
+                String mainCategoryKor = "뉴스";
+                String categoryEng = "NewsPolitics";
+                MainCategory mainCategory = MainCategory.builder()
+                        .id(1L)
+                        .mainCategoryEng(mainCategoryEng)
+                        .build();
+                mainCategory.translateMainCategory(mainCategoryKor);
+                ApiResponse.Details data = ApiResponse.Details.builder()
+                        .id(1L)
+                        .symbol("symbol")
+                        .source("source")
+                        .title("title")
+                        .description("desc")
+                        .summary("summary")
+                        .thumbnail("thumbnail")
+                        .url("url")
+                        .publishedDate("2019-03-26T14:30:00.000Z")
+                        .content("content")
+                        .category(categoryEng)
+                        .keyword1("k1")
+                        .keyword2("k2")
+                        .keyword3("k3")
+                        .sentiment(1)
+                        .build();
+                List<ApiResponse.Details> datas = List.of(data);
+                ObjectMapper om = new ObjectMapper();
+                String json = om.writeValueAsString(datas);
+                ResponseBody newsbody = ResponseBody.create(json, MediaType.parse("application/json"));
+                Response newsResponse = new Response.Builder()
+                        .code(200)
+                        .message("OK")
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("https://example.com").build())
+                        .body(newsbody)
+                        .build();
+                SymbolRequest.MoyaSymbol moyaSymbol = SymbolRequest.MoyaSymbol.builder().build();
+                SymbolRequest.MoyaSymbol tiingoSymbol = SymbolRequest.MoyaSymbol.builder()
+                        .symbol(data.getSymbol())
+                        .companyName("company")
+                        .build();
+                StockRequest.TiingoStock today = StockRequest.TiingoStock.builder().build();
+                StockRequest.TiingoStock yesterday = StockRequest.TiingoStock.builder().build();
+                StockResponse.Price price = StockResponse.Price.builder()
+                        .today(today)
+                        .yesterday(yesterday)
+                        .build();
+                NewsResponse.TranslateOut translate = NewsResponse.TranslateOut.builder()
+                        .title("제목")
+                        .description("설명")
+                        .summary("요약")
+                        .content("내용")
+                        .build();
+                List<Long> newsId = List.of(id);
+                when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+                when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
+                when(newsProvider.getNewsDetails(any(Response.class))).thenReturn(data);
+                when(mainCategoryRepository.findMainCategoryBySubCategory(anyString())).thenReturn(Optional.of(mainCategory));
+                when(moyaSymbolProvider.getSymbolInfo(anyString())).thenReturn(moyaSymbol);
+                when(tiingoSymbolProvider.getSymbolInfo(anyString())).thenReturn(tiingoSymbol);
+                when(moyaSymbolProvider.getLogo(any(SymbolRequest.MoyaSymbol.class))).thenReturn("logo");
+                when(stockProvider.getStocks(anyString(), any(LocalDate.class), any(LocalDate.class))).thenReturn(price);
+                when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+                when(redisTemplate.opsForValue().get(anyString())).thenReturn(StringUtils.collectionToCommaDelimitedString(newsId));
+                when(wiseTranslator.translateArticle(any(ApiResponse.Details.class))).thenReturn(translate);
+                NewsResponse.Details result = newsService.getNewsDetails(id, user);
+                //then
+                verify(userRepository, times(1)).findById(anyLong());
+                verify(newsProvider, times(1)).getNewsById(anyLong());
+                verify(newsProvider, times(1)).getNewsDetails(any());
+                verify(mainCategoryRepository, times(1)).findMainCategoryBySubCategory(anyString());
+                verify(moyaSymbolProvider, times(1)).getSymbolInfo(anyString());
+                verify(tiingoSymbolProvider, times(1)).getSymbolInfo(anyString());
+                verify(moyaSymbolProvider, times(1)).getLogo(any());
+                verify(stockProvider, times(1)).getStocks(anyString(), any(), any());
+                verify(customerRepository, times(0)).findCustomerByUserId(anyLong());
+                verify(subscriber, times(0)).isSubscribe(anyLong());
+                verify(wiseTranslator, times(1)).translateArticle(any());
+                Assertions.assertEquals(id, result.getNewsId());
+                Assertions.assertEquals(user.getMembership(), result.getUser().getMembership());
+                Assertions.assertEquals(id, result.getUser().getHistoryNewsIds().get(0));
+                Assertions.assertDoesNotThrow(() -> newsService.getNewsDetails(id, user));
+            }
+        }
+
+        @Nested
+        @DisplayName("실패")
+        class Fail {
+            @Test
+            @DisplayName("1: 비활성화 회원")
+            void test1() {
+                //given
+                Long id = 1L;
+                //when
+                when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+                //then
+                Assertions.assertThrows(Exception401.class, () -> newsService.getNewsDetails(id, user));
+            }
+
+            @Test
+            @DisplayName("2: 뉴스를 찾을 수 없음")
+            void test2() throws IOException {
+                //given
+                Long id = 1L;
+                //when
+                ResponseBody newsbody = ResponseBody.create("{}", MediaType.parse("application/json"));
+                Response newsResponse = new Response.Builder()
+                        .code(200)
+                        .message("OK")
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("https://example.com").build())
+                        .body(newsbody)
+                        .build();
+                when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+                when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
+                when(newsProvider.getNewsDetails(any(Response.class))).thenThrow(new Exception400("newsId", "뉴스를 찾을 수 없습니다"));
+                //then
+                Assertions.assertThrows(Exception500.class, () -> newsService.getNewsDetails(id, user));
+            }
+
+            @Test
+            @DisplayName("3: MoYa API 실패")
+            void test3() throws IOException {
+                //given
+                Long id = 1L;
+                //when
+                ResponseBody newsbody = ResponseBody.create("{}", MediaType.parse("application/json"));
+                Response newsResponse = new Response.Builder()
+                        .code(200)
+                        .message("OK")
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("https://example.com").build())
+                        .body(newsbody)
+                        .build();
+                when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+                when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
+                when(newsProvider.getNewsDetails(any(Response.class))).thenThrow(new Exception500("MoYa 뉴스 상세 조회 API 실패"));
+                //then
+                Assertions.assertThrows(Exception500.class, () -> newsService.getNewsDetails(id, user));
+            }
+
+            @Test
+            @DisplayName("4: Request 실패(body null)")
+            void test4() throws IOException {
+                //given
+                Long id = 1L;
+                //when
+                Response newsResponse = new Response.Builder()
+                        .code(200)
+                        .message("OK")
+                        .protocol(Protocol.HTTP_1_1)
+                        .request(new Request.Builder().url("https://example.com").build())
+                        .body(null)
+                        .build();
+                when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+                when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
+                //then
+                Assertions.assertThrows(Exception500.class, () -> newsService.getNewsDetails(id, user));
+            }
         }
     }
 }

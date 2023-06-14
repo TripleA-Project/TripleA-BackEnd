@@ -1,6 +1,6 @@
 package com.triplea.triplea.model.user;
 
-import com.triplea.triplea.core.util.Timestamped;
+import com.triplea.triplea.core.util.timestamp.Timestamped;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,22 +1,33 @@
 package com.triplea.triplea.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.core.util.MoyaNewsProvider;
-import com.triplea.triplea.core.util.Timestamped;
+import com.triplea.triplea.core.util.StepPaySubscriber;
+import com.triplea.triplea.core.util.provide.MoyaNewsProvider;
+import com.triplea.triplea.core.util.provide.TiingoStockProvider;
+import com.triplea.triplea.core.util.provide.symbol.MoyaSymbolProvider;
+import com.triplea.triplea.core.util.provide.symbol.TiingoSymbolProvider;
+import com.triplea.triplea.core.util.timestamp.Timestamped;
+import com.triplea.triplea.core.util.translate.Papago;
+import com.triplea.triplea.core.util.translate.WiseSTGlobal;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
+import com.triplea.triplea.dto.category.CategoryResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsRequest;
 import com.triplea.triplea.dto.news.NewsResponse;
+import com.triplea.triplea.dto.stock.StockResponse;
+import com.triplea.triplea.dto.symbol.SymbolRequest;
+import com.triplea.triplea.dto.symbol.SymbolResponse;
+import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.bookmark.BookmarkNews;
 import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
+import com.triplea.triplea.model.customer.Customer;
+import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +38,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -35,10 +47,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -54,13 +63,18 @@ public class NewsService {
     private final BookmarkNewsRepository bookmarkNewsRepository;
     private final MainCategoryRepository mainCategoryRepository;
     private final CategoryRepository categoryRepository;
-
+    private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
+    private final MoyaNewsProvider newsProvider;
+    private final MoyaSymbolProvider moyaSymbolProvider;
+    private final TiingoSymbolProvider tiingoSymbolProvider;
+    private final TiingoStockProvider stockProvider;
+    private final StepPaySubscriber subscriber;
+    private final Papago papagoTranslator;
+    private final WiseSTGlobal wiseTranslator;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private final int globalNewsMaxSize = 100;
-
-    private final MoyaNewsProvider newsProvider;
-
-
     @Value("${moya.token}")
     private String moyaToken;
 
@@ -214,6 +228,64 @@ public class NewsService {
                 .build();
     }
 
+    // 뉴스 상세 조회
+    public NewsResponse.Details getNewsDetails(Long id, User user) {
+        user = getUser(user);
+
+        ApiResponse.Details details;
+        // 뉴스 ID로 상세 조회
+        try (Response response = newsProvider.getNewsById(id)) {
+            details = newsProvider.getNewsDetails(response);
+        } catch (Exception e) {
+            throw new Exception500("뉴스 상세 조회 실패: " + e.getMessage());
+        }
+
+        CategoryResponse category = getCategory(details.getCategory());
+
+        // symbol 상세 정보 조회
+        String symbol = details.getSymbol();
+        SymbolRequest.MoyaSymbol moyaSymbol = getSymbolInfo(symbol);
+        String logo = moyaSymbolProvider.getLogo(moyaSymbol);
+
+        // Tiingo API에서 어제와 오늘에 대한 주가 정보 조회
+        StockResponse.Price price = getStockPrices(symbol);
+        SymbolResponse.News newsSymbol = SymbolResponse.News.builder()
+                .symbol(moyaSymbol)
+                .logo(logo)
+                .price(price)
+                .build();
+
+        // 일반 회원 베네핏 설정
+        User.Membership membership = getMembership(user);
+        String key = "news_" + user.getEmail(); int benefitCount = 10;
+        List<Long> newsId = getNewsIdForBasicMembership(details.getDescription(), membership, key, benefitCount, id);
+        NewsResponse.TranslateOut.Article articles = getArticles(isArticleViewable(membership, newsId, id), details);
+        NewsResponse.Details.Article articleEng = articles.getArticleEng();
+        NewsResponse.Details.Article articleKor = articles.getArticleKor();
+
+        // 남은 Benefit Count: User 의 Membership 이 PREMIUM 이면 null
+        Integer leftBenefitCount = leftBenefitsForBasicMembership(membership, newsId, benefitCount);
+        UserResponse.News userMembership = UserResponse.News.builder()
+                .membership(user.getMembership())
+                .leftBenefitCount(leftBenefitCount)
+                .historyNewsIds(newsId).build();
+
+        return NewsResponse.Details.builder()
+                .user(userMembership)
+                .symbol(newsSymbol)
+                .details(details)
+                .eng(articleEng)
+                .kor(articleKor)
+                .category(category)
+                .bookmark(getBookmark(id, user))
+                .build();
+    }
+
+    private User getUser(User user) {
+        return userRepository.findById(user.getId()).orElseThrow(
+                () -> new Exception401("잘못된 접근입니다"));
+    }
+
     /**
      * @param size    페이지별 조회할 뉴스의 갯수
      * @param page    현재 페이지
@@ -252,12 +324,17 @@ public class NewsService {
                     // 뉴스 ID로 뉴스 조회
                     try (Response newsResponse = newsProvider.getNewsById(newsId)) {
                         ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
-                        ApiResponse.MoyaSymbol moyaSymbol = newsProvider.getSymbol(newsDetails.getSymbol(), true);
-                        return new NewsResponse.NewsDTO(
-                                newsDetails,
-                                getLogo(newsDetails.getSymbol(), moyaSymbol.getLogo()),
-                                bookmark(newsId, user)
-                        );
+                        SymbolRequest.MoyaSymbol moyaSymbol = moyaSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
+                        if (moyaSymbol == null || moyaSymbol.getCompanyName() == null)
+                            moyaSymbol = tiingoSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
+                        String companyName = moyaSymbol.getCompanyName();
+                        String logo = moyaSymbolProvider.getLogo(moyaSymbol);
+                        return NewsResponse.NewsDTO.builder()
+                                .details(newsDetails)
+                                .companyName(companyName)
+                                .logo(logo)
+                                .bookmark(getBookmark(newsId, user))
+                                .build();
                     } catch (IOException e) {
                         throw new Exception500("뉴스 조회 실패: " + e.getMessage());
                     }
@@ -269,7 +346,7 @@ public class NewsService {
      * @param user   로그인한 유저
      * @return 북마크여부(boolean), 총 북마크 수
      */
-    private BookmarkResponse.BookmarkDTO bookmark(Long newsId, User user) {
+    private BookmarkResponse.BookmarkDTO getBookmark(Long newsId, User user) {
         // 내가 북마크한 뉴스인지 여부
         boolean isBookmark = user != null & bookmarkNewsRepository.findByNewsIdAndUser(newsId, user).isPresent();
         // 총 북마크한 수
@@ -281,14 +358,117 @@ public class NewsService {
                 .build();
     }
 
-    /**
-     * logo 가 없으면 대체하기 위한 메소드
-     * @param symbol symbol
-     * @param logo logo 검증
-     * @return String
-     */
-    private String getLogo(String symbol, String logo){
-        if (logo == null || logo.equals("null")) logo = "https://storage.googleapis.com/iex/api/logos/" + symbol + ".png";
-        return logo;
+    private Integer leftBenefitsForBasicMembership(User.Membership membership, List<Long> newsId, int benefitCount) {
+        return membership != User.Membership.BASIC ? null : benefitCount - newsId.size();
+    }
+
+    private List<Long> getNewsIdForBasicMembership(String description, User.Membership membership, String key, int benefitCount, Long id) {
+        if (membership != User.Membership.BASIC) return null;
+
+        List<Long> newsId = new ArrayList<>();
+        String storedNewsId = redisTemplate.opsForValue().get(key);
+        if (storedNewsId != null) newsId = Arrays.stream(storedNewsId.split(","))
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
+
+        if (description != null && newsId.size() < benefitCount) {
+            if (newsId.size() == 0 || newsId.stream().noneMatch(news -> news.equals(id))) {
+                newsId.add(id);
+                String serializedNewsId = StringUtils.collectionToCommaDelimitedString(newsId);
+                redisTemplate.opsForValue().set(key, serializedNewsId);
+            }
+            redisExpirationAtMidnight(key);
+        }
+        return newsId;
+    }
+
+    private boolean isArticleViewable(User.Membership membership, List<Long> newsId, Long id) {
+        return membership != User.Membership.BASIC || newsId.stream().anyMatch(news -> news.equals(id));
+    }
+
+    private void redisExpirationAtMidnight(String key) {
+        ZonedDateTime now = ZonedDateTime.now(Timestamped.SEOUL_ZONE_ID);
+        ZonedDateTime midnight = ZonedDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT, Timestamped.SEOUL_ZONE_ID);
+        if (now.isAfter(midnight)) {
+            midnight = midnight.plusDays(1L);
+        }
+
+        Duration duration = Duration.between(now, midnight);
+        long secondsUntilMidnight = duration.getSeconds();
+        this.redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
+    }
+
+    @Transactional
+    public User.Membership getMembership(User user) {
+        if (user.getMembership() == User.Membership.PREMIUM && !checkSubscription(user)) {
+            user.changeMembership(User.Membership.BASIC);
+        }
+
+        return user.getMembership();
+    }
+
+    private boolean checkSubscription(User user) {
+        Long subscriptionId = customerRepository.findCustomerByUserId(user.getId()).map(Customer::getSubscriptionId).orElse(null);
+        if (subscriptionId == null) return false;
+        try {
+            return this.subscriber.isSubscribe(subscriptionId);
+        } catch (Exception e) {
+            throw new Exception500("구독 확인 실패: " + e.getMessage());
+        }
+    }
+
+    private CategoryResponse getCategory(String category) {
+        // 해당하는 대분류 카테고리(한글명)를 찾아서 return
+        if (category == null) return null;
+        MainCategory mainCategory = mainCategoryRepository.findMainCategoryBySubCategory(category).orElse(new MainCategory());
+        return CategoryResponse.builder()
+                .categoryId(mainCategory.getId())
+                .category(mainCategory.getMainCategoryKor())
+                .build();
+    }
+
+    private SymbolRequest.MoyaSymbol getSymbolInfo(String symbol) {
+        SymbolRequest.MoyaSymbol moyaSymbol = moyaSymbolProvider.getSymbolInfo(symbol);
+        if (moyaSymbol == null || moyaSymbol.getCompanyName() == null)
+            moyaSymbol = tiingoSymbolProvider.getSymbolInfo(symbol);
+        return moyaSymbol;
+    }
+
+    private StockResponse.Price getStockPrices(String symbol) {
+        ZonedDateTime today = ZonedDateTime.now(Timestamped.EST_ZONE_ID);
+        ZonedDateTime yesterday = today.minusDays(7); //미국 주식 시장이 안 열리는 상황을 대비해서 일주일 데이터를 가져와서 최신 2건을 return 하는 것으로 수정
+        return stockProvider.getStocks(symbol, yesterday.toLocalDate(), today.toLocalDate());
+    }
+
+    private NewsResponse.TranslateOut.Article getArticles(boolean isArticleViewable, ApiResponse.Details details) {
+        NewsResponse.Details.Article articleEng;
+        NewsResponse.Details.Article articleKor;
+        if (isArticleViewable) {
+            // 혜택에 제한이 없는 경우 전체 기사 번역 및 출력
+            NewsResponse.TranslateOut translate = translateArticle(details);
+            articleEng = new NewsResponse.Details.Article(details);
+            articleKor = new NewsResponse.Details.Article(translate);
+        } else {
+            // 혜택에 제한이 있는 경우 제목만 번역 및 출력
+            articleEng = new NewsResponse.Details.Article(details.getTitle());
+            articleKor = new NewsResponse.Details.Article(papagoTranslator.translate(details.getTitle()));
+        }
+        return NewsResponse.TranslateOut.Article.builder()
+                .articleEng(articleEng)
+                .articleKor(articleKor)
+                .build();
+    }
+
+    private NewsResponse.TranslateOut translateArticle(ApiResponse.Details details) {
+        try {
+            return wiseTranslator.translateArticle(details);
+        } catch (Exception e) {
+            return NewsResponse.TranslateOut.builder()
+                    .title(papagoTranslator.translate(details.getTitle()))
+                    .description(papagoTranslator.translate(details.getDescription()))
+                    .summary(papagoTranslator.translate(details.getSummary()))
+                    .content(papagoTranslator.translate(details.getContent()))
+                    .build();
+        }
     }
 }

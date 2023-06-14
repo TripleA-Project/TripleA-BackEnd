@@ -58,4 +58,10 @@ public class NewsController {
         return ResponseEntity.ok().body(new ResponseDTO<>(newsList));
     }
 
+    // 뉴스 상세 조회
+    @GetMapping("/news/{id}")
+    public ResponseEntity<?> getNewsDetails(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        NewsResponse.Details details = newsService.getNewsDetails(id, myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(details));
+    }
 }
