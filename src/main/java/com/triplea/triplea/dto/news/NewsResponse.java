@@ -27,6 +27,7 @@ public class NewsResponse {
         private Long newsId;
         private String symbol;
         private String logo;
+        private String companyName;
         private String source;
         private String title;
         private String description;
@@ -34,11 +35,12 @@ public class NewsResponse {
         private Integer sentiment;
         private String publishedDate;
         private BookmarkResponse.BookmarkDTO bookmark;
-        public NewsDTO(ApiResponse.Data data, BookmarkResponse.BookmarkDTO bookmark)
+        public NewsDTO(ApiResponse.Data data, String companyName ,BookmarkResponse.BookmarkDTO bookmark)
         {
             this.newsId = data.getId();
             this.symbol = data.getSymbol();
             this.logo = LogoUtil.makeLogo(data.getSymbol());
+            this.companyName = companyName;
             this.source = data.getSource();
             this.title = data.getTitle();
             this.description = data.getDescription();
