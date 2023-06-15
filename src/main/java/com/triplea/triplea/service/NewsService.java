@@ -53,6 +53,10 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.triplea.triplea.dto.news.ApiResponse.Data;
@@ -314,8 +318,7 @@ public class NewsService {
 
         // 일반 회원 베네핏 설정
         User.Membership membership = getMembership(user);
-        String key = "news_" + user.getEmail();
-        int benefitCount = 10;
+        String key = "news_" + user.getEmail(); int benefitCount = 10;
         List<Long> newsId = getNewsIdForBasicMembership(details.getDescription(), membership, key, benefitCount, id);
         NewsResponse.TranslateOut.Article articles = getArticles(isArticleViewable(membership, newsId, id), details);
         NewsResponse.Details.Article articleEng = articles.getArticleEng();
@@ -339,6 +342,7 @@ public class NewsService {
                 .build();
     }
 
+  
     // 히스토리 조회
     public List<NewsResponse.HistoryOut> getHistory(int year, int month, User user) {
         List<ZonedDateTime> historyDateTimes = historyRepository.findDateTimeByCreatedAtAndUser(year, month, user);

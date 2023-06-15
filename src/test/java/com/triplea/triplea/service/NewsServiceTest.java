@@ -594,7 +594,7 @@ class NewsServiceTest {
                 String title = "제목";
                 List<Long> newsId = List.of(2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L);
                 when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-                when(historyRepository.existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong())).thenReturn(false);
+                when(historyRepository.existsByCreatedAtAndUserAndNewsId(any(), any(Use
                 when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
                 when(newsProvider.getNewsDetails(any(Response.class))).thenReturn(data);
                 when(mainCategoryRepository.findMainCategoryBySubCategory(anyString())).thenReturn(Optional.of(mainCategory));
