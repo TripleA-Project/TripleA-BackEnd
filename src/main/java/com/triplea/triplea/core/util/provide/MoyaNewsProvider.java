@@ -1,4 +1,4 @@
-package com.triplea.triplea.core.util;
+package com.triplea.triplea.core.util.provide;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -109,23 +109,24 @@ public class MoyaNewsProvider {
      */
     public ApiResponse.Details getNewsDetails(Response getNewsById) throws IOException {
         if (getNewsById.isSuccessful()) {
-            if (getNewsById.body() != null) {
-                JsonNode rootNode = OM.readTree(getNewsById.body().string());
+            String json = getNewsById.body() != null ? getNewsById.body().string() : "";
+            JsonNode rootNode = OM.readTree(json);
+            if (!json.isEmpty() && !json.equals("[]")) {
                 return ApiResponse.Details.builder()
                         .id(rootNode.path("id").asLong())
                         .symbol(rootNode.path("symbol").asText())
                         .source(rootNode.path("source").asText())
                         .title(rootNode.path("title").asText())
-                        .description(rootNode.path("description").asText())
-                        .summary(rootNode.path("summary").asText())
+                        .description(rootNode.path("description").asText(null))
+                        .summary(rootNode.path("summary").asText(null))
                         .thumbnail(rootNode.path("thumbnail").asText())
                         .url(rootNode.path("url").asText())
                         .publishedDate(rootNode.path("publishedDate").asText())
-                        .content(rootNode.path("content").asText())
-                        .category(rootNode.path("category").asText())
-                        .keyword1(rootNode.path("keyword1").asText())
-                        .keyword2(rootNode.path("keyword2").asText())
-                        .keyword3(rootNode.path("keyword3").asText())
+                        .content(rootNode.path("content").asText(null))
+                        .category(rootNode.path("category").asText(null))
+                        .keyword1(rootNode.path("keyword1").asText(null))
+                        .keyword2(rootNode.path("keyword2").asText(null))
+                        .keyword3(rootNode.path("keyword3").asText(null))
                         .sentiment(rootNode.path("sentiment").asInt())
                         .build();
             }

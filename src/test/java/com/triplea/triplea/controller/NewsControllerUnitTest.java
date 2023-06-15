@@ -2,6 +2,7 @@ package com.triplea.triplea.controller;
 
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
+import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.NewsService;
@@ -83,6 +84,32 @@ public class NewsControllerUnitTest {
                 .thenReturn(new NewsResponse.News(category, null, new ArrayList<>()));
         //then
         mockMvc.perform(get("/api/news/category/" + categoryId + "?size=" + size + "&page=" + page)
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("뉴스 상세 조회")
+    void test() throws Exception {
+        //given
+        Long newsId = 1L;
+        String accessToken = MyJwtProvider.create(user);
+        //when
+        NewsResponse.Details details = NewsResponse.Details.builder()
+                .user(null)
+                .details(new ApiResponse.Details())
+                .symbol(null)
+                .eng(null)
+                .kor(null)
+                .category(null)
+                .bookmark(null)
+                .build();
+        when(newsService.getNewsDetails(anyLong(), any(User.class)))
+                .thenReturn(details);
+        //then
+        mockMvc.perform(get("/api/news/" + newsId)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

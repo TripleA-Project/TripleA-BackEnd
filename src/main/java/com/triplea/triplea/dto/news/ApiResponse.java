@@ -82,7 +82,6 @@ public class ApiResponse {
         private List<Data> datas;
 
     }
-
     @Getter
     public static class BookmarkSymbolDTO{
         private Long id;
@@ -97,35 +96,6 @@ public class ApiResponse {
         private String sector;
         private String logo;
         private String marketType;
-    }
-
-    @Builder @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MoyaSymbol{
-        private Long id;
-        private String symbol;
-        private String companyName;
-        private String exchange;
-        private String industry;
-        private String website;
-        private String description;
-        private String CEO;
-        private String issueType;
-        private String sector;
-        private String logo;
-        private String marketType;
-    }
-
-    @Builder @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MoyaBuzz{
-        private Double sentiment;
-        private Integer count;
-        private Integer positiveCount;
-        private Integer negativeCount;
-        private String publishedDate;
     }
 
     @Builder @Getter

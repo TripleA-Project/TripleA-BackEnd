@@ -1,6 +1,6 @@
 package com.triplea.triplea.model.bookmark;
 
-import com.triplea.triplea.core.util.CreatedTimestamped;
+import com.triplea.triplea.core.util.timestamp.CreatedTimestamped;
 import com.triplea.triplea.model.user.User;
 import lombok.*;
 
