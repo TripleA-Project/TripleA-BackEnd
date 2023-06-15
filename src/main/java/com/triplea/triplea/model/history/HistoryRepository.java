@@ -15,4 +15,7 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
 
     @Query("select h from History h where function('DATE', h.createdAt)=:date and h.user=:user")
     List<History> findByCreatedAtAndUser(@Param("date") LocalDate date, @Param("user") User user);
+
+    @Query("select count(h) > 0 from History h where function('DATE', h.createdAt)=:date and h.user=:user and h.newsId=:newsId")
+    boolean existsByCreatedAtAndUserAndNewsId(@Param("date") LocalDate date, @Param("user") User user, @Param("newsId") Long newsId);
 }

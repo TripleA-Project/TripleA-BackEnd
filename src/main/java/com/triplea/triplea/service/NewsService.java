@@ -28,6 +28,7 @@ import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
+import com.triplea.triplea.model.history.History;
 import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
@@ -293,6 +294,9 @@ public class NewsService {
             throw new Exception500("뉴스 상세 조회 실패: " + e.getMessage());
         }
 
+        // 히스토리 생성
+        saveHistory(user, id);
+
         CategoryResponse category = getCategory(details.getCategory());
 
         // symbol 상세 정보 조회
@@ -310,7 +314,8 @@ public class NewsService {
 
         // 일반 회원 베네핏 설정
         User.Membership membership = getMembership(user);
-        String key = "news_" + user.getEmail(); int benefitCount = 10;
+        String key = "news_" + user.getEmail();
+        int benefitCount = 10;
         List<Long> newsId = getNewsIdForBasicMembership(details.getDescription(), membership, key, benefitCount, id);
         NewsResponse.TranslateOut.Article articles = getArticles(isArticleViewable(membership, newsId, id), details);
         NewsResponse.Details.Article articleEng = articles.getArticleEng();
@@ -335,7 +340,7 @@ public class NewsService {
     }
 
     // 히스토리 조회
-    public List<NewsResponse.HistoryOut> getHistory(int year, int month, User user){
+    public List<NewsResponse.HistoryOut> getHistory(int year, int month, User user) {
         List<ZonedDateTime> historyDateTimes = historyRepository.findDateTimeByCreatedAtAndUser(year, month, user);
 
         return historyDateTimes.stream().map(dateTime -> {
@@ -375,6 +380,18 @@ public class NewsService {
     private User getUser(User user) {
         return userRepository.findById(user.getId()).orElseThrow(
                 () -> new Exception401("잘못된 접근입니다"));
+    }
+
+    @Transactional
+    public void saveHistory(User user, Long newsId) {
+        // 같은 날엔 뉴스당 한 번의 히스토리 내역만 저장
+        ZonedDateTime today = ZonedDateTime.now(Timestamped.SEOUL_ZONE_ID);
+        boolean historyExists = historyRepository.existsByCreatedAtAndUserAndNewsId(today.toLocalDate(), user, newsId);
+        try {
+            if (!historyExists) historyRepository.save(History.builder().user(user).newsId(newsId).build());
+        } catch (Exception e) {
+            throw new Exception500("history 저장 실패: " + e.getMessage());
+        }
     }
 
     /**
