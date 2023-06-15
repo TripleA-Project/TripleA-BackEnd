@@ -1,5 +1,6 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
@@ -13,13 +14,17 @@ import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -30,6 +35,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final MyJwtProvider myJwtProvider;
+    private final RedisService redisService;
     private final HttpSession session;
     private final MailUtils mailUtils;
     private final StepPaySubscriber subscriber;
@@ -39,12 +46,36 @@ public class UserService {
     private String priceCode;
 
     //로그인
-    public User findByEmail(String email){
-        User user = userRepository.findUserByEmail(email)
+    public HttpHeaders login(Map<String, String> user){
+        User userPS = userRepository.findUserByEmail(user.get("email"))
                 .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 E-MAIL 입니다."));
-        return user;
-    }
+        if (!passwordEncoder.matches(user.get("password"), userPS.getPassword())) {
+            System.out.println("mapUser : "+ user.get("password"));
+            System.out.println("userPS : "+userPS.getPassword());
+            throw new IllegalArgumentException("잘못된 비밀번호입니다.");
+        }
+        String accessToken = myJwtProvider.createAccessToken(userPS);
+        String refreshToken = myJwtProvider.createRefreshToken(userPS);
 
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .path("/")
+                .maxAge(1000 * 60 * 60* 24 * 7)
+                .secure(false) // https로 바꾸면 true 변경
+                .httpOnly(false) // 나중에 true로 변경
+                .build();
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add("Authorization", accessToken);
+        headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        redisService.setValues(refreshToken, accessToken);
+        return headers;
+    }
+    //로그아웃
+    public User findId(Long id){
+        return userRepository.findById(id).get();
+    }
     // 회원가입
     @Transactional
     public void join(UserRequest.Join join, String userAgent, String ipAddress) {

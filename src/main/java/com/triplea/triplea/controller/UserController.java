@@ -5,32 +5,37 @@ import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
-import com.triplea.triplea.model.token.RefreshToken;
-import com.triplea.triplea.model.token.RefreshTokenRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.RedisService;
 import com.triplea.triplea.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.Map;
 
 @RequestMapping("/api")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
     private final RedisService redisService;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     // 회원가입
     @PostMapping("/join")
@@ -41,24 +46,45 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
-        User userPS = userService.findByEmail(user.get("email"));
-        if (!passwordEncoder.matches(user.get("password"), userPS.getPassword())) {
-            throw new IllegalArgumentException("잘못된 비밀번호입니다.");
-        }
-        String accessToken = myJwtProvider.create(userPS);
-        String refreshToken = myJwtProvider.createRefreshToken(userPS.getEmail());
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", accessToken);
-        headers.add("Refresh-Token", refreshToken);
 
-        redisService.setValues(refreshToken, userPS.getEmail());
-        refreshTokenRepository.save(new RefreshToken(refreshToken));
-        return ResponseEntity.ok().headers(headers).body(new ResponseDTO<>("로그인 성공"));
+        return ResponseEntity.ok()
+                .headers(userService.login(user))
+                .body(new ResponseDTO<>("로그인 성공"));
     }
 
+        @PostMapping("/logout")
+        public ResponseEntity<?> logout(HttpServletResponse response,
+                                        @CookieValue(value = "refreshToken") String refreshToken,
+                                        @AuthenticationPrincipal MyUserDetails myUserDetails){
+
+            User userPS = userService.findId(myUserDetails.getUser().getId());
+            redisService.deleteValues(refreshToken);
+            redisService.setValuesBlackList(refreshToken, "blackList");
+
+            Cookie cookie = new Cookie("refreshToken", null);
+            cookie.setPath("/");
+            cookie.setMaxAge(0); // 쿠키 수명을 0으로 설정하여 즉시 만료
+            response.addCookie(cookie);
+            if (redisService.existsRefreshToken(refreshToken)){
+                return ResponseEntity.ok().body(new ResponseDTO<>("로그아웃 성공"));
+            }else return ResponseEntity.ok().body(new ResponseDTO<>("로그아웃 실패"));
+
+        }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> recreationAccessToken(@RequestBody Map<String, String> token){
+        if(redisService.existsRefreshToken(token.get("refreshToken"))){
+            String accessToken = myJwtProvider.recreationAccessToken(token.get("refreshToken"));
+            HttpHeaders header = new HttpHeaders();
+            header.add("Authorization", accessToken);
+            return ResponseEntity.ok().headers(header).body(new ResponseDTO<>("AccessToken 재발급 성공"));
+        }else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("RefreshToken 유효하지 않음, 재로그인 요청");
+        }
+    }
     @GetMapping("loginTest")
     public ResponseEntity<?> loginTest(@RequestParam("token") String token){
-        return ResponseEntity.ok(redisService.existsRefreshToken(token));
+        return ResponseEntity.ok().body(redisService.existsRefreshToken(token));
     }
 
     // 이메일 인증 요청

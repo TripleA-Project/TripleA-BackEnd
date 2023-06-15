@@ -1,5 +1,6 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
@@ -15,16 +16,22 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,8 +43,9 @@ class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private CustomerRepository customerRepository;
-    @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+
+    @Spy
+    BCryptPasswordEncoder passwordEncoder;
     @Mock
     private HttpSession session;
     @Mock
@@ -403,4 +411,40 @@ class UserServiceTest {
             Assertions.assertThrows(Exception500.class, () -> userService.subscribeSession(user));
         }
     }
+
+//    @Nested
+//    @DisplayName("로그인")
+//    class Login {
+//        @Test
+//        @DisplayName("성공")
+//        void test1(){
+//            //given1
+//            Map<String, String> user1 = new HashMap<>();
+//            user1.put("email", "test@example.com");
+//            user1.put("password", "123456");
+//
+//
+//
+//            given(passwordEncoder.encode(anyString())).willReturn("123456");
+//            given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
+//            //when
+//            User user = User.builder()
+//                    .id(1L)
+//                    .email("test@example.com")
+//                    .password(passwordEncoder.encode("123456"))
+//                    .fullName("tester")
+//                    .newsLetter(true)
+//                    .emailVerified(true)
+//                    .userAgent("Custom User Agent")
+//                    .clientIP("127.0.0.1")
+//                    .profile("profile1")
+//                    .build();
+//
+//            when(userRepository.findUserByEmail(anyString())).thenReturn(Optional.ofNullable(user));
+//
+//            //
+//
+//            Assertions.assertDoesNotThrow(() -> userService.login(user1));
+//        }
+//    }
 }

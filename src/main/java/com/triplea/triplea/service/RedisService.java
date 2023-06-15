@@ -1,6 +1,6 @@
 package com.triplea.triplea.service;
 
-import com.triplea.triplea.model.token.RefreshTokenRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -15,9 +15,13 @@ import java.time.Duration;
 public class RedisService {
     private final RedisTemplate redisTemplate;
 
-    public void setValues(String token, String email){
+    public void setValues(String refreshToken, String accessToken){
         ValueOperations<String,String> values = redisTemplate.opsForValue();
-        values.set(token,email, Duration.ofMinutes(1000 * 60 * 60* 24 * 7)); // 7days
+        values.set(refreshToken,accessToken, Duration.ofMinutes(1000 * 60 * 60* 24 * 7)); // 7days
+    }
+    public void setValuesBlackList(String refreshToken, String blackList){
+        ValueOperations<String,String> values = redisTemplate.opsForValue();
+        values.set(refreshToken,blackList, Duration.ofMinutes(1000 * 60 * 3)); // 3분
     }
 
     public String getValues(String token){
@@ -25,12 +29,11 @@ public class RedisService {
         return values.get(token);
     }
 
-    public void deleteValues(String token){
-        redisTemplate.delete(token.substring(7));
+    public void deleteValues(String key){
+        redisTemplate.delete(key);
     }
 
     public boolean existsRefreshToken(String refreshToken) {
         return getValues(refreshToken) != null;
-        //// return tokenRepository.existsByRefreshToken(refreshToken);
     }
 }
