@@ -35,7 +35,6 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @DisplayName("북마크심볼 API")
 //@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)

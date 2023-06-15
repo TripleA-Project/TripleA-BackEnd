@@ -15,4 +15,7 @@ public interface MainCategoryRepository extends JpaRepository<MainCategory, Long
     List<MainCategory> findAll();
     @Query("select mc from MainCategory mc where mc.mainCategoryEng=:category")
     Optional<MainCategory> findMainCategoryByMainCategoryEng(@Param("category") String category);
+
+    @Query("select mc from MainCategory mc join fetch mc.categories c where c.category=:category")
+    Optional<MainCategory> findMainCategoryBySubCategory(@Param("category") String category);
 }

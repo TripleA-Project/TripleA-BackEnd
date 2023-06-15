@@ -1,4 +1,4 @@
-package com.triplea.triplea.core.util;
+package com.triplea.triplea.core.util.timestamp;
 
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class CreatedTimestamped {
     public static final ZoneId SEOUL_ZONE_ID = ZoneId.of("Asia/Seoul");
+    public static final ZoneId EST_ZONE_ID = ZoneId.of("America/New_York");
     @CreatedDate
     private ZonedDateTime createdAt;
 }

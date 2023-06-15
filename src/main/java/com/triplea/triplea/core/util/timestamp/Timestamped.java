@@ -1,4 +1,4 @@
-package com.triplea.triplea.core.util;
+package com.triplea.triplea.core.util.timestamp;
 
 import lombok.Getter;
 import org.springframework.data.annotation.LastModifiedDate;

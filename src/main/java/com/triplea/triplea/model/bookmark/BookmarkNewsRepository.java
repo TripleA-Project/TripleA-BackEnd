@@ -1,5 +1,6 @@
 package com.triplea.triplea.model.bookmark;
 
+import com.triplea.triplea.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookmarkNewsRepository extends JpaRepository<BookmarkNews, Long> {
-
     @Query("select bn from BookmarkNews bn where bn.isDeleted=false and bn.newsId=:newsId and bn.user.isActive=true")
     List<BookmarkNews> findNonDeletedByNewsId(@Param("newsId") Long newsId);
 
