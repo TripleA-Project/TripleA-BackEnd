@@ -1,6 +1,5 @@
 package com.triplea.triplea.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
@@ -159,7 +158,7 @@ class UserControllerTest {
         String orderCode = "orderCode";
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when then
-        mockMvc.perform(get("/api/subscribe/success?order_code="+orderCode)
+        mockMvc.perform(get("/api/subscribe/success?order_code=" + orderCode)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -200,16 +199,16 @@ class UserControllerTest {
     void login() throws Exception {
         //given
         Map<String, String> user = new HashMap<>();
-        user.put("email","test@example.com");
-        user.put("password","123456");
+        user.put("email", "test@example.com");
+        user.put("password", "123456");
         given(userService.login(any()))
                 .willReturn(new HttpHeaders());
 
         //when
         mockMvc.perform(post("/api/login")
-                .with(csrf())
-                .contentType(contentType)
-                .content(new ObjectMapper().writeValueAsString(user)))
+                        .with(csrf())
+                        .contentType(contentType)
+                        .content(new ObjectMapper().writeValueAsString(user)))
                 .andDo(print())
                 .andExpect(status().isOk());
         //then

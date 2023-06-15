@@ -20,15 +20,16 @@ public class MyJwtProvider {
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
     private static String SECRET;
+
     @Value("${jwt.subject}")
-    private void setSUBJECT(String subject){
+    private void setSUBJECT(String subject) {
         SUBJECT = subject;
     }
+
     @Value("${jwt.secret}")
-    private void setSECRET(String secret){
+    private void setSECRET(String secret) {
         SECRET = secret;
     }
-
 
 
     public static String createAccessToken(User user) {
@@ -40,7 +41,8 @@ public class MyJwtProvider {
                 .sign(Algorithm.HMAC512(SECRET));
         return TOKEN_PREFIX + jwt;
     }
-    public String createRefreshToken(User user){
+
+    public String createRefreshToken(User user) {
         String refreshToken = JWT.create()
                 .withSubject(SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + REFRESH_EXP))
@@ -49,7 +51,7 @@ public class MyJwtProvider {
         return refreshToken;
     }
 
-    public String recreationAccessToken(String token){
+    public String recreationAccessToken(String token) {
         DecodedJWT decodedJWT = verify(token);
         Long id = decodedJWT.getClaim("id").asLong();
         String jwt = JWT.create()

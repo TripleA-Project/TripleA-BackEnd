@@ -58,7 +58,7 @@ public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
         } catch (SignatureVerificationException sve) {
             log.error("토큰 검증 실패");
 
-            ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED,"토큰 검증 실패","토큰 검증 실패");
+            ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED, "토큰 검증 실패", "토큰 검증 실패");
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.writeValue(response.getWriter(), responseBody);
@@ -71,7 +71,7 @@ public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.writeValue(response.getWriter(), responseBody);
 
-        }finally {
+        } finally {
             chain.doFilter(request, response);
         }
     }

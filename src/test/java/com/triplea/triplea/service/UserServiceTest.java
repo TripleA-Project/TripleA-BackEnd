@@ -24,6 +24,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -405,39 +406,4 @@ class UserServiceTest {
         }
     }
 
-//    @Nested
-//    @DisplayName("로그인")
-//    class Login {
-//        @Test
-//        @DisplayName("성공")
-//        void test1(){
-//            //given1
-//            Map<String, String> user1 = new HashMap<>();
-//            user1.put("email", "test@example.com");
-//            user1.put("password", "123456");
-//
-//
-//
-//            given(passwordEncoder.encode(anyString())).willReturn("123456");
-//            given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
-//            //when
-//            User user = User.builder()
-//                    .id(1L)
-//                    .email("test@example.com")
-//                    .password(passwordEncoder.encode("123456"))
-//                    .fullName("tester")
-//                    .newsLetter(true)
-//                    .emailVerified(true)
-//                    .userAgent("Custom User Agent")
-//                    .clientIP("127.0.0.1")
-//                    .profile("profile1")
-//                    .build();
-//
-//            when(userRepository.findUserByEmail(anyString())).thenReturn(Optional.ofNullable(user));
-//
-//            //
-//
-//            Assertions.assertDoesNotThrow(() -> userService.login(user1));
-//        }
-//    }
 }

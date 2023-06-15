@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -15,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 
-public class BlackListFilter  extends OncePerRequestFilter {
+public class BlackListFilter extends OncePerRequestFilter {
 
     private RedisTemplate<String, String> redisTemplate;
 
@@ -37,8 +38,8 @@ public class BlackListFilter  extends OncePerRequestFilter {
             }
         }
 
-        if (refreshToken != null && isTokenBlackList(refreshToken)){
-            ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED,"토큰 검증 실패","권한 없음 : 로그아웃한 유저");
+        if (refreshToken != null && isTokenBlackList(refreshToken)) {
+            ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED, "토큰 검증 실패", "권한 없음 : 로그아웃한 유저");
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.writeValue(response.getWriter(), responseBody);
@@ -48,11 +49,11 @@ public class BlackListFilter  extends OncePerRequestFilter {
     }
 
 
-    private boolean isTokenBlackList(String refreshToken){
+    private boolean isTokenBlackList(String refreshToken) {
         ValueOperations<String, String> values = redisTemplate.opsForValue();
         String value = values.get(refreshToken);
-        if (value != null && value.equals("blackList")){
+        if (value != null && value.equals("blackList")) {
             return true;
-        }else return false;
+        } else return false;
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,42 +39,33 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
+    public ResponseEntity<?> login(@RequestBody @Valid UserRequest.login login) {
 
         return ResponseEntity.ok()
-                .headers(userService.login(user))
+                .headers(userService.login(login))
                 .body(new ResponseDTO<>("로그인 성공"));
     }
 
-        @PostMapping("/logout")
-        public ResponseEntity<?> logout(HttpServletResponse response,
-                                        @CookieValue(value = "refreshToken") String refreshToken){
-            redisService.deleteValues(refreshToken);
-            redisService.setValuesBlackList(refreshToken, "blackList");
-
-            Cookie cookie = new Cookie("refreshToken", null);
-            cookie.setPath("/");
-            cookie.setMaxAge(0); // 쿠키 수명을 0으로 설정하여 즉시 만료
-            response.addCookie(cookie);
-            if (redisService.existsRefreshToken(refreshToken)){
-                return ResponseEntity.ok().body(new ResponseDTO<>("로그아웃 성공"));
-            }else return ResponseEntity.ok().body(new ResponseDTO<>("로그아웃 실패"));
-
-        }
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response,
+                                    @CookieValue(value = "refreshToken") String refreshToken,
+                                    HttpServletRequest request) {
+        String accessToken = request.getHeader("Authorization");
+        String msg = userService.logout(response, refreshToken, accessToken);
+        return ResponseEntity.ok()
+                .body(new ResponseDTO<>(msg));
+    }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> recreationAccessToken(@RequestBody Map<String, String> token){
-        if(redisService.existsRefreshToken(token.get("refreshToken"))){
-            String accessToken = myJwtProvider.recreationAccessToken(token.get("refreshToken"));
-            HttpHeaders header = new HttpHeaders();
-            header.add("Authorization", accessToken);
-            return ResponseEntity.ok().headers(header).body(new ResponseDTO<>("AccessToken 재발급 성공"));
-        }else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("RefreshToken 유효하지 않음, 재로그인 요청");
-        }
+    public ResponseEntity<?> recreationAccessToken(@CookieValue(value = "refreshToken") String refreshToken) {
+        HttpHeaders header = userService.refreshToken(refreshToken);
+        return ResponseEntity.ok()
+                .headers(header)
+                .body(new ResponseDTO<>("AccessToken 재발급 성공"));
     }
+
     @GetMapping("loginTest")
-    public ResponseEntity<?> loginTest(@RequestParam("token") String token){
+    public ResponseEntity<?> loginTest(@RequestParam("token") String token) {
         return ResponseEntity.ok().body(redisService.existsRefreshToken(token));
     }
 
@@ -115,7 +107,7 @@ public class UserController {
 
     // 구독내역 조회용 세션키
     @GetMapping("/subscribe/session")
-    public ResponseEntity<?> subscribeSession(@AuthenticationPrincipal MyUserDetails myUserDetails){
+    public ResponseEntity<?> subscribeSession(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         UserResponse.Session session = userService.subscribeSession(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(session));
     }

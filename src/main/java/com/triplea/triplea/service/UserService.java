@@ -2,6 +2,7 @@ package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.exception.Exception400;
+import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
@@ -19,10 +20,12 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -44,20 +47,18 @@ public class UserService {
     private String priceCode;
 
     //로그인
-    public HttpHeaders login(Map<String, String> user){
-        User userPS = userRepository.findUserByEmail(user.get("email"))
-                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 E-MAIL 입니다."));
-        if (!passwordEncoder.matches(user.get("password"), userPS.getPassword())) {
-            System.out.println("mapUser : "+ user.get("password"));
-            System.out.println("userPS : "+userPS.getPassword());
-            throw new IllegalArgumentException("잘못된 비밀번호입니다.");
+    public HttpHeaders login(UserRequest.login login) {
+        User userPS = userRepository.findUserByEmail(login.getEmail())
+                .orElseThrow(() -> new Exception400("Bad-Request", "가입되지 않은 E-MAIL 입니다."));
+        if (!passwordEncoder.matches(login.getPassword(), userPS.getPassword())) {
+            throw new Exception400("Bad-Request", "잘못된 비밀번호 입니다.");
         }
         String accessToken = myJwtProvider.createAccessToken(userPS);
         String refreshToken = myJwtProvider.createRefreshToken(userPS);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .path("/")
-                .maxAge(1000 * 60 * 60* 24 * 7)
+                .maxAge(1000 * 60 * 60 * 24 * 7)
                 .secure(false) // https로 바꾸면 true 변경
                 .httpOnly(false) // 나중에 true로 변경
                 .build();
@@ -70,6 +71,7 @@ public class UserService {
         redisService.setValues(refreshToken, accessToken);
         return headers;
     }
+
     // 회원가입
     @Transactional
     public void join(UserRequest.Join join, String userAgent, String ipAddress) {
@@ -81,6 +83,36 @@ public class UserService {
                     "profile" + new Random().nextInt(4)));
         } catch (Exception e) {
             throw new Exception500("User 생성 실패: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public String logout(HttpServletResponse response, String refreshToken, String accessToken) {
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            accessToken = accessToken.replace("Bearer ", ""); // "Bearer " 부분 제거
+        }
+        String msg = "로그아웃 성공";
+        redisService.deleteValues(refreshToken);
+        if (!redisService.existsRefreshToken(refreshToken)) {
+            Cookie cookie = new Cookie("refreshToken", null);
+            cookie.setPath("/");
+            cookie.setMaxAge(0); // 쿠키 수명을 0으로 설정하여 즉시 만료
+            response.addCookie(cookie);
+            redisService.setValuesBlackList(accessToken, "blackList");
+            return msg;
+        } else throw new Exception401("로그아웃 실패");
+    }
+
+    //AccessToken 재발급
+    @Transactional
+    public HttpHeaders refreshToken(String token) {
+        HttpHeaders header = new HttpHeaders();
+        if (redisService.existsRefreshToken(token)) {
+            String accessToken = myJwtProvider.recreationAccessToken(token);
+            header.add("Authorization", accessToken);
+            return header;
+        } else {
+            throw new Exception401("RefreshToken 유효하지 않음, 재로그인 요청");
         }
     }
 
