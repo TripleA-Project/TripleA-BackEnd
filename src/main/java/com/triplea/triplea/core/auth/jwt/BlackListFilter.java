@@ -10,10 +10,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 
 public class BlackListFilter extends OncePerRequestFilter {
@@ -27,31 +27,33 @@ public class BlackListFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Cookie[] cookies = request.getCookies();
-        //쿠키에서 refreshToken 가져오기
-        String refreshToken = null;
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("refreshToken")) {
-                    refreshToken = cookie.getValue();
-                }
-            }
-        }
+        String accessToken = request.getHeader("Authorization");
 
-        if (refreshToken != null && isTokenBlackList(refreshToken)) {
+        if (accessToken != null && isTokenBlackList(accessToken)) {
             ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED, "토큰 검증 실패", "권한 없음 : 로그아웃한 유저");
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(response.getWriter(), responseBody);
+
+            PrintWriter writer = response.getWriter(); // 출력 스트림 저장
+
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.writeValue(writer, responseBody);
+            } finally {
+                writer.flush(); // 출력 스트림 비우기
+                writer.close(); // 출력 스트림 닫기
+            }
+
+            return; // 필터 체인 중단
         }
 
         filterChain.doFilter(request, response);
     }
 
 
-    private boolean isTokenBlackList(String refreshToken) {
+    private boolean isTokenBlackList(String accessToken) {
+        accessToken = accessToken.replace("Bearer ", "");
         ValueOperations<String, String> values = redisTemplate.opsForValue();
-        String value = values.get(refreshToken);
+        String value = values.get(accessToken);
         if (value != null && value.equals("blackList")) {
             return true;
         } else return false;
