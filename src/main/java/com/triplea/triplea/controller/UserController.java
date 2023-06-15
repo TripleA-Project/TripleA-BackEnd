@@ -5,23 +5,17 @@ import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
-import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.RedisService;
 import com.triplea.triplea.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -33,7 +27,6 @@ import java.util.Map;
 @Slf4j
 public class UserController {
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
     private final RedisService redisService;
 
@@ -54,10 +47,7 @@ public class UserController {
 
         @PostMapping("/logout")
         public ResponseEntity<?> logout(HttpServletResponse response,
-                                        @CookieValue(value = "refreshToken") String refreshToken,
-                                        @AuthenticationPrincipal MyUserDetails myUserDetails){
-
-            User userPS = userService.findId(myUserDetails.getUser().getId());
+                                        @CookieValue(value = "refreshToken") String refreshToken){
             redisService.deleteValues(refreshToken);
             redisService.setValuesBlackList(refreshToken, "blackList");
 

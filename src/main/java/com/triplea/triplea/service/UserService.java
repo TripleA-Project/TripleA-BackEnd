@@ -19,8 +19,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
@@ -71,10 +69,6 @@ public class UserService {
 
         redisService.setValues(refreshToken, accessToken);
         return headers;
-    }
-    //로그아웃
-    public User findId(Long id){
-        return userRepository.findById(id).get();
     }
     // 회원가입
     @Transactional

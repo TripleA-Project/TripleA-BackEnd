@@ -6,10 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -41,8 +38,6 @@ public class BlackListFilter  extends OncePerRequestFilter {
         }
 
         if (refreshToken != null && isTokenBlackList(refreshToken)){
-//            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-//            response.getWriter().write("권한 없음 : 로그아웃한 유저");
             ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED,"토큰 검증 실패","권한 없음 : 로그아웃한 유저");
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             ObjectMapper objectMapper = new ObjectMapper();
