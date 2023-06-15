@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -153,6 +154,45 @@ public class NewsResponse {
         public static class Article{
             NewsResponse.Details.Article articleEng;
             NewsResponse.Details.Article articleKor;
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HistoryOut{
+        private LocalDate date;
+        private Bookmark bookmark;
+        private History history;
+
+        @Getter
+        @Builder
+        @AllArgsConstructor
+        public static class Bookmark{
+            private Integer count;
+            private List<Bookmark.News> news;
+
+            @Getter
+            @Builder
+            @AllArgsConstructor
+            public static class News{
+                private Long id;
+                private boolean isDeleted;
+            }
+        }
+        @Getter
+        @Builder
+        @AllArgsConstructor
+        public static class History{
+            private Integer count;
+            private List<History.News> news;
+
+            @Getter
+            @AllArgsConstructor
+            public static class News{
+                private Long id;
+            }
         }
     }
 }

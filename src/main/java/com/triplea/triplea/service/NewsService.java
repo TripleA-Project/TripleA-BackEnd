@@ -28,6 +28,7 @@ import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
+import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,10 +52,6 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.triplea.triplea.dto.news.ApiResponse.Data;
@@ -72,6 +69,7 @@ public class NewsService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
+    private final HistoryRepository historyRepository;
     private final MoyaNewsProvider newsProvider;
     private final MoyaSymbolProvider moyaSymbolProvider;
     private final TiingoSymbolProvider tiingoSymbolProvider;
@@ -334,6 +332,44 @@ public class NewsService {
                 .category(category)
                 .bookmark(getBookmark(id, user))
                 .build();
+    }
+
+    // 히스토리 조회
+    public List<NewsResponse.HistoryOut> getHistory(int year, int month, User user){
+        List<ZonedDateTime> historyDateTimes = historyRepository.findDateTimeByCreatedAtAndUser(year, month, user);
+
+        return historyDateTimes.stream().map(dateTime -> {
+            LocalDate date = dateTime.toLocalDate();
+
+            List<NewsResponse.HistoryOut.Bookmark.News> bookmarkNews = bookmarkNewsRepository.findByCreatedAtAndUser(date, user)
+                    .stream()
+                    .map(bookmark -> NewsResponse.HistoryOut.Bookmark.News.builder()
+                            .id(bookmark.getNewsId())
+                            .isDeleted(bookmark.isDeleted())
+                            .build())
+                    .collect(Collectors.toList());
+
+            List<NewsResponse.HistoryOut.History.News> historyNews = historyRepository.findByCreatedAtAndUser(date, user)
+                    .stream()
+                    .map(history -> new NewsResponse.HistoryOut.History.News(history.getNewsId()))
+                    .collect(Collectors.toList());
+
+            NewsResponse.HistoryOut.Bookmark bookmarkOut = NewsResponse.HistoryOut.Bookmark.builder()
+                    .count(bookmarkNews.size())
+                    .news(bookmarkNews)
+                    .build();
+
+            NewsResponse.HistoryOut.History historyOut = NewsResponse.HistoryOut.History.builder()
+                    .count(historyNews.size())
+                    .news(historyNews)
+                    .build();
+
+            return NewsResponse.HistoryOut.builder()
+                    .date(date)
+                    .bookmark(bookmarkOut)
+                    .history(historyOut)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     private User getUser(User user) {
