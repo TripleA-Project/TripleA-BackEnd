@@ -42,6 +42,13 @@ dependencies {
     // Cache
     implementation 'org.springframework.boot:spring-boot-starter-cache'
 
+    // 웹 크롤링
+    implementation 'org.jsoup:jsoup:1.15.4'
+
+    // scheduled
+    implementation 'org.springframework:spring-context'
+
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
