@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -63,5 +64,12 @@ public class NewsController {
     public ResponseEntity<?> getNewsDetails(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
         NewsResponse.Details details = newsService.getNewsDetails(id, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(details));
+    }
+
+    // 히스토리 조회
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory(@RequestParam("year") int year, @RequestParam("month") int month, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        List<NewsResponse.HistoryOut> histories = newsService.getHistory(year, month, myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(histories));
     }
 }

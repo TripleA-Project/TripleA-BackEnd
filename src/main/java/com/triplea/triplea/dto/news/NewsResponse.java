@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,6 +70,131 @@ public class NewsResponse {
             this.publishedDate = details.getPublishedDate();
             this.sentiment = details.getSentiment();
             this.bookmark = bookmark;
+        }
+    }
+
+    @Getter
+    public static class Details {
+        private UserResponse.News user;
+        private Long newsId;
+        private SymbolResponse.News symbol;
+        private String source;
+        private String thumbnail;
+        private String url;
+        private String publishedDate;
+        private CategoryResponse category;
+        private List<String> keyword = new ArrayList<>();
+        private Article eng;
+        private Article kor;
+        private BookmarkResponse.BookmarkDTO bookmark;
+        private Integer sentiment;
+
+        @Builder
+        public Details(UserResponse.News user, SymbolResponse.News symbol, ApiResponse.Details details, CategoryResponse category, Article eng, Article kor, BookmarkResponse.BookmarkDTO bookmark) {
+            this.user = user;
+            this.newsId = details.getId();
+            this.symbol = symbol;
+            this.source = details.getSource();
+            this.thumbnail = details.getThumbnail();
+            this.url = details.getUrl();
+            this.publishedDate = details.getPublishedDate();
+            this.category = category;
+            if (details.getKeyword1() == null && details.getKeyword2() == null && details.getKeyword3() == null)
+                this.keyword = Collections.emptyList();
+            else {
+                this.keyword.add(details.getKeyword1());
+                this.keyword.add(details.getKeyword2());
+                this.keyword.add(details.getKeyword3());
+            }
+            this.eng = eng;
+            this.kor = kor;
+            this.publishedDate = details.getPublishedDate();
+            this.sentiment = details.getSentiment();
+            this.bookmark = bookmark;
+            this.sentiment = details.getSentiment();
+        }
+
+        @Getter
+        public static class Article{
+            private String title;
+            private String description;
+            private String summary;
+            private String content;
+
+            public Article(String title) {
+                this.title = title;
+            }
+            public Article(ApiResponse.Details details){
+                this.title = details.getTitle();
+                this.description = details.getDescription();
+                this.summary = details.getSummary();
+                this.content = details.getContent();
+            }
+            public Article(NewsResponse.TranslateOut translate){
+                this.title = translate.getTitle();
+                this.description = translate.getDescription();
+                this.summary = translate.getSummary();
+                this.content = translate.getContent();
+            }
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TranslateOut {
+        private String title;
+        private String description;
+        private String summary;
+        private String content;
+
+        @Getter
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Article{
+            NewsResponse.Details.Article articleEng;
+            NewsResponse.Details.Article articleKor;
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HistoryOut{
+        private LocalDate date;
+        private Bookmark bookmark;
+        private History history;
+
+        @Getter
+        @Builder
+        @AllArgsConstructor
+        public static class Bookmark{
+            private Integer count;
+            private List<Bookmark.News> news;
+
+            @Getter
+            @Builder
+            @AllArgsConstructor
+            public static class News{
+                private Long id;
+                private boolean isDeleted;
+            }
+        }
+        @Getter
+        @Builder
+        @AllArgsConstructor
+        public static class History{
+            private Integer count;
+            private List<History.News> news;
+
+            @Getter
+            @AllArgsConstructor
+            public static class News{
+                private Long id;
+            }
         }
     }
 

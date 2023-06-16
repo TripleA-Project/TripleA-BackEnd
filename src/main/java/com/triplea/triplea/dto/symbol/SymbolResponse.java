@@ -10,7 +10,6 @@ import lombok.Getter;
 
 public class SymbolResponse {
 
-
     @Getter
     public static class SymbolDTO {
         private Long symbolId;
@@ -49,7 +48,6 @@ public class SymbolResponse {
     @Getter
     public static class News {
         private String name;
-
         private String companyName;
         private String sector;
         private String logo;
@@ -64,7 +62,6 @@ public class SymbolResponse {
             this.logo = logo;
             this.marketType = symbol.getMarketType();
             this.price = price;
-
         }
     }
 }
