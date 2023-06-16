@@ -5,8 +5,6 @@ import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.stock.StockResponse;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 public class SymbolResponse {
 
