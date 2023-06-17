@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StockController {
     private final StockService stockService;
 
-    @GetMapping("/stocks")
+    @GetMapping("/stocks/index")
     public ResponseEntity<?> getStockIndex() {
         StockResponse.Index index = stockService.getStockIndex();
         return ResponseEntity.ok().body(new ResponseDTO<>(index));
