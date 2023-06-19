@@ -8,7 +8,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${HOSTNAME}:${MYSQL_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8
+    url: jdbc:mysql://${HOST_NAME}:${MYSQL_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
   jpa:
@@ -22,7 +22,7 @@ spring:
     type: simple
   redis:
     port: ${REDIS_PORT}
-    host: ${HOSTNAME}
+    host: ${HOST_NAME}
     username: ${REDIS_USERNAME}
     password: ${REDIS_PASSWORD}
 logging:
