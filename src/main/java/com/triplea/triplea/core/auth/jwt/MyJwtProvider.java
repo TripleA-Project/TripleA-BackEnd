@@ -51,14 +51,15 @@ public class MyJwtProvider {
         return refreshToken;
     }
 
-    public String recreationAccessToken(String token) {
-        DecodedJWT decodedJWT = verify(token);
+    public String recreationAccessToken(String refreshToken) {
+        DecodedJWT decodedJWT = verify(refreshToken);
         Long id = decodedJWT.getClaim("id").asLong();
         String jwt = JWT.create()
                 .withSubject(SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
                 .withClaim("id", id)
                 .sign(Algorithm.HMAC512(SECRET));
+        System.out.println(jwt);
         return TOKEN_PREFIX + jwt;
     }
 

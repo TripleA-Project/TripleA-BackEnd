@@ -14,10 +14,9 @@ import java.time.Duration;
 public class RedisService {
     private final RedisTemplate redisTemplate;
 
-    public void setValues(String refreshToken, String accessToken) {
+    public void setValues(String refreshToken, String userId) {
         ValueOperations<String, String> values = redisTemplate.opsForValue();
-        accessToken = accessToken.replace("Bearer ", "");
-        values.set(refreshToken, accessToken, Duration.ofMinutes(1000 * 60 * 60 * 24 * 7)); // 7days
+        values.set(userId, refreshToken, Duration.ofMinutes(1000 * 60 * 60 * 24 * 7)); // 7days
     }
 
     public void setValuesBlackList(String AccessToken, String blackList) {
@@ -25,16 +24,16 @@ public class RedisService {
         values.set(AccessToken, blackList, Duration.ofMinutes(1000 * 60 * 3)); // 5분
     }
 
-    public String getValues(String token) {
+    public String getValues(String userId) {
         ValueOperations<String, String> values = redisTemplate.opsForValue();
-        return values.get(token);
+        return values.get(userId);
     }
 
     public void deleteValues(String key) {
         redisTemplate.delete(key);
     }
 
-    public boolean existsRefreshToken(String refreshToken) {
-        return getValues(refreshToken) != null;
+    public boolean existsRefreshToken(String userId) {
+        return getValues(userId) != null;
     }
 }

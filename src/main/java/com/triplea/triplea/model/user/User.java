@@ -86,7 +86,7 @@ public class User extends Timestamped {
         this.isActive = false;
     }
 
-    public void LastLoginDate(String userAgent, String clientIP) {
+    public void lastLoginDate(String userAgent, String clientIP) {
         this.userAgent = userAgent;
         this.clientIP = clientIP;
     }

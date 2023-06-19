@@ -10,17 +10,14 @@ import com.triplea.triplea.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.Map;
 
 @RequestMapping("/api")
 @RestController
@@ -39,26 +36,30 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid UserRequest.login login) {
+    public ResponseEntity<?> login(@RequestBody @Valid UserRequest.login login,
+                                   HttpServletRequest request) {
 
         return ResponseEntity.ok()
-                .headers(userService.login(login))
+                .headers(userService.login(login, request.getHeader("User-Agent"), request.getRemoteAddr()))
                 .body(new ResponseDTO<>("로그인 성공"));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response,
-                                    @CookieValue(value = "refreshToken") String refreshToken,
+                                    @AuthenticationPrincipal MyUserDetails myUserDetails,
                                     HttpServletRequest request) {
         String accessToken = request.getHeader("Authorization");
-        String msg = userService.logout(response, refreshToken, accessToken);
+        String msg = userService.logout(response, accessToken, myUserDetails);
         return ResponseEntity.ok()
                 .body(new ResponseDTO<>(msg));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> recreationAccessToken(@CookieValue(value = "refreshToken") String refreshToken) {
-        HttpHeaders header = userService.refreshToken(refreshToken);
+    public ResponseEntity<?> recreationAccessToken(@AuthenticationPrincipal MyUserDetails myUserDetails,
+                                                   @CookieValue(value = "refreshToken") String refreshToken) {
+        System.out.println("refresh : " + refreshToken);
+        System.out.println("userId : " + myUserDetails.getUser().getId());
+        HttpHeaders header = userService.refreshToken(refreshToken, String.valueOf(myUserDetails.getUser().getId()));
         return ResponseEntity.ok()
                 .headers(header)
                 .body(new ResponseDTO<>("AccessToken 재발급 성공"));

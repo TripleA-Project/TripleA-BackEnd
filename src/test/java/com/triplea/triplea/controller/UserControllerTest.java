@@ -201,7 +201,7 @@ class UserControllerTest {
         Map<String, String> user = new HashMap<>();
         user.put("email", "test@example.com");
         user.put("password", "123456");
-        given(userService.login(any()))
+        given(userService.login(any(), any(), any()))
                 .willReturn(new HttpHeaders());
 
         //when
@@ -212,7 +212,7 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
         //then
-        verify(userService).login(any());
+        verify(userService).login(any(), any(), any());
 
     }
 }

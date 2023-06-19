@@ -1,6 +1,7 @@
 package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
+import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception500;
@@ -47,12 +48,14 @@ public class UserService {
     private String priceCode;
 
     //로그인
-    public HttpHeaders login(UserRequest.login login) {
+    public HttpHeaders login(UserRequest.login login, String userAgent, String ipAddress) {
         User userPS = userRepository.findUserByEmail(login.getEmail())
                 .orElseThrow(() -> new Exception400("Bad-Request", "가입되지 않은 E-MAIL 입니다."));
+
         if (!passwordEncoder.matches(login.getPassword(), userPS.getPassword())) {
             throw new Exception400("Bad-Request", "잘못된 비밀번호 입니다.");
         }
+        userPS.lastLoginDate(userAgent, ipAddress);
         String accessToken = myJwtProvider.createAccessToken(userPS);
         String refreshToken = myJwtProvider.createRefreshToken(userPS);
 
@@ -68,7 +71,7 @@ public class UserService {
         headers.add("Authorization", accessToken);
         headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        redisService.setValues(refreshToken, accessToken);
+        redisService.setValues(refreshToken, String.valueOf(userPS.getId()));
         return headers;
     }
 
@@ -87,13 +90,13 @@ public class UserService {
     }
 
     @Transactional
-    public String logout(HttpServletResponse response, String refreshToken, String accessToken) {
+    public String logout(HttpServletResponse response, String accessToken, MyUserDetails myUserDetails) {
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
             accessToken = accessToken.replace("Bearer ", ""); // "Bearer " 부분 제거
         }
         String msg = "로그아웃 성공";
-        redisService.deleteValues(refreshToken);
-        if (!redisService.existsRefreshToken(refreshToken)) {
+        redisService.deleteValues(String.valueOf(myUserDetails.getUser().getId()));
+        if (!redisService.existsRefreshToken(String.valueOf(myUserDetails.getUser().getId()))) {
             Cookie cookie = new Cookie("refreshToken", null);
             cookie.setPath("/");
             cookie.setMaxAge(0); // 쿠키 수명을 0으로 설정하여 즉시 만료
@@ -104,11 +107,13 @@ public class UserService {
     }
 
     //AccessToken 재발급
-    @Transactional
-    public HttpHeaders refreshToken(String token) {
+
+    public HttpHeaders refreshToken(String refreshToken, String userId) {
         HttpHeaders header = new HttpHeaders();
-        if (redisService.existsRefreshToken(token)) {
-            String accessToken = myJwtProvider.recreationAccessToken(token);
+        System.out.println("================??=========");
+        if (redisService.existsRefreshToken(userId)) {
+            System.out.println("=================");
+            String accessToken = myJwtProvider.recreationAccessToken(refreshToken);
             header.add("Authorization", accessToken);
             return header;
         } else {
