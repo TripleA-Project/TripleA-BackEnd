@@ -3,7 +3,6 @@ package com.triplea.triplea.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.dummy.DummyEntity;
-import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.symbol.SymbolResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
@@ -24,7 +23,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,7 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("심볼 API")
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 public class SymbolControllerTest {

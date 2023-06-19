@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @DisplayName("북마크심볼 API")
 //@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class BookmarkSymbolControllerTest {
