@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StockController {
     private final StockService stockService;
 
+    // 주가 지수 조회
     @GetMapping("/stocks/index")
     public ResponseEntity<?> getStockIndex() {
         StockResponse.Index index = stockService.getStockIndex();

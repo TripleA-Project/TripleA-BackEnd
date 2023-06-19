@@ -13,6 +13,7 @@ public class StockService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper OM;
 
+    // 주가 지수 조회
     public StockResponse.Index getStockIndex() {
         String nasdaqSerialize = redisTemplate.opsForValue().get("index_ixic");
         String dowJonesSerialize = redisTemplate.opsForValue().get("index_dji");
