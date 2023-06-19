@@ -13,19 +13,8 @@ import java.util.Set;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class UserRequestTest {
-    private ValidatorFactory factory;
-    private Validator validator;
-
-    @BeforeEach
-    public void init() {
-        factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
-    }
-
-    @AfterEach
-    public void close() {
-        factory.close();
-    }
+    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private final Validator validator = factory.getValidator();
 
     @Nested
     @DisplayName("회원가입")
