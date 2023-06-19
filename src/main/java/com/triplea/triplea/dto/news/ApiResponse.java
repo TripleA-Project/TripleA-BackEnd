@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,6 +118,13 @@ public class ApiResponse {
         private Long adjVolume;
         private Double divCash;
         private Double splitFactor;
+
+        public String getFormattedDate() {
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.of("UTC"));
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            LocalDateTime dateTime = LocalDateTime.parse(this.date, inputFormatter);
+            return dateTime.format(outputFormatter);
+        }
     }
 
     @Builder @Getter
