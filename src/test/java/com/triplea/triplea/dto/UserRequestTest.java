@@ -13,17 +13,17 @@ import java.util.Set;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class UserRequestTest {
-    private static ValidatorFactory factory;
-    private static Validator validator;
+    private ValidatorFactory factory;
+    private Validator validator;
 
-    @BeforeAll
-    public static void init() {
+    @BeforeEach
+    public void init() {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
 
-    @AfterAll
-    public static void close() {
+    @AfterEach
+    public void close() {
         factory.close();
     }
 
