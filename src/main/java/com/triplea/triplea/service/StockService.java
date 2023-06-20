@@ -1,17 +1,18 @@
 package com.triplea.triplea.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.stock.StockResponse;
-import com.triplea.triplea.dto.symbol.SymbolResponse;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,15 +20,18 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class StockService {
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper OM;
 
     @Value("${tiingo.token}")
     private String tiingoToken;
@@ -39,6 +43,25 @@ public class StockService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     private final CustomerRepository customerRepository;
+
+    // 주가 지수 조회
+    public StockResponse.Index getStockIndex() {
+        String nasdaqSerialize = redisTemplate.opsForValue().get("index_ixic");
+        String dowJonesSerialize = redisTemplate.opsForValue().get("index_dji");
+        String sp500Serialize = redisTemplate.opsForValue().get("index_gspc");
+        try {
+            StockResponse.Index.Stock nasdaq = OM.readValue(nasdaqSerialize, StockResponse.Index.Stock.class);
+            StockResponse.Index.Stock dowJones = OM.readValue(dowJonesSerialize, StockResponse.Index.Stock.class);
+            StockResponse.Index.Stock sp500 = OM.readValue(sp500Serialize, StockResponse.Index.Stock.class);
+            return StockResponse.Index.builder()
+                    .nasdaq(nasdaq)
+                    .dowJones(dowJones)
+                    .sp500(sp500)
+                    .build();
+        } catch (Exception e) {
+            throw new Exception500("주가 지수 조회 실패: " + e.getMessage());
+        }
+    }
 
     @Transactional(readOnly = true)
     public StockResponse.StockInfoDTO getChart(String symbol, String startDate, String endDate, String resampleFreq, User user){

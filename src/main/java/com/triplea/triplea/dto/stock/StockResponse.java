@@ -16,7 +16,29 @@ public class StockResponse {
         private StockRequest.TiingoStock yesterday;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Index{
+        private Stock nasdaq;
+        private Stock dowJones;
+        private Stock sp500;
+        @Getter
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Stock{
+            private String symbol;
+            private String name;
+            private String price;
+            private String percent;
+            private String today;
+        }
+    }
+
     @Setter
+    @Getter
     public static class Chart{
         private String date;
         private double close;
@@ -51,6 +73,7 @@ public class StockResponse {
         }
     }
 
+    @Getter
     public static class StockInfoDTO{
 
         private String membership;

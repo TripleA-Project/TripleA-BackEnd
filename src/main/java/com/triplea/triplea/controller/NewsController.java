@@ -22,6 +22,8 @@ public class NewsController {
     @GetMapping("/news/latest")
     public ResponseEntity<?> getGlobalNews(@AuthenticationPrincipal MyUserDetails myUserDetails, @RequestParam("size") int size, @RequestParam("page") Long page){
 
+        User user = null;
+        if(myUserDetails != null) user = myUserDetails.getUser();
         NewsResponse.News news = newsService.searchAllNews(myUserDetails.getUser(), size, page);
 
         ResponseDTO<?> responseDTO = new ResponseDTO<>(news);
@@ -33,6 +35,8 @@ public class NewsController {
                                            @AuthenticationPrincipal MyUserDetails myUserDetails,
                                            @RequestParam("size") int size, @RequestParam("page") Long page){
 
+        User user = null;
+        if(myUserDetails != null) user = myUserDetails.getUser();
         NewsResponse.News news = newsService.searchSymbolNews(myUserDetails.getUser(), symbol, size, page);
 
         ResponseDTO<?> responseDTO = new ResponseDTO<>(news);

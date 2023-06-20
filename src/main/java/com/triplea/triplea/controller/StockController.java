@@ -3,7 +3,6 @@ package com.triplea.triplea.controller;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.stock.StockResponse;
-import com.triplea.triplea.dto.symbol.SymbolResponse;
 import com.triplea.triplea.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +12,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import java.util.List;
-
 @RequestMapping("/api")
-@RequiredArgsConstructor
 @RestController
+@RequiredArgsConstructor
 public class StockController {
-
     private final StockService stockService;
+
+    // 주가 지수 조회
+    @GetMapping("/stocks/index")
+    public ResponseEntity<?> getStockIndex() {
+        StockResponse.Index index = stockService.getStockIndex();
+        return ResponseEntity.ok().body(new ResponseDTO<>(index));
+    }
+
     @GetMapping("/stocks")
     public ResponseEntity<?> getSymbol(@RequestParam(value = "symbol") String symbol,
                                        @RequestParam(value = "startDate") String startDate,
