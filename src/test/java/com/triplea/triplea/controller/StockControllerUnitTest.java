@@ -1,10 +1,11 @@
 package com.triplea.triplea.controller;
 
-
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.dto.news.ApiResponse;
+import com.triplea.triplea.core.auth.jwt.BlackListFilter;
+import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.stock.StockResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.StockService;
@@ -27,7 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-@Import({MySecurityConfig.class})
+@Import({MySecurityConfig.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(StockController.class)
 class StockControllerUnitTest {
     @Autowired
