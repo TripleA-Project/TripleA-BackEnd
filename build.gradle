@@ -32,7 +32,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-
     // 이메일 전송
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
@@ -48,7 +47,6 @@ dependencies {
 
     // scheduled
     implementation 'org.springframework:spring-context'
-
 
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
