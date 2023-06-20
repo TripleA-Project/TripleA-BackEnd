@@ -2,12 +2,14 @@ package com.triplea.triplea.controller;
 
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
+import com.triplea.triplea.dto.news.NewsRequest;
 import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.NewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -71,5 +73,12 @@ public class NewsController {
     public ResponseEntity<?> getHistory(@RequestParam("year") int year, @RequestParam("month") int month, @AuthenticationPrincipal MyUserDetails myUserDetails){
         List<NewsResponse.HistoryOut> histories = newsService.getHistory(year, month, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(histories));
+    }
+
+    // AI 뉴스 분석
+    @PostMapping("/news/{id}/ai")
+    public ResponseEntity<?> getAnalysisAI(@PathVariable Long id, @RequestBody NewsRequest.AI ai, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        NewsResponse.Analysis analysis = newsService.getAnalysisAI(id, ai, myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(analysis));
     }
 }
