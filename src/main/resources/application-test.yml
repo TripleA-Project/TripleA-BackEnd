@@ -28,7 +28,7 @@ spring:
     type: simple
   redis:
     port: ${REDIS_PORT}
-    host: ${REDIS_HOST}
+    host: ${HOST_NAME}
     username: ${REDIS_USERNAME}
     password: ${REDIS_PASSWORD}
 
