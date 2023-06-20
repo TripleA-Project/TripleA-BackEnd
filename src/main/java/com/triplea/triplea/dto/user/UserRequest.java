@@ -127,7 +127,7 @@ public class UserRequest {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Update{
+    public static class Update {
         @NotBlank
         @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String password;

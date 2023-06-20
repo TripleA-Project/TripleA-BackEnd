@@ -260,7 +260,7 @@ public class UserService {
                 () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 
-    public UserResponse.Detail userDetail(Long userId){
+    public UserResponse.Detail userDetail(Long userId) {
         User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
@@ -269,26 +269,34 @@ public class UserService {
 
 
     @Transactional
-    public void userUpdate(UserRequest.Update update, MyUserDetails myUserDetails){
+    public void userUpdate(UserRequest.Update update, MyUserDetails myUserDetails) {
         User userPS = userRepository.findById(myUserDetails.getUser().getId()).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
         passwordCheck(update.getPassword(), userPS.getPassword());
-        if (update.getNewPassword() != null){
-            if (!update.getNewPassword().equals(update.getNewPasswordCheck())){
+        if (update.getNewPassword() != null) {
+            if (!update.getNewPassword().equals(update.getNewPasswordCheck())) {
                 throw new Exception400("Bad-Request", "변경할 비밀번호가 일치하지 않습니다.");
             }
             userPS.updatePassword(passwordEncoder.encode(update.getNewPassword()));
         }
-        if (update.getFullName() != null){
+        if (update.getFullName() != null) {
             userPS.updateFullName(update.getFullName());
         }
-        if (update.getNewsLetter() != null){
+        if (update.getNewsLetter() != null) {
             userPS.updateNewsLetter(update.getNewsLetter());
         }
     }
 
-    public void passwordCheck(String requestPassword, String persistencePassword){
+    public UserResponse.Navigation navigation(MyUserDetails myUserDetails) {
+        User userPS = userRepository.findById(myUserDetails.getUser().getId()).orElseThrow(
+                () -> new Exception400("bad-request", "잘못된 요청입니다.")
+        );
+
+        return UserResponse.Navigation.toDTO(userPS);
+    }
+
+    public void passwordCheck(String requestPassword, String persistencePassword) {
         if (!passwordEncoder.matches(requestPassword, persistencePassword)) {
             throw new Exception400("Bad-Request", "잘못된 비밀번호입니다.");
         }

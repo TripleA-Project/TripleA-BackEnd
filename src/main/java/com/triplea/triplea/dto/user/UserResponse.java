@@ -14,14 +14,14 @@ public class UserResponse {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Payment{
+    public static class Payment {
         private URL payment;
     }
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Session{
+    public static class Session {
         private String session;
     }
 
@@ -44,7 +44,7 @@ public class UserResponse {
         private Boolean newsLetter;
         private Boolean emailVerified;
 
-        public static Detail toDTO(User user){
+        public static Detail toDTO(User user) {
             return Detail.builder()
                     .email(user.getEmail())
                     .fullName(user.getFullName())
@@ -58,12 +58,12 @@ public class UserResponse {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class Navigation{
+    public static class Navigation {
         private String email;
         private String fullName;
         private Membership membership;
 
-        public static Navigation toDTO(User user){
+        public static Navigation toDTO(User user) {
             return Navigation.builder()
                     .email(user.getEmail())
                     .fullName(user.getFullName())

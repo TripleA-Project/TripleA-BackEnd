@@ -111,18 +111,24 @@ public class UserController {
 
     // 개인정보 조회
     @GetMapping("/user")
-    public ResponseEntity<?> userDetail(@AuthenticationPrincipal MyUserDetails myUserDetails){
-        return ResponseEntity.ok().body(userService.userDetail(myUserDetails.getUser().getId()));
+    public ResponseEntity<?> userDetail(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+        return ResponseEntity.ok()
+                .body(userService.userDetail(myUserDetails.getUser().getId()));
     }
 
     // 개인정보 수정
     @PostMapping("/user")
     public ResponseEntity<?> userUpdate(@AuthenticationPrincipal MyUserDetails myUserDetails,
-                                        @RequestBody @Valid UserRequest.Update update){
+                                        @RequestBody @Valid UserRequest.Update update) {
 
         userService.userUpdate(update, myUserDetails);
         return ResponseEntity.ok().body(new ResponseDTO<>("수정 성공"));
     }
 
+    @GetMapping("/user/me")
+    public ResponseEntity<?> navigation(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+        return ResponseEntity.ok()
+                .body(userService.navigation(myUserDetails));
+    }
 
 }
