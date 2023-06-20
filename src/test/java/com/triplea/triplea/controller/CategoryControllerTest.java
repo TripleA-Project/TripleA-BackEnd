@@ -73,7 +73,7 @@ class CategoryControllerTest {
     @DisplayName("관심 카테고리 조회")
     void getLikeCategories() throws Exception {
         //given
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         when(categoryService.getLikeCategories(any(User.class))).thenReturn(List.of(CategoryResponse.builder().build()));
         //then

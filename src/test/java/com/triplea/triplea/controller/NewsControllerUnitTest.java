@@ -80,7 +80,7 @@ public class NewsControllerUnitTest {
         String category = "News";
         Integer size = 10;
         Long page = 0L;
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         when(newsService.getNewsByKeyword(anyString(), anyInt(), anyLong(), any(User.class)))
                 .thenReturn(new NewsResponse.News(category, null, new ArrayList<>()));
@@ -97,7 +97,7 @@ public class NewsControllerUnitTest {
     void newsDetails() throws Exception {
         //given
         Long newsId = 1L;
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         NewsResponse.Details details = NewsResponse.Details.builder()
                 .user(null)
@@ -127,7 +127,7 @@ public class NewsControllerUnitTest {
             //given
             int year = 2023;
             int month = 6;
-            String accessToken = MyJwtProvider.create(user);
+            String accessToken = MyJwtProvider.createAccessToken(user);
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
@@ -143,7 +143,7 @@ public class NewsControllerUnitTest {
         void test2() throws Exception {
             //given
             int month = 6;
-            String accessToken = MyJwtProvider.create(user);
+            String accessToken = MyJwtProvider.createAccessToken(user);
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
@@ -159,7 +159,7 @@ public class NewsControllerUnitTest {
         void test3() throws Exception {
             //given
             int year = 2023;
-            String accessToken = MyJwtProvider.create(user);
+            String accessToken = MyJwtProvider.createAccessToken(user);
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
