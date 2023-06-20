@@ -108,4 +108,10 @@ public class UserController {
         UserResponse.Session session = userService.subscribeSession(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(session));
     }
+
+    // 개인정보 조회
+    @GetMapping("/user")
+    public ResponseEntity<?> userDetail(@AuthenticationPrincipal MyUserDetails myUserDetails){
+        return ResponseEntity.ok().body(userService.userDetail(myUserDetails.getUser().getId()));
+    }
 }

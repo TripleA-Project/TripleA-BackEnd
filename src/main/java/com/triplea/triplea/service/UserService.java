@@ -263,4 +263,11 @@ public class UserService {
         return customerRepository.findCustomerByUserId(user.getId()).orElseThrow(
                 () -> new Exception400("customer", "잘못된 요청입니다"));
     }
+
+    public UserResponse.Detail userDetail(Long userId){
+        User userPS = userRepository.findById(userId).orElseThrow(
+                () -> new Exception400("bad-request", "잘못된 요청입니다.")
+        );
+        return UserResponse.Detail.toDTO(userPS);
+    }
 }
