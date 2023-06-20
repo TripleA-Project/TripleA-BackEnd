@@ -60,7 +60,7 @@ public class NewsControllerUnitTest {
         String keyword = "solutions";
         Integer size = 10;
         Long page = 0L;
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         when(newsService.getNewsByKeyword(anyString(), anyInt(), anyLong(), any(User.class)))
                 .thenReturn(new NewsResponse.News(keyword, null, new ArrayList<>()));
