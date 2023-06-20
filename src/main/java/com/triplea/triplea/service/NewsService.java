@@ -550,7 +550,7 @@ public class NewsService {
 
         Duration duration = Duration.between(now, midnight);
         long secondsUntilMidnight = duration.getSeconds();
-        this.redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
+        redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
     }
 
     @Transactional
@@ -566,7 +566,7 @@ public class NewsService {
         Long subscriptionId = customerRepository.findCustomerByUserId(user.getId()).map(Customer::getSubscriptionId).orElse(null);
         if (subscriptionId == null) return false;
         try {
-            return this.subscriber.isSubscribe(subscriptionId);
+            return subscriber.isSubscribe(subscriptionId);
         } catch (Exception e) {
             throw new Exception500("구독 확인 실패: " + e.getMessage());
         }

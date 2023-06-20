@@ -1,8 +1,10 @@
 package com.triplea.triplea.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.dto.news.ApiResponse;
+import com.triplea.triplea.dto.news.NewsRequest;
 import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.NewsService;
@@ -25,6 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @Import({MySecurityConfig.class, MyJwtProvider.class})
 @WebMvcTest(NewsController.class)
@@ -169,5 +172,26 @@ public class NewsControllerUnitTest {
                     .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                     .andReturn();
         }
+    }
+
+    @Test
+    @DisplayName("AI 뉴스 분석")
+    void newsAnalysis() throws Exception {
+        //given
+        long id = 1L;
+        NewsRequest.AI ai = new NewsRequest.AI(null);
+        String accessToken = MyJwtProvider.create(user);
+        ObjectMapper om = new ObjectMapper();
+        String requestBody = om.writeValueAsString(ai);
+        //when
+        when(newsService.getAnalysisAI(anyLong(), any(NewsRequest.AI.class), any(User.class))).thenReturn(null);
+        //then
+        mockMvc.perform(post("/api/news/" + id + "/ai")
+                        .with(csrf())
+                        .contentType(contentType)
+                        .content(requestBody)
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
     }
 }
