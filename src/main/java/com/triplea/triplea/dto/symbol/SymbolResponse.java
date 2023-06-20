@@ -5,11 +5,8 @@ import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.stock.StockResponse;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 public class SymbolResponse {
-
 
     @Getter
     public static class SymbolDTO {
@@ -49,7 +46,6 @@ public class SymbolResponse {
     @Getter
     public static class News {
         private String name;
-
         private String companyName;
         private String sector;
         private String logo;
@@ -64,7 +60,6 @@ public class SymbolResponse {
             this.logo = logo;
             this.marketType = symbol.getMarketType();
             this.price = price;
-
         }
     }
 }

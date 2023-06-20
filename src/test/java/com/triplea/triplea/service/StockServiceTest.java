@@ -24,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.Optional;
 
+
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -45,6 +46,7 @@ class StockServiceTest {
     private StepPaySubscriber subscriber;
     @Mock
     private RestTemplate restTemplate;
+
 
     @Nested
     @DisplayName("주가 지수 조회")
@@ -138,4 +140,5 @@ class StockServiceTest {
 
         }
     }
+
 }

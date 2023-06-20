@@ -1,5 +1,6 @@
 package com.triplea.triplea.controller;
 
+
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.dummy.DummyEntity;
@@ -13,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -25,6 +24,7 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @Import({MySecurityConfig.class})

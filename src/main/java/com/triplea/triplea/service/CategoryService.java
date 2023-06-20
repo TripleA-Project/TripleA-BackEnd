@@ -566,7 +566,7 @@ public class CategoryService {
                 "Beauty & Fitness\t뷰티/건강\n" +
                 "Books & Literature\t책/공연/전시\n" +
                 "Business & Industrial\t비즈니스\n" +
-                "Computers & Electronics\tIT/전자\n" +
+                "Computers & Electronics\t전자/정보통신\n" +
                 "Finance\t금융\n" +
                 "Food & Drink\t음식/맛집\n" +
                 "Games\t게임\n" +

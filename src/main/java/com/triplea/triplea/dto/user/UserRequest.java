@@ -53,6 +53,19 @@ public class UserRequest {
     }
 
     @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class login {
+        @Email
+        @NotBlank
+        private String email;
+        @NotBlank
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        private String password;
+    }
+
+    @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class EmailSend {
@@ -72,10 +85,11 @@ public class UserRequest {
         private String code;
     }
 
-    @Getter @Builder
+    @Getter
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Customer{
+    public static class Customer {
         @NotBlank
         private String name;
         @Email
@@ -83,10 +97,11 @@ public class UserRequest {
         private String email;
     }
 
-    @Getter @Builder
+    @Getter
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Order{
+    public static class Order {
         @NotNull
         private List<Item> items;
         @NotNull
@@ -94,10 +109,11 @@ public class UserRequest {
         @NotNull
         private String customerCode;
 
-        @Getter @Builder
+        @Getter
+        @Builder
         @NoArgsConstructor
         @AllArgsConstructor
-        public static class Item{
+        public static class Item {
             private final String currency = "KRW";
             private final int minimumQuantity = 1;
             @NotNull

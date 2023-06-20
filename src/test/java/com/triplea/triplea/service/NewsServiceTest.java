@@ -9,6 +9,7 @@ import com.triplea.triplea.core.util.provide.MoyaNewsProvider;
 import com.triplea.triplea.core.util.provide.TiingoStockProvider;
 import com.triplea.triplea.core.util.provide.symbol.MoyaSymbolProvider;
 import com.triplea.triplea.core.util.provide.symbol.TiingoSymbolProvider;
+import com.triplea.triplea.core.util.timestamp.Timestamped;
 import com.triplea.triplea.core.util.translate.Papago;
 import com.triplea.triplea.core.util.translate.WiseSTGlobal;
 import com.triplea.triplea.dto.news.ApiResponse;
@@ -23,6 +24,8 @@ import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
+import com.triplea.triplea.model.history.History;
+import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import okhttp3.*;
@@ -37,6 +40,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,6 +65,8 @@ class NewsServiceTest {
     @Mock
     CustomerRepository customerRepository;
     @Mock
+    HistoryRepository historyRepository;
+    @Mock
     MoyaNewsProvider newsProvider;
     @Mock
     MoyaSymbolProvider moyaSymbolProvider;
@@ -77,7 +83,7 @@ class NewsServiceTest {
     @Mock
     RedisTemplate<String, String> redisTemplate;
     @Mock
-    ValueOperations valueOperations;
+    ValueOperations<String, String> valueOperations;
 
     private final User user = User.builder()
             .id(1L)
@@ -501,6 +507,7 @@ class NewsServiceTest {
                         .content("내용")
                         .build();
                 when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+                when(historyRepository.existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong())).thenReturn(true);
                 when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
                 when(newsProvider.getNewsDetails(any(Response.class))).thenReturn(data);
                 when(mainCategoryRepository.findMainCategoryBySubCategory(anyString())).thenReturn(Optional.of(mainCategory));
@@ -513,6 +520,8 @@ class NewsServiceTest {
                 when(wiseTranslator.translateArticle(any(ApiResponse.Details.class))).thenReturn(translate);
                 NewsResponse.Details result = newsService.getNewsDetails(id, user);
                 //then
+                verify(userRepository, times(1)).findById(anyLong());
+                verify(historyRepository, times(1)).existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong());
                 verify(newsProvider, times(1)).getNewsById(anyLong());
                 verify(newsProvider, times(1)).getNewsDetails(any());
                 verify(mainCategoryRepository, times(1)).findMainCategoryBySubCategory(anyString());
@@ -582,14 +591,10 @@ class NewsServiceTest {
                         .today(today)
                         .yesterday(yesterday)
                         .build();
-                NewsResponse.TranslateOut translate = NewsResponse.TranslateOut.builder()
-                        .title("제목")
-                        .description("설명")
-                        .summary("요약")
-                        .content("내용")
-                        .build();
-                List<Long> newsId = List.of(id);
+                String title = "제목";
+                List<Long> newsId = List.of(2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L);
                 when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+                when(historyRepository.existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong())).thenReturn(true);
                 when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
                 when(newsProvider.getNewsDetails(any(Response.class))).thenReturn(data);
                 when(mainCategoryRepository.findMainCategoryBySubCategory(anyString())).thenReturn(Optional.of(mainCategory));
@@ -599,10 +604,11 @@ class NewsServiceTest {
                 when(stockProvider.getStocks(anyString(), any(LocalDate.class), any(LocalDate.class))).thenReturn(price);
                 when(redisTemplate.opsForValue()).thenReturn(valueOperations);
                 when(redisTemplate.opsForValue().get(anyString())).thenReturn(StringUtils.collectionToCommaDelimitedString(newsId));
-                when(wiseTranslator.translateArticle(any(ApiResponse.Details.class))).thenReturn(translate);
+                when(papagoTranslator.translate(anyString())).thenReturn(title);
                 NewsResponse.Details result = newsService.getNewsDetails(id, user);
                 //then
                 verify(userRepository, times(1)).findById(anyLong());
+                verify(historyRepository, times(1)).existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong());
                 verify(newsProvider, times(1)).getNewsById(anyLong());
                 verify(newsProvider, times(1)).getNewsDetails(any());
                 verify(mainCategoryRepository, times(1)).findMainCategoryBySubCategory(anyString());
@@ -612,10 +618,11 @@ class NewsServiceTest {
                 verify(stockProvider, times(1)).getStocks(anyString(), any(), any());
                 verify(customerRepository, times(0)).findCustomerByUserId(anyLong());
                 verify(subscriber, times(0)).isSubscribe(anyLong());
-                verify(wiseTranslator, times(1)).translateArticle(any());
+                verify(wiseTranslator, times(0)).translateArticle(any());
+                verify(papagoTranslator, times(1)).translate(anyString());
                 Assertions.assertEquals(id, result.getNewsId());
                 Assertions.assertEquals(user.getMembership(), result.getUser().getMembership());
-                Assertions.assertEquals(id, result.getUser().getHistoryNewsIds().get(0));
+                Assertions.assertEquals(10, result.getUser().getHistoryNewsIds().size());
                 Assertions.assertDoesNotThrow(() -> newsService.getNewsDetails(id, user));
             }
         }
@@ -694,6 +701,41 @@ class NewsServiceTest {
                 //then
                 Assertions.assertThrows(Exception500.class, () -> newsService.getNewsDetails(id, user));
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("히스토리 조회")
+    class NewsHistory{
+        @Test
+        @DisplayName("성공")
+        void test(){
+            //given
+            Long newsId = 1L;
+            int year = 2023;
+            int month = 6;
+            //when
+            ZonedDateTime zonedDateTime = ZonedDateTime.now(Timestamped.SEOUL_ZONE_ID);
+            List<ZonedDateTime> dateTimes = List.of(zonedDateTime);
+            History history = History.builder()
+                    .id(1L)
+                    .user(user)
+                    .newsId(newsId)
+                    .build();
+            List<History> histories = List.of(history);
+            when(historyRepository.findDateTimeByCreatedAtAndUser(anyInt(), anyInt(), any(User.class))).thenReturn(dateTimes);
+            when(bookmarkNewsRepository.findByCreatedAtAndUser(any(), any(User.class))).thenReturn(Collections.emptyList());
+            when(historyRepository.findByCreatedAtAndUser(any(), any(User.class))).thenReturn(histories);
+            List<NewsResponse.HistoryOut> result = newsService.getHistory(year, month, user);
+            //then
+            verify(historyRepository, times(1)).findDateTimeByCreatedAtAndUser(anyInt(), anyInt(), any(User.class));
+            verify(bookmarkNewsRepository, times(1)).findByCreatedAtAndUser(any(), any(User.class));
+            verify(historyRepository, times(1)).findByCreatedAtAndUser(any(), any(User.class));
+            Assertions.assertEquals(1,result.size());
+            Assertions.assertEquals(0,result.get(0).getBookmark().getCount());
+            Assertions.assertTrue(result.get(0).getBookmark().getNews().isEmpty());
+            Assertions.assertEquals(1, result.get(0).getHistory().getCount());
+            Assertions.assertEquals(newsId, result.get(0).getHistory().getNews().get(0).getId());
         }
     }
 }

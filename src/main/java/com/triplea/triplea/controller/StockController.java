@@ -37,4 +37,5 @@ public class StockController {
 
         return ResponseEntity.ok().body(new ResponseDTO<>(stockInfoDTO));
     }
+
 }
