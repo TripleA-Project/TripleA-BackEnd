@@ -1,6 +1,5 @@
 package com.triplea.triplea.controller;
 
-import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.user.UserRequest;
@@ -25,7 +24,6 @@ import javax.validation.Valid;
 @Slf4j
 public class UserController {
     private final UserService userService;
-    private final MyJwtProvider myJwtProvider;
     private final RedisService redisService;
 
     // 회원가입
@@ -57,8 +55,6 @@ public class UserController {
     @PostMapping("/refresh")
     public ResponseEntity<?> recreationAccessToken(@AuthenticationPrincipal MyUserDetails myUserDetails,
                                                    @CookieValue(value = "refreshToken") String refreshToken) {
-        System.out.println("refresh : " + refreshToken);
-        System.out.println("userId : " + myUserDetails.getUser().getId());
         HttpHeaders header = userService.refreshToken(refreshToken, String.valueOf(myUserDetails.getUser().getId()));
         return ResponseEntity.ok()
                 .headers(header)

@@ -1,6 +1,8 @@
 package com.triplea.triplea.controller;
 
+import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.config.MySecurityConfig;
+import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.stock.StockResponse;
 import com.triplea.triplea.service.StockService;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +18,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-@Import({MySecurityConfig.class})
+@Import({MySecurityConfig.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(StockController.class)
 class StockControllerUnitTest {
     @Autowired
