@@ -15,25 +15,51 @@ import java.util.Date;
 public class MyJwtProvider {
 
     private static String SUBJECT;
-    private static final int EXP = 1000 * 60 * 60* 24; // 24시간
+    private static final int EXP = 1000 * 60 * 5; // 5분
+    private static final int REFRESH_EXP = 1000 * 60 * 60 * 7; // 일주일
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
     private static String SECRET;
+
     @Value("${jwt.subject}")
-    private void setSUBJECT(String subject){
+    private void setSUBJECT(String subject) {
         SUBJECT = subject;
     }
+
     @Value("${jwt.secret}")
-    private void setSECRET(String secret){
+    private void setSECRET(String secret) {
         SECRET = secret;
     }
 
-    public static String create(User user) {
+
+    public static String createAccessToken(User user) {
+
         String jwt = JWT.create()
                 .withSubject(SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
                 .withClaim("id", user.getId())
                 .sign(Algorithm.HMAC512(SECRET));
+        return TOKEN_PREFIX + jwt;
+    }
+
+    public String createRefreshToken(User user) {
+        String refreshToken = JWT.create()
+                .withSubject(SUBJECT)
+                .withExpiresAt(new Date(System.currentTimeMillis() + REFRESH_EXP))
+                .withClaim("id", user.getId())
+                .sign(Algorithm.HMAC512(SECRET));
+        return refreshToken;
+    }
+
+    public String recreationAccessToken(String refreshToken) {
+        DecodedJWT decodedJWT = verify(refreshToken);
+        Long id = decodedJWT.getClaim("id").asLong();
+        String jwt = JWT.create()
+                .withSubject(SUBJECT)
+                .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
+                .withClaim("id", id)
+                .sign(Algorithm.HMAC512(SECRET));
+        System.out.println(jwt);
         return TOKEN_PREFIX + jwt;
     }
 

@@ -1,30 +1,73 @@
 package com.triplea.triplea.controller;
 
+import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
+import com.triplea.triplea.service.RedisService;
 import com.triplea.triplea.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @RequestMapping("/api")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
     private final UserService userService;
+    private final MyJwtProvider myJwtProvider;
+    private final RedisService redisService;
 
     // 회원가입
     @PostMapping("/join")
     public ResponseEntity<?> join(@RequestBody @Valid UserRequest.Join join, Errors errors, HttpServletRequest request) {
         userService.join(join, request.getHeader("User-Agent"), request.getRemoteAddr());
         return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody @Valid UserRequest.login login,
+                                   HttpServletRequest request) {
+
+        return ResponseEntity.ok()
+                .headers(userService.login(login, request.getHeader("User-Agent"), request.getRemoteAddr()))
+                .body(new ResponseDTO<>("로그인 성공"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response,
+                                    @AuthenticationPrincipal MyUserDetails myUserDetails,
+                                    HttpServletRequest request) {
+        String accessToken = request.getHeader("Authorization");
+        String msg = userService.logout(response, accessToken, myUserDetails);
+        return ResponseEntity.ok()
+                .body(new ResponseDTO<>(msg));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> recreationAccessToken(@AuthenticationPrincipal MyUserDetails myUserDetails,
+                                                   @CookieValue(value = "refreshToken") String refreshToken) {
+        System.out.println("refresh : " + refreshToken);
+        System.out.println("userId : " + myUserDetails.getUser().getId());
+        HttpHeaders header = userService.refreshToken(refreshToken, String.valueOf(myUserDetails.getUser().getId()));
+        return ResponseEntity.ok()
+                .headers(header)
+                .body(new ResponseDTO<>("AccessToken 재발급 성공"));
+    }
+
+    @GetMapping("loginTest")
+    public ResponseEntity<?> loginTest(@RequestParam("token") String token) {
+        return ResponseEntity.ok().body(redisService.existsRefreshToken(token));
     }
 
     // 이메일 인증 요청
@@ -65,7 +108,7 @@ public class UserController {
 
     // 구독내역 조회용 세션키
     @GetMapping("/subscribe/session")
-    public ResponseEntity<?> subscribeSession(@AuthenticationPrincipal MyUserDetails myUserDetails){
+    public ResponseEntity<?> subscribeSession(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         UserResponse.Session session = userService.subscribeSession(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(session));
     }
