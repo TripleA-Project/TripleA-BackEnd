@@ -41,8 +41,8 @@ public class UserResponse {
     public static class Detail {
         private String email;
         private String fullName;
-        private boolean newsLetter;
-        private boolean emailVerified;
+        private Boolean newsLetter;
+        private Boolean emailVerified;
 
         public static Detail toDTO(User user){
             return Detail.builder()
@@ -50,6 +50,24 @@ public class UserResponse {
                     .fullName(user.getFullName())
                     .newsLetter(user.isNewsLetter())
                     .emailVerified(user.isEmailVerified())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Navigation{
+        private String email;
+        private String fullName;
+        private Membership membership;
+
+        public static Navigation toDTO(User user){
+            return Navigation.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .membership(user.getMembership())
                     .build();
         }
     }

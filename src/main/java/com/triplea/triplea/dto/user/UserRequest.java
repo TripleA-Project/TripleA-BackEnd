@@ -122,4 +122,33 @@ public class UserRequest {
             private String priceCode;
         }
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Update{
+        @NotBlank
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        private String password;
+        @NotBlank
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        private String passwordCheck;
+        private String newPassword;
+        private String newPasswordCheck;
+        private String fullName;
+        private Boolean newsLetter;
+
+        @AssertTrue(message = "password must be equals passwordCheck")
+        private boolean isPasswordMatch() {
+            if (password != null) return password.equals(passwordCheck);
+            return false;
+        }
+
+        @AssertTrue(message = "new password must be equals passwordCheck")
+        private boolean isNewPasswordMatch() {
+            if (newPassword != null) return newPassword.equals(newPasswordCheck);
+            return false;
+        }
+    }
 }

@@ -53,9 +53,7 @@ public class UserService {
         User userPS = userRepository.findUserByEmail(login.getEmail())
                 .orElseThrow(() -> new Exception400("Bad-Request", "가입되지 않은 E-MAIL 입니다."));
 
-        if (!passwordEncoder.matches(login.getPassword(), userPS.getPassword())) {
-            throw new Exception400("Bad-Request", "잘못된 비밀번호 입니다.");
-        }
+        passwordCheck(login.getPassword(), userPS.getPassword());
         userPS.lastLoginDate(userAgent, ipAddress);
         String accessToken = myJwtProvider.createAccessToken(userPS);
         String refreshToken = myJwtProvider.createRefreshToken(userPS);
@@ -111,9 +109,7 @@ public class UserService {
 
     public HttpHeaders refreshToken(String refreshToken, String userId) {
         HttpHeaders header = new HttpHeaders();
-        System.out.println("================??=========");
         if (redisService.existsRefreshToken(userId)) {
-            System.out.println("=================");
             String accessToken = myJwtProvider.recreationAccessToken(refreshToken);
             header.add("Authorization", accessToken);
             return header;
@@ -269,5 +265,32 @@ public class UserService {
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
         return UserResponse.Detail.toDTO(userPS);
+    }
+
+
+    @Transactional
+    public void userUpdate(UserRequest.Update update, MyUserDetails myUserDetails){
+        User userPS = userRepository.findById(myUserDetails.getUser().getId()).orElseThrow(
+                () -> new Exception400("bad-request", "잘못된 요청입니다.")
+        );
+        passwordCheck(update.getPassword(), userPS.getPassword());
+        if (update.getNewPassword() != null){
+            if (!update.getNewPassword().equals(update.getNewPasswordCheck())){
+                throw new Exception400("Bad-Request", "변경할 비밀번호가 일치하지 않습니다.");
+            }
+            userPS.updatePassword(passwordEncoder.encode(update.getNewPassword()));
+        }
+        if (update.getFullName() != null){
+            userPS.updateFullName(update.getFullName());
+        }
+        if (update.getNewsLetter() != null){
+            userPS.updateNewsLetter(update.getNewsLetter());
+        }
+    }
+
+    public void passwordCheck(String requestPassword, String persistencePassword){
+        if (!passwordEncoder.matches(requestPassword, persistencePassword)) {
+            throw new Exception400("Bad-Request", "잘못된 비밀번호입니다.");
+        }
     }
 }

@@ -114,4 +114,15 @@ public class UserController {
     public ResponseEntity<?> userDetail(@AuthenticationPrincipal MyUserDetails myUserDetails){
         return ResponseEntity.ok().body(userService.userDetail(myUserDetails.getUser().getId()));
     }
+
+    // 개인정보 수정
+    @PostMapping("/user")
+    public ResponseEntity<?> userUpdate(@AuthenticationPrincipal MyUserDetails myUserDetails,
+                                        @RequestBody @Valid UserRequest.Update update){
+
+        userService.userUpdate(update, myUserDetails);
+        return ResponseEntity.ok().body(new ResponseDTO<>("수정 성공"));
+    }
+
+
 }

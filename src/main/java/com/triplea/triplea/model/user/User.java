@@ -65,9 +65,14 @@ public class User extends Timestamped {
         this.profile = profile;
     }
 
-    public void update(String password, String fullName) {
+    public void updatePassword(String password) {
         this.password = password;
+    }
+    public void updateFullName(String fullName){
         this.fullName = fullName;
+    }
+    public void updateNewsLetter(boolean newsLetter){
+        this.newsLetter = newsLetter;
     }
 
     public void markEmailAsVerified() {
