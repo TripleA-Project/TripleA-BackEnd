@@ -69,8 +69,8 @@ public class UserController {
     // 이메일 인증 요청
     @PostMapping("/email")
     public ResponseEntity<?> email(@RequestBody @Valid UserRequest.EmailSend request, Errors errors) {
-        String code = userService.email(request);
-        return ResponseEntity.ok().body(new ResponseDTO<>(code));
+        userService.email(request);
+        return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
 
