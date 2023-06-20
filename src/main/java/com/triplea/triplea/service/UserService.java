@@ -1,6 +1,9 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
+import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.exception.Exception400;
+import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
@@ -13,15 +16,20 @@ import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit
 
 @Service
 @RequiredArgsConstructor
@@ -30,13 +38,43 @@ public class UserService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final HttpSession session;
+    private final MyJwtProvider myJwtProvider;
+    private final RedisService redisService;
+    private final RedisTemplate<String, String> redisTemplate;
     private final MailUtils mailUtils;
     private final StepPaySubscriber subscriber;
     @Value("${step-pay.product-code}")
     private String productCode;
     @Value("${step-pay.price-code}")
     private String priceCode;
+
+    //로그인
+    public HttpHeaders login(UserRequest.login login, String userAgent, String ipAddress) {
+        User userPS = userRepository.findUserByEmail(login.getEmail())
+                .orElseThrow(() -> new Exception400("Bad-Request", "가입되지 않은 E-MAIL 입니다."));
+
+        if (!passwordEncoder.matches(login.getPassword(), userPS.getPassword())) {
+            throw new Exception400("Bad-Request", "잘못된 비밀번호 입니다.");
+        }
+        userPS.lastLoginDate(userAgent, ipAddress);
+        String accessToken = myJwtProvider.createAccessToken(userPS);
+        String refreshToken = myJwtProvider.createRefreshToken(userPS);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .path("/")
+                .maxAge(1000 * 60 * 60 * 24 * 7)
+                .secure(false) // https로 바꾸면 true 변경
+                .httpOnly(false) // 나중에 true로 변경
+                .build();
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add("Authorization", accessToken);
+        headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        redisService.setValues(refreshToken, String.valueOf(userPS.getId()));
+        return headers;
+    }
 
     // 회원가입
     @Transactional
@@ -52,24 +90,56 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public String logout(HttpServletResponse response, String accessToken, MyUserDetails myUserDetails) {
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            accessToken = accessToken.replace("Bearer ", ""); // "Bearer " 부분 제거
+        }
+        String msg = "로그아웃 성공";
+        redisService.deleteValues(String.valueOf(myUserDetails.getUser().getId()));
+        if (!redisService.existsRefreshToken(String.valueOf(myUserDetails.getUser().getId()))) {
+            Cookie cookie = new Cookie("refreshToken", null);
+            cookie.setPath("/");
+            cookie.setMaxAge(0); // 쿠키 수명을 0으로 설정하여 즉시 만료
+            response.addCookie(cookie);
+            redisService.setValuesBlackList(accessToken, "blackList");
+            return msg;
+        } else throw new Exception401("로그아웃 실패");
+    }
+
+    //AccessToken 재발급
+
+    public HttpHeaders refreshToken(String refreshToken, String userId) {
+        HttpHeaders header = new HttpHeaders();
+        System.out.println("================??=========");
+        if (redisService.existsRefreshToken(userId)) {
+            System.out.println("=================");
+            String accessToken = myJwtProvider.recreationAccessToken(refreshToken);
+            header.add("Authorization", accessToken);
+            return header;
+        } else {
+            throw new Exception401("RefreshToken 유효하지 않음, 재로그인 요청");
+        }
+    }
+
     // 이메일 인증 요청
     public String email(UserRequest.EmailSend request) {
         UUID code = UUID.randomUUID();
-        session.setAttribute(request.getEmail(), code);
-        String html = "<div>인증코드: " + code + "</div>";
+        String key = "code_" + request.getEmail();
+        redisTemplate.opsForValue().set(key, code.toString());
+        redisTemplate.expire(key, 3, TimeUnit.MINUTES);
+        String html = "<div>인증코드: " + code + "<p style='font-weight:bold;'>해당 인증코드는 3분간 유효합니다.</p></div>";
         mailUtils.send(request.getEmail(), "[Triple A] 이메일 인증을 진행해주세요.", html);
         return code.toString();
     }
 
     // 이메일 인증 확인
     public void emailVerified(UserRequest.EmailVerify request) {
-        String code;
-        try {
-            code = session.getAttribute(request.getEmail()).toString();
-        } catch (Exception e) {
-            throw new Exception400("email", "이메일이 잘못 되었습니다");
-        }
-        if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
+        String key = "code_" + request.getEmail();
+        String code = redisTemplate.opsForValue().get(key);
+        if (code == null) throw new Exception400("code", "인증 코드를 찾을 수 없습니다");
+        else if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
+        else redisTemplate.delete(key);
     }
 
     // 구독

@@ -15,6 +15,13 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -36,10 +43,13 @@ class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private CustomerRepository customerRepository;
+
+    @Spy
+    BCryptPasswordEncoder passwordEncoder;
     @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+    RedisTemplate<String, String> redisTemplate;
     @Mock
-    private HttpSession session;
+    ValueOperations<String, String> valueOperations;
     @Mock
     private MailUtils mailUtils;
     @Mock
@@ -95,7 +105,7 @@ class UserServiceTest {
             //given
             UserRequest.EmailSend emailSend = new UserRequest.EmailSend(user.getEmail());
             //when
-            userService.email(emailSend);
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
             //then
             Assertions.assertDoesNotThrow(() -> userService.email(emailSend));
         }
@@ -110,12 +120,8 @@ class UserServiceTest {
             //given
             UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(), "code");
             //when
-            when(session.getAttribute(anyString()))
-                    .thenAnswer(invocation -> {
-                        String email = invocation.getArgument(0);
-                        if (!email.equals(emailVerify.getEmail())) throw new Exception400("email", "이메일이 잘못 되었습니다");
-                        return "code";
-                    });
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+            when(redisTemplate.opsForValue().get(anyString())).thenReturn(emailVerify.getCode());
             //then
             Assertions.assertDoesNotThrow(() -> userService.emailVerified(emailVerify));
         }
@@ -129,7 +135,8 @@ class UserServiceTest {
                 //given
                 UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify("wrong@email.com", "code");
                 //when
-                when(session.getAttribute(user.getEmail())).thenReturn("code");
+                when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+                when(redisTemplate.opsForValue().get(anyString())).thenReturn(null);
                 //then
                 Assertions.assertThrows(Exception400.class, () -> userService.emailVerified(emailVerify));
             }
@@ -140,6 +147,8 @@ class UserServiceTest {
                 //given
                 UserRequest.EmailVerify emailVerify = new UserRequest.EmailVerify(user.getEmail(), "wrong");
                 //when
+                when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+                when(redisTemplate.opsForValue().get(anyString())).thenReturn("code");
                 //then
                 Assertions.assertThrows(Exception400.class, () -> userService.emailVerified(emailVerify));
             }

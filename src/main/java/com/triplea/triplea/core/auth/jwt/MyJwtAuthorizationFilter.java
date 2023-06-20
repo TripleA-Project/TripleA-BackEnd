@@ -3,14 +3,18 @@ package com.triplea.triplea.core.auth.jwt;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.triplea.triplea.dto.ResponseDTO;
+import com.triplea.triplea.model.user.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
-import com.triplea.triplea.model.user.User;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -38,10 +42,11 @@ public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
         try {
             System.out.println("디버그 : 토큰 있음");
             DecodedJWT decodedJWT = MyJwtProvider.verify(jwt);
-            Long id = decodedJWT.getClaim("id").asLong();
 
+            Long id = decodedJWT.getClaim("id").asLong();
             User user = User.builder().id(id).build();
             MyUserDetails myUserDetails = new MyUserDetails(user);
+
             Authentication authentication =
                     new UsernamePasswordAuthenticationToken(
                             myUserDetails,
@@ -52,10 +57,24 @@ public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
             System.out.println("디버그 : 인증 객체 만들어짐");
         } catch (SignatureVerificationException sve) {
             log.error("토큰 검증 실패");
+
+            ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED, "토큰 검증 실패", "토큰 검증 실패");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.writeValue(response.getWriter(), responseBody);
+
         } catch (TokenExpiredException tee) {
             log.error("토큰 만료됨");
+
+            ResponseDTO<String> responseBody = new ResponseDTO<>(HttpStatus.UNAUTHORIZED, "토큰 만료됨", "토큰 만료됨");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.writeValue(response.getWriter(), responseBody);
+
         } finally {
             chain.doFilter(request, response);
         }
     }
+
+
 }

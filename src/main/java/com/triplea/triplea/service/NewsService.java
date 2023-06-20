@@ -342,7 +342,6 @@ public class NewsService {
                 .build();
     }
 
-  
     // 히스토리 조회
     public List<NewsResponse.HistoryOut> getHistory(int year, int month, User user) {
         List<ZonedDateTime> historyDateTimes = historyRepository.findDateTimeByCreatedAtAndUser(year, month, user);
@@ -380,6 +379,35 @@ public class NewsService {
                     .build();
         }).collect(Collectors.toList());
     }
+
+    // AI 뉴스 분석
+    public NewsResponse.Analysis getAnalysisAI(Long id, NewsRequest.AI ai, User user) {
+        user = getUser(user);
+
+        // 베네핏 설정
+        User.Membership membership = getMembership(user);
+        if (membership != User.Membership.PREMIUM) throw new Exception401("유료 회원만 사용할 수 있습니다");
+        String key = "ai_" + user.getEmail(); int benefitCount = 10;
+
+        NewsResponse.Analysis analysis;
+        // 요청 횟수 redis 에 저장해서 남은 베네핏 수와 비교
+        int count = countsAIBenefit(key, false);
+        int leftCount = saveCountsAIBenefit(key, benefitCount, count, false);
+
+        // AI 분석 API 요청
+        String summary = ai.getSummary();
+        try (Response response = wiseTranslator.analysis(id, summary)) {
+            analysis = wiseTranslator.getAnalysis(response);
+            analysis.leftBenefitCount(leftCount);
+        } catch (Exception e) {
+            // 에러로 AI 분석이 실패한 경우 rollback
+            count = countsAIBenefit(key, true);
+            saveCountsAIBenefit(key, benefitCount, count, true);
+            throw new Exception500("AI 분석 실패: " + e.getMessage());
+        }
+        return analysis;
+    }
+
 
     private User getUser(User user) {
         return userRepository.findById(user.getId()).orElseThrow(
@@ -494,6 +522,22 @@ public class NewsService {
         return newsId;
     }
 
+    private Integer countsAIBenefit(String key, boolean isBack) {
+        String value = redisTemplate.opsForValue().get(key);
+        if (value == null) value = "0";
+        if (!value.equals("0") && isBack) return Integer.parseInt(value) - 1;
+        return Integer.parseInt(value) + 1;
+    }
+
+    @Transactional
+    public Integer saveCountsAIBenefit(String key, int benefitCount, int count, boolean isBack) {
+        int leftCount = benefitCount - count;
+        if (!isBack && leftCount < 0) throw new Exception400("Benefit", "오늘 혜택을 다 소진했습니다");
+        redisTemplate.opsForValue().set(key, String.valueOf(count));
+        redisExpirationAtMidnight(key);
+        return leftCount;
+    }
+
     private boolean isArticleViewable(User.Membership membership, List<Long> newsId, Long id) {
         return membership != User.Membership.BASIC || newsId.stream().anyMatch(news -> news.equals(id));
     }
@@ -507,7 +551,7 @@ public class NewsService {
 
         Duration duration = Duration.between(now, midnight);
         long secondsUntilMidnight = duration.getSeconds();
-        this.redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
+        redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
     }
 
     @Transactional
@@ -523,7 +567,7 @@ public class NewsService {
         Long subscriptionId = customerRepository.findCustomerByUserId(user.getId()).map(Customer::getSubscriptionId).orElse(null);
         if (subscriptionId == null) return false;
         try {
-            return this.subscriber.isSubscribe(subscriptionId);
+            return subscriber.isSubscribe(subscriptionId);
         } catch (Exception e) {
             throw new Exception500("구독 확인 실패: " + e.getMessage());
         }

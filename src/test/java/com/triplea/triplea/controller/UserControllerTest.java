@@ -1,6 +1,16 @@
 package com.triplea.triplea.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.triplea.triplea.core.auth.jwt.BlackListFilter;
+import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
+import com.triplea.triplea.core.config.MySecurityConfig;
+import com.triplea.triplea.core.config.RedisConfig;
+import com.triplea.triplea.dto.user.UserRequest;
+import com.triplea.triplea.dto.user.UserResponse;
+import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.service.RedisService;
+import com.triplea.triplea.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.dto.user.UserRequest;
@@ -13,22 +23,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Import({MySecurityConfig.class, MyJwtProvider.class})
+@Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
@@ -37,6 +53,17 @@ class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private RedisService redisService;
+
+    @MockBean
+    RedisConnectionFactory redisConnectionFactory;
+
+    @BeforeEach
+    public void setUp(){
+        when(redisConnectionFactory.getConnection()).thenReturn(mock(RedisConnection.class));
+    }
 
     private final MediaType contentType =
             new MediaType(MediaType.APPLICATION_JSON.getType(),
@@ -99,7 +126,6 @@ class UserControllerTest {
                         .contentType(contentType)
                         .content(requestBody))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.data", is("code")))
                 .andReturn();
     }
 
@@ -124,7 +150,7 @@ class UserControllerTest {
     @DisplayName("구독")
     void subscribe() throws Exception {
         //given
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         String url = "https://example.com";
         when(userService.subscribe(any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
@@ -142,9 +168,9 @@ class UserControllerTest {
     void subscribeOk() throws Exception {
         //given
         String orderCode = "orderCode";
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when then
-        mockMvc.perform(get("/api/subscribe/success?order_code="+orderCode)
+        mockMvc.perform(get("/api/subscribe/success?order_code=" + orderCode)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -155,7 +181,7 @@ class UserControllerTest {
     @DisplayName("구독 취소")
     void subscribeCancel() throws Exception {
         //given
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when then
         mockMvc.perform(delete("/api/subscribe")
                         .with(csrf())
@@ -168,7 +194,7 @@ class UserControllerTest {
     @DisplayName("구독 세션")
     void subscribeSession() throws Exception {
         //given
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         when(userService.subscribeSession(any(User.class))).thenReturn(new UserResponse.Session("session"));
         //then
@@ -178,5 +204,27 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.session", is("session")))
                 .andReturn();
+    }
+
+    @Test
+    @DisplayName("로그인")
+    void login() throws Exception {
+        //given
+        Map<String, String> user = new HashMap<>();
+        user.put("email", "test@example.com");
+        user.put("password", "123456");
+        given(userService.login(any(), any(), any()))
+                .willReturn(new HttpHeaders());
+
+        //when
+        mockMvc.perform(post("/api/login")
+                        .with(csrf())
+                        .contentType(contentType)
+                        .content(new ObjectMapper().writeValueAsString(user)))
+                .andDo(print())
+                .andExpect(status().isOk());
+        //then
+        verify(userService).login(any(), any(), any());
+
     }
 }

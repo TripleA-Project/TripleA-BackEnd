@@ -197,4 +197,25 @@ public class NewsResponse {
             }
         }
     }
+
+    @Getter
+    public static class Analysis{
+        private Integer leftBenefitCount;
+        private String impact;
+        private String action;
+        private String comment;
+        private String model;
+
+        @Builder
+        public Analysis(String impact, String action, String comment, String model) {
+            this.impact = impact;
+            this.action = action;
+            this.comment = comment;
+            this.model = model;
+        }
+
+        public void leftBenefitCount(int count){
+            this.leftBenefitCount = count;
+        }
+    }
 }

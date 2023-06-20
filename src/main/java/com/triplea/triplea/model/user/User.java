@@ -7,11 +7,13 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Entity @Getter
+@Entity
+@Getter
 @NoArgsConstructor
 @Table(name = "user_tb")
 public class User extends Timestamped {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -44,8 +46,8 @@ public class User extends Timestamped {
     @Column(nullable = false)
     private String clientIP;
 
-    public enum Membership{
-        BASIC,PREMIUM
+    public enum Membership {
+        BASIC, PREMIUM
     }
 
     @Builder
@@ -63,28 +65,28 @@ public class User extends Timestamped {
         this.profile = profile;
     }
 
-    public void update(String password, String fullName){
+    public void update(String password, String fullName) {
         this.password = password;
         this.fullName = fullName;
     }
 
-    public void markEmailAsVerified(){
-        if(!this.isEmailVerified) this.isEmailVerified = true;
+    public void markEmailAsVerified() {
+        if (!this.isEmailVerified) this.isEmailVerified = true;
     }
 
-    public void subscribeNewsLetter(boolean newsLetter){
+    public void subscribeNewsLetter(boolean newsLetter) {
         this.newsLetter = newsLetter;
     }
 
-    public void changeMembership(Membership membership){
+    public void changeMembership(Membership membership) {
         this.membership = membership;
     }
 
-    public void deactivateAccount(){
+    public void deactivateAccount() {
         this.isActive = false;
     }
 
-    public void LastLoginDate(String userAgent, String clientIP){
+    public void lastLoginDate(String userAgent, String clientIP) {
         this.userAgent = userAgent;
         this.clientIP = clientIP;
     }

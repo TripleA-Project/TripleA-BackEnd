@@ -1,6 +1,8 @@
 package com.triplea.triplea.core.config;
 
+import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -80,10 +82,7 @@ public class MySecurityConfig {
 
         // 11. 인증, 권한 필터 설정
         http.authorizeRequests(
-                authorize -> authorize.antMatchers("/s/**").authenticated()
-                        .antMatchers("/manager/**")
-                        .access("hasRole('ADMIN') or hasRole('MANAGER')")
-                        .antMatchers("/admin/**").hasRole("ADMIN")
+                authorize -> authorize.antMatchers("/api/user").authenticated()
                         .anyRequest().permitAll()
         );
 
@@ -100,5 +99,13 @@ public class MySecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public FilterRegistrationBean<BlackListFilter> blackListFilter(RedisConfig redisConfig){
+        FilterRegistrationBean<BlackListFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new BlackListFilter(redisConfig.redisTemplate()));
+        registrationBean.addUrlPatterns("/*");
+        return registrationBean;
     }
 }

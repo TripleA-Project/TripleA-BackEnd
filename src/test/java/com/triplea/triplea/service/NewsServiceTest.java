@@ -13,6 +13,7 @@ import com.triplea.triplea.core.util.timestamp.Timestamped;
 import com.triplea.triplea.core.util.translate.Papago;
 import com.triplea.triplea.core.util.translate.WiseSTGlobal;
 import com.triplea.triplea.dto.news.ApiResponse;
+import com.triplea.triplea.dto.news.NewsRequest;
 import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.dto.stock.StockRequest;
 import com.triplea.triplea.dto.stock.StockResponse;
@@ -706,10 +707,10 @@ class NewsServiceTest {
 
     @Nested
     @DisplayName("히스토리 조회")
-    class NewsHistory{
+    class NewsHistory {
         @Test
         @DisplayName("성공")
-        void test(){
+        void test() {
             //given
             Long newsId = 1L;
             int year = 2023;
@@ -731,11 +732,97 @@ class NewsServiceTest {
             verify(historyRepository, times(1)).findDateTimeByCreatedAtAndUser(anyInt(), anyInt(), any(User.class));
             verify(bookmarkNewsRepository, times(1)).findByCreatedAtAndUser(any(), any(User.class));
             verify(historyRepository, times(1)).findByCreatedAtAndUser(any(), any(User.class));
-            Assertions.assertEquals(1,result.size());
-            Assertions.assertEquals(0,result.get(0).getBookmark().getCount());
+            Assertions.assertEquals(1, result.size());
+            Assertions.assertEquals(0, result.get(0).getBookmark().getCount());
             Assertions.assertTrue(result.get(0).getBookmark().getNews().isEmpty());
             Assertions.assertEquals(1, result.get(0).getHistory().getCount());
             Assertions.assertEquals(newsId, result.get(0).getHistory().getNews().get(0).getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("AI 뉴스 분석")
+    class NewsAnalysis {
+        @Test
+        @DisplayName("성공")
+        void test1() throws IOException {
+            //given
+            Long newsId = 1L;
+            NewsRequest.AI ai = new NewsRequest.AI(null);
+            user.changeMembership(User.Membership.PREMIUM);
+            Customer customer = Customer.builder()
+                    .id(1L)
+                    .user(user)
+                    .customerCode("customerCode")
+                    .build();
+            customer.subscribe(1L);
+            NewsResponse.Analysis analysis = NewsResponse.Analysis.builder()
+                    .impact("부정적")
+                    .action("보류")
+                    .comment("FTC의 임시 금지조치는 Microsoft 주식의 거래를 방해할 것입니다. 그러나 이 문제는 미국과 영국의 규제 기관들 사이에서 아직 해결되지 않았으므로 중요한 영향을 끼치지는 않을 것입니다.")
+                    .model("gpt-3.5-turbo")
+                    .build();
+            ObjectMapper om = new ObjectMapper();
+            String json = om.writeValueAsString(analysis);
+            ResponseBody responseBody = ResponseBody.create(json, MediaType.parse("application/json"));
+            Response response = new Response.Builder()
+                    .code(200)
+                    .message("OK")
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("https://example.com").build())
+                    .body(responseBody)
+                    .build();
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
+            when(subscriber.isSubscribe(anyLong())).thenReturn(true);
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+            when(redisTemplate.opsForValue().get(anyString())).thenReturn(null);
+            when(wiseTranslator.analysis(anyLong(), any())).thenReturn(response);
+            when(wiseTranslator.getAnalysis(any(Response.class))).thenReturn(analysis);
+            NewsResponse.Analysis result = newsService.getAnalysisAI(newsId, ai, user);
+            //then
+            verify(userRepository, times(1)).findById(anyLong());
+            verify(customerRepository, times(1)).findCustomerByUserId(anyLong());
+            verify(subscriber, times(1)).isSubscribe(anyLong());
+            verify(redisTemplate.opsForValue(), times(1)).get(anyString());
+            verify(redisTemplate.opsForValue(), times(1)).set(anyString(), anyString());
+            verify(wiseTranslator, times(1)).analysis(anyLong(), any());
+            verify(wiseTranslator, times(1)).getAnalysis(any(Response.class));
+            Assertions.assertEquals(9, result.getLeftBenefitCount());
+        }
+        @Test
+        @DisplayName("실패1: BASIC")
+        void test2() {
+            //given
+            Long newsId = 1L;
+            NewsRequest.AI ai = new NewsRequest.AI(null);
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            //then
+            Assertions.assertThrows(Exception401.class, () -> newsService.getAnalysisAI(newsId, ai, user));
+        }
+        @Test
+        @DisplayName("실패2: 혜택 소진")
+        void test3() throws IOException {
+            //given
+            Long newsId = 1L;
+            NewsRequest.AI ai = new NewsRequest.AI(null);
+            user.changeMembership(User.Membership.PREMIUM);
+            Customer customer = Customer.builder()
+                    .id(1L)
+                    .user(user)
+                    .customerCode("customerCode")
+                    .build();
+            customer.subscribe(1L);
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
+            when(subscriber.isSubscribe(anyLong())).thenReturn(true);
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+            when(redisTemplate.opsForValue().get(anyString())).thenReturn("10");
+            //then
+            Assertions.assertThrows(Exception400.class, () -> newsService.getAnalysisAI(newsId, ai, user));
         }
     }
 }
