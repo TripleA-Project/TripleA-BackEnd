@@ -118,7 +118,7 @@ public class StockResponse {
     @Getter
     public static class GlobalBuzzDuration{
         private List<BuzzData> buzzDatas;
-        private AvgSentiment avgSentiment;
-        private CompanyInfo companyInfo;
+        private List<AvgSentiment> avgSentiment;
+        private List<CompanyInfo> companyInfo;
     }
 }

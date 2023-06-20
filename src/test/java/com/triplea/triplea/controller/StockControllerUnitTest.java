@@ -53,41 +53,4 @@ class StockControllerUnitTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
-
-    @Test
-    @DisplayName("주식 차트 조회")
-    void getSymbol() throws Exception {
-        //given
-        String symbol = "AAPL";
-        String startDate = "20230101";
-        String endDate = "20240101";
-        String resampleFreq = "daily";
-
-        DummyEntity dummy = new DummyEntity();
-        User user = dummy.newUser("dotori@nate.com", "dotori");
-
-        List<StockResponse.Chart> charts = new ArrayList<>();
-        ApiResponse.Tiingo tiingo = new ApiResponse.Tiingo("2022-06-03T00:00:00.000Z", 0D, 0D, 0D, 0D, 0L,0D,0D, 0D, 0D, 0L, 0D, 0D);
-        StockResponse.Chart chart = new StockResponse.Chart(tiingo);
-        charts.add(chart);
-        StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO("membership", symbol, "companyName", charts);
-
-        when(stockService.getChart(symbol, startDate, endDate, resampleFreq, user)).thenReturn(stockInfoDTO);
-
-        //when & then
-        ResultActions resultActions = mockMvc.perform(get("/api/stocks")
-                .with(csrf())
-                .param("symbol", symbol)
-                .param("startDate", startDate)
-                .param("endDate", endDate)
-                .param("resampleFreq", resampleFreq)
-                .with(user(new MyUserDetails(user))));
-
-        resultActions
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.membership").value("membership"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.symbol").value(symbol))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.companyName").value("companyName"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.charts[0].date").value("2022-06-03T00:00:00.000Z"));
-    }
 }

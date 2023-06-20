@@ -34,15 +34,19 @@ import java.util.List;
 import java.util.Optional;
 import static net.bytebuddy.matcher.ElementMatchers.any;
 
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static reactor.core.publisher.Mono.when;
 
 @DisplayName("주식 차트 API")
 //@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
-@ActiveProfiles("test")
+@ActiveProfiles("dev")
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class StockControllerTest {
@@ -60,7 +64,7 @@ public class StockControllerTest {
     private StockService stockService;
     //--->
 
-    @Mock
+    @MockBean
     private StepPaySubscriber subscriber;
 
     @BeforeEach
@@ -115,9 +119,11 @@ public class StockControllerTest {
         StockResponse.Chart chart = new StockResponse.Chart(tiingo);
         chartList.add(chart);
 
-        StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO(User.Membership.PREMIUM.toString(), "", "", chartList);
+        StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO("BASIC", symbol, "Apple Inc.", chartList);
 
-        Mockito.when(stockService.getChart(anyString(), anyString(), anyString(), anyString(), opUser.get()))
+        User user = opUser.get();
+
+        Mockito.when(stockService.getChart(symbol, startDate, endDate, resampleFreq, (User) any()))
                 .thenReturn(stockInfoDTO);
 
 
@@ -125,7 +131,18 @@ public class StockControllerTest {
 
 
         ResultActions resultActions = mockMvc.perform(get("/api/stocks")
+                .param("symbol", symbol)
+                .param("startDate", startDate)
+                .param("endDate", endDate)
+                .param("resampleFreq", resampleFreq)
                 .contentType(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.msg").value("성공"))
+                .andExpect(jsonPath("$.data.membership").value("BASIC"))
+                .andExpect(jsonPath("$.data.symbol").value(symbol))
+                .andExpect(jsonPath("$.data.companyName").value("Apple Inc."));
 
     }
 }

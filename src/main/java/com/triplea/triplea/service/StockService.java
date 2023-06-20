@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -117,7 +118,8 @@ public class StockService {
         String firstDate = arrTiingo[0].getFormattedDate();
         String lastDate = (arrTiingo.length == 1) ? firstDate : arrTiingo[arrTiingo.length - 1].getFormattedDate();
         // 마지막 날짜에 하루 추가
-        lastDate = LocalDate.parse(lastDate).plusDays(1).toString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        lastDate = LocalDate.parse(lastDate, formatter).plusDays(1).toString();
 
         String moyaURL = "https://api.moya.ai/globalbuzzduration";
         builder = UriComponentsBuilder.fromHttpUrl(moyaURL)
@@ -148,11 +150,17 @@ public class StockService {
                     chart.setSentiment(buzzData.getSentiment()); // sentiment 설정
                     chart.setBuzz(buzzData.getCount()); // buzz 설정
                     charts.add(chart); // 생성한 Chart 객체를 charts 리스트에 추가
+                    break;
                 }
             }
         }
 
-        StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO(membership.toString(), symbol, globalBuzzDuration.getCompanyInfo().getCompanyName(), charts);
+        String companyName = "";
+        List<StockResponse.CompanyInfo> companyInfoList = globalBuzzDuration.getCompanyInfo();
+        if(companyInfoList != null && companyInfoList.isEmpty()==false)
+            companyName = companyInfoList.get(0).getCompanyName();
+
+        StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO(membership.toString(), symbol, companyName, charts);
 
         return stockInfoDTO;
     }

@@ -121,7 +121,7 @@ public class ApiResponse {
 
         public String getFormattedDate() {
             DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.of("UTC"));
-            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDateTime dateTime = LocalDateTime.parse(this.date, inputFormatter);
             return dateTime.format(outputFormatter);
         }
