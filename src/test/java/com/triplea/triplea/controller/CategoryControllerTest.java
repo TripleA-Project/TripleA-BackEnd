@@ -1,16 +1,21 @@
 package com.triplea.triplea.controller;
 
+import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
+import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.category.CategoryResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.CategoryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
@@ -18,11 +23,12 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-@Import({MySecurityConfig.class, MyJwtProvider.class})
+@Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(CategoryController.class)
 class CategoryControllerTest {
 
@@ -31,6 +37,14 @@ class CategoryControllerTest {
 
     @MockBean
     private CategoryService categoryService;
+
+    @MockBean
+    RedisConnectionFactory redisConnectionFactory;
+
+    @BeforeEach
+    public void setUp(){
+        when(redisConnectionFactory.getConnection()).thenReturn(mock(RedisConnection.class));
+    }
 
     private final User user = User.builder()
             .id(1L)
@@ -73,7 +87,7 @@ class CategoryControllerTest {
     @DisplayName("관심 카테고리 조회")
     void getLikeCategories() throws Exception {
         //given
-        String accessToken = MyJwtProvider.create(user);
+        String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         when(categoryService.getLikeCategories(any(User.class))).thenReturn(List.of(CategoryResponse.builder().build()));
         //then

@@ -1,6 +1,7 @@
 package com.triplea.triplea.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
@@ -9,12 +10,15 @@ import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.RedisService;
 import com.triplea.triplea.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,15 +32,14 @@ import java.util.Map;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Import({MySecurityConfig.class, MyJwtProvider.class})
+@Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
@@ -50,7 +53,12 @@ class UserControllerTest {
     private RedisService redisService;
 
     @MockBean
-    private RedisConfig redisConfig;
+    RedisConnectionFactory redisConnectionFactory;
+
+    @BeforeEach
+    public void setUp(){
+        when(redisConnectionFactory.getConnection()).thenReturn(mock(RedisConnection.class));
+    }
 
     private final MediaType contentType =
             new MediaType(MediaType.APPLICATION_JSON.getType(),
