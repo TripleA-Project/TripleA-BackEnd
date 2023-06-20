@@ -16,6 +16,7 @@ import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,11 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
     private final RedisService redisService;
-    private final HttpSession session;
+    private final RedisTemplate<String, String> redisTemplate;
     private final MailUtils mailUtils;
     private final StepPaySubscriber subscriber;
     @Value("${step-pay.product-code}")
@@ -124,21 +125,21 @@ public class UserService {
     // 이메일 인증 요청
     public String email(UserRequest.EmailSend request) {
         UUID code = UUID.randomUUID();
-        session.setAttribute(request.getEmail(), code);
-        String html = "<div>인증코드: " + code + "</div>";
+        String key = "code_" + request.getEmail();
+        redisTemplate.opsForValue().set(key, code.toString());
+        redisTemplate.expire(key, 3, TimeUnit.MINUTES);
+        String html = "<div>인증코드: " + code + "<p style='font-weight:bold;'>해당 인증코드는 3분간 유효합니다.</p></div>";
         mailUtils.send(request.getEmail(), "[Triple A] 이메일 인증을 진행해주세요.", html);
         return code.toString();
     }
 
     // 이메일 인증 확인
     public void emailVerified(UserRequest.EmailVerify request) {
-        String code;
-        try {
-            code = session.getAttribute(request.getEmail()).toString();
-        } catch (Exception e) {
-            throw new Exception400("email", "이메일이 잘못 되었습니다");
-        }
-        if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
+        String key = "code_" + request.getEmail();
+        String code = redisTemplate.opsForValue().get(key);
+        if (code == null) throw new Exception400("code", "인증 코드를 찾을 수 없습니다");
+        else if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
+        else redisTemplate.delete(key);
     }
 
     // 구독
