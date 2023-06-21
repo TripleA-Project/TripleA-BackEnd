@@ -8,41 +8,30 @@ import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
-import com.triplea.triplea.service.NewsService;
 import com.triplea.triplea.service.StockService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import static net.bytebuddy.matcher.ElementMatchers.any;
 
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.springframework.test.web.client.ExpectedCount.times;
+import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static reactor.core.publisher.Mono.when;
 
 @DisplayName("주식 차트 API")
 //@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
@@ -59,7 +48,7 @@ public class StockControllerTest {
     @Autowired
     private CustomerRepository customerRepository;
 
-    //<--- API 호출 피하기위한 세팅
+    //<--- 외부 API 호출 피하기위한 세팅
     @MockBean
     private StockService stockService;
     //--->
@@ -76,7 +65,7 @@ public class StockControllerTest {
         String email = "dotori@nate.com";
         DummyEntity dummy = new DummyEntity();
         User user = dummy.newUser(email, "dotori");
-        User userPS = userRepository.save(user);
+        userRepository.save(user);
 
     }
 
@@ -98,7 +87,7 @@ public class StockControllerTest {
 
         Mockito.when(subscriber.isSubscribe(anyLong())).thenReturn(true);
 
-        ////
+        //////<--- 외부 API 호출 피하기위한 세팅
         ApiResponse.Tiingo tiingo = ApiResponse.Tiingo.builder()
                 .date("2023-06-01T00:00:00.000Z")
                 .open(150.0)
@@ -121,13 +110,10 @@ public class StockControllerTest {
 
         StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO("BASIC", symbol, "Apple Inc.", chartList);
 
-        User user = opUser.get();
-
-        Mockito.when(stockService.getChart(symbol, startDate, endDate, resampleFreq, (User) any()))
-                .thenReturn(stockInfoDTO);
+        Mockito.when(stockService.getChart(anyString(), anyString(), anyString(), anyString(), any(User.class))).thenReturn(stockInfoDTO);
 
 
-        ////
+        //////<--- 세팅끝 --->
 
 
         ResultActions resultActions = mockMvc.perform(get("/api/stocks")
