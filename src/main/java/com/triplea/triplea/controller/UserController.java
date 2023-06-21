@@ -113,22 +113,23 @@ public class UserController {
     @GetMapping("/user")
     public ResponseEntity<?> userDetail(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         return ResponseEntity.ok()
-                .body(userService.userDetail(myUserDetails.getUser().getId()));
+                .body(new ResponseDTO<>(userService.userDetail(myUserDetails.getUser().getId())));
     }
 
     // 개인정보 수정
     @PostMapping("/user")
-    public ResponseEntity<?> userUpdate(@AuthenticationPrincipal MyUserDetails myUserDetails,
-                                        @RequestBody @Valid UserRequest.Update update) {
+    public ResponseEntity<?> userUpdate(@RequestBody @Valid UserRequest.Update update,
+                                        Errors errors,
+                                        @AuthenticationPrincipal MyUserDetails myUserDetails
+    ) {
 
-        userService.userUpdate(update, myUserDetails);
+        userService.userUpdate(update, myUserDetails.getUser().getId());
         return ResponseEntity.ok().body(new ResponseDTO<>("수정 성공"));
     }
 
     @GetMapping("/user/me")
     public ResponseEntity<?> navigation(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         return ResponseEntity.ok()
-                .body(userService.navigation(myUserDetails));
+                .body(new ResponseDTO<>(userService.navigation(myUserDetails.getUser().getId())));
     }
-
 }

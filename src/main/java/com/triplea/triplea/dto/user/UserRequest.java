@@ -134,7 +134,9 @@ public class UserRequest {
         @NotBlank
         @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String passwordCheck;
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String newPassword;
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String newPasswordCheck;
         private String fullName;
         private Boolean newsLetter;

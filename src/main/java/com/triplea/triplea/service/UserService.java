@@ -269,15 +269,12 @@ public class UserService {
 
 
     @Transactional
-    public void userUpdate(UserRequest.Update update, MyUserDetails myUserDetails) {
-        User userPS = userRepository.findById(myUserDetails.getUser().getId()).orElseThrow(
+    public void userUpdate(UserRequest.Update update, Long userId) {
+        User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
         passwordCheck(update.getPassword(), userPS.getPassword());
         if (update.getNewPassword() != null) {
-            if (!update.getNewPassword().equals(update.getNewPasswordCheck())) {
-                throw new Exception400("Bad-Request", "변경할 비밀번호가 일치하지 않습니다.");
-            }
             userPS.updatePassword(passwordEncoder.encode(update.getNewPassword()));
         }
         if (update.getFullName() != null) {
@@ -288,8 +285,8 @@ public class UserService {
         }
     }
 
-    public UserResponse.Navigation navigation(MyUserDetails myUserDetails) {
-        User userPS = userRepository.findById(myUserDetails.getUser().getId()).orElseThrow(
+    public UserResponse.Navigation navigation(Long userId) {
+        User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
 

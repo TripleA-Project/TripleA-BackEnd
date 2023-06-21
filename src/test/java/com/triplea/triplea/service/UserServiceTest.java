@@ -1,5 +1,6 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -39,8 +39,8 @@ class UserServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
-    @Spy
-    BCryptPasswordEncoder passwordEncoder;
+    @Mock
+    private BCryptPasswordEncoder passwordEncoder;
     @Mock
     RedisTemplate<String, String> redisTemplate;
     @Mock
@@ -49,6 +49,9 @@ class UserServiceTest {
     private MailUtils mailUtils;
     @Mock
     private StepPaySubscriber subscriber;
+
+    @Mock
+    private MyJwtProvider myJwtProvider;
 
     private final User user = User.builder()
             .id(1L)
@@ -408,4 +411,121 @@ class UserServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("개인정보 조회")
+    class UserDetail {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+            //given
+
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.userDetail(1L));
+        }
+
+        @Test
+        @DisplayName("실패")
+        void test2() {
+            //given
+
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.userDetail(2L));
+        }
+    }
+
+    @Nested
+    @DisplayName("개인정보 수정")
+    class UserUpdate {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+
+            //given
+            UserRequest.Update update = UserRequest.Update.builder()
+                    .password("123456")
+                    .passwordCheck("123456")
+                    .newPassword("12341234")
+                    .newPasswordCheck("12341234")
+                    .fullName("newName")
+                    .newsLetter(false)
+                    .build();
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+            when(passwordEncoder.matches(any(), any())).thenReturn(true);
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.userUpdate(update, 1L));
+        }
+
+        @Test
+        @DisplayName("실패1 : password 불일치")
+        void test2() {
+            //given
+            UserRequest.Update update = UserRequest.Update.builder()
+                    .password("1234567")
+                    .passwordCheck("1234567")
+                    .newPassword("12341234")
+                    .newPasswordCheck("12341234")
+                    .fullName("newName")
+                    .newsLetter(false)
+                    .build();
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+            when(passwordEncoder.matches(any(), any())).thenReturn(false);
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.userUpdate(update, 1L));
+        }
+
+        @Test
+        @DisplayName("실패2 : newPassword 불일치")
+        void test3() {
+            //given
+            UserRequest.Update update = UserRequest.Update.builder()
+                    .password("1234567")
+                    .passwordCheck("1234567")
+                    .newPassword("12341235")
+                    .newPasswordCheck("12341234")
+                    .fullName("newName")
+                    .newsLetter(false)
+                    .build();
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+            when(passwordEncoder.matches(any(), any())).thenReturn(false);
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.userUpdate(update, 2L));
+        }
+    }
+
+    @Nested
+    @DisplayName("네이게이션 프로필")
+    class NavigationProfile {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+            //given
+
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.navigation(1L));
+        }
+
+        @Test
+        @DisplayName("실패")
+        void test2() {
+            //given
+
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.navigation(1L));
+        }
+    }
 }
