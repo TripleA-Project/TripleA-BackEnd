@@ -1,13 +1,9 @@
 package com.triplea.triplea.controller;
 
-import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.config.MySecurityConfig;
-import com.triplea.triplea.core.dummy.DummyEntity;
-import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.stock.StockResponse;
-import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.StockService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,15 +12,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
