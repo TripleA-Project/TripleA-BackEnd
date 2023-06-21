@@ -82,8 +82,8 @@ public class StockControllerTest {
         // given
         String symbol = "AAPL";
         String startDate = "2023-06-01";
-        String endDate = "2023-06-05";
-        String resampleFreq = "daily";
+        String endDate = "2023-06-20";
+        String resampleFreq = "monthly";//daily, weekly, monthly, annually
 
         Mockito.when(subscriber.isSubscribe(anyLong())).thenReturn(true);
 

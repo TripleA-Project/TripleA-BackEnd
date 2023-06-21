@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +68,7 @@ public class StockService {
     @Transactional(readOnly = true)
     public StockResponse.StockInfoDTO getChart(String symbol, String startDate, String endDate, String resampleFreq, User user){
 
+
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
 
@@ -75,8 +77,8 @@ public class StockService {
         }
 
         User.Membership membership = User.Membership.BASIC;
-        Optional<Customer> opCustomer = customerRepository.findCustomerByUserId(user.getId());
 
+        Optional<Customer> opCustomer = customerRepository.findCustomerByUserId(user.getId());
         if(opCustomer.isPresent()){
 
             boolean isSubscribe = false;
@@ -97,7 +99,7 @@ public class StockService {
                 .queryParam("token", tiingoToken)
                 .queryParam("startDate", startDate)
                 .queryParam("endDate", endDate)
-                .queryParam("resampleFreq", resampleFreq);
+                .queryParam("resampleFreq", resampleFreq);//daily, weekly, monthly, annually
 
         String url = builder.toUriString();
 
@@ -115,9 +117,37 @@ public class StockService {
             throw new Exception500("API 결과가 비어 있습니다.");
         }
 
+        //오늘 시간이 AM6:30 이전 이라면
+        //엊그제 넘어서면 엊그제로
+        //오늘 AM6:30 이후시간 이라면
+        //어제 넘어서면 어제로 시간 만들기
+
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        LocalDateTime timeBoundary = nowDateTime.withHour(6).withMinute(30).withSecond(0).withNano(0);
+
+        LocalDate targetDate;//tiingo 가장 최신 데이터 날짜
+        if(nowDateTime.isBefore(timeBoundary)){
+            // 현재 시간이 오전 6:30 이전이라면, 엊그제 날짜를 구합니다.
+            targetDate = nowDateTime.toLocalDate().minusDays(2);
+        }else{
+            // 현재 시간이 오전 6:30 이후라면, 어제 날짜를 구합니다.
+            targetDate = nowDateTime.toLocalDate().minusDays(1);
+        }
+
+        List<ApiResponse.Tiingo> filteredList = new ArrayList<>();
+        String formattedToday = targetDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T00:00:00.000Z";
+        for (ApiResponse.Tiingo tiingo : arrTiingo) {
+            LocalDate tiingoDate = LocalDate.parse(tiingo.getFormattedDate());
+            if (tiingoDate.isAfter(targetDate)) {
+                //nothing
+            }else{
+                filteredList.add(tiingo);
+            }
+        }
+
         String firstDate = arrTiingo[0].getFormattedDate();
         String lastDate = (arrTiingo.length == 1) ? firstDate : arrTiingo[arrTiingo.length - 1].getFormattedDate();
-        // 마지막 날짜에 하루 추가
+        // 마지막 날짜에 하루 추가. Moya 는 내일거를 넣어야 오늘거를 받음
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         lastDate = LocalDate.parse(lastDate, formatter).plusDays(1).toString();
 
@@ -142,7 +172,7 @@ public class StockService {
         StockResponse.GlobalBuzzDuration globalBuzzDuration = moyaresponse.getBody();
 
         List<StockResponse.Chart> charts = new ArrayList<>();
-        for(ApiResponse.Tiingo tiingo : arrTiingo){
+        for(ApiResponse.Tiingo tiingo : filteredList){
             for (StockResponse.BuzzData buzzData : globalBuzzDuration.getBuzzDatas()) {
                 if (tiingo.getFormattedDate().equals(buzzData.getPublishedDate())) {
                     // Tiingo와 BuzzData의 날짜가 일치하면 Chart 객체 생성
