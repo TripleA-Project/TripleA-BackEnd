@@ -5,6 +5,7 @@ import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.category.CategoryResponse;
+import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,12 +22,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(CategoryController.class)
@@ -92,6 +91,36 @@ class CategoryControllerTest {
         when(categoryService.getLikeCategories(any(User.class))).thenReturn(List.of(CategoryResponse.builder().build()));
         //then
         mockMvc.perform(get("/api/category/like")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("관심 카테고리 생성")
+    void saveLikeCategory() throws Exception{
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+
+        //then
+        mockMvc.perform(post("/api/category/{id}", 1L)
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("관심 카테고리 삭제")
+    void deleteLikeCategory() throws Exception{
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+
+        //then
+        mockMvc.perform(delete("/api/category/{id}", 1L)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
