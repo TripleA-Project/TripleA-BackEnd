@@ -1,7 +1,7 @@
 package com.triplea.triplea.controller;
 
-import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.config.MySecurityConfig;
+import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.stock.StockResponse;
 import com.triplea.triplea.service.StockService;
@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @Import({MySecurityConfig.class, BlackListFilter.class, RedisConfig.class})
@@ -39,7 +40,7 @@ class StockControllerUnitTest {
         when(stockService.getStockIndex()).thenReturn(index);
         //then
         mockMvc.perform(get("/api/stocks/index")
-                .with(csrf()))
+                        .with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
