@@ -49,13 +49,12 @@ public class UserService {
     private String priceCode;
 
     //로그인
+    @Transactional
     public HttpHeaders login(UserRequest.login login, String userAgent, String ipAddress) {
         User userPS = userRepository.findUserByEmail(login.getEmail())
                 .orElseThrow(() -> new Exception400("Bad-Request", "가입되지 않은 E-MAIL 입니다."));
 
-        if (!passwordEncoder.matches(login.getPassword(), userPS.getPassword())) {
-            throw new Exception400("Bad-Request", "잘못된 비밀번호 입니다.");
-        }
+        passwordCheck(login.getPassword(), userPS.getPassword());
         userPS.lastLoginDate(userAgent, ipAddress);
         String accessToken = myJwtProvider.createAccessToken(userPS);
         String refreshToken = myJwtProvider.createRefreshToken(userPS);
@@ -111,9 +110,7 @@ public class UserService {
 
     public HttpHeaders refreshToken(String refreshToken, String userId) {
         HttpHeaders header = new HttpHeaders();
-        System.out.println("================??=========");
         if (redisService.existsRefreshToken(userId)) {
-            System.out.println("=================");
             String accessToken = myJwtProvider.recreationAccessToken(refreshToken);
             header.add("Authorization", accessToken);
             return header;
@@ -262,5 +259,44 @@ public class UserService {
     private Customer getCustomer(User user) {
         return customerRepository.findCustomerByUserId(user.getId()).orElseThrow(
                 () -> new Exception400("customer", "잘못된 요청입니다"));
+    }
+
+    private User getUser(Long userId){
+        User userPS = userRepository.findById(userId).orElseThrow(
+                () -> new Exception400("bad-request", "잘못된 요청입니다.")
+        );
+        return userPS;
+    }
+
+    public UserResponse.Detail userDetail(Long userId) {
+
+        return UserResponse.Detail.toDTO(getUser(userId));
+    }
+
+
+    @Transactional
+    public void userUpdate(UserRequest.Update update, Long userId) {
+        User userPS = getUser(userId);
+        passwordCheck(update.getPassword(), userPS.getPassword());
+        if (update.getNewPassword() != null) {
+            userPS.updatePassword(passwordEncoder.encode(update.getNewPassword()));
+        }
+        if (update.getFullName() != null) {
+            userPS.updateFullName(update.getFullName());
+        }
+        if (update.getNewsLetter() != null) {
+            userPS.updateNewsLetter(update.getNewsLetter());
+        }
+    }
+
+    public UserResponse.Navigation navigation(Long userId) {
+
+        return UserResponse.Navigation.toDTO(getUser(userId));
+    }
+
+    public void passwordCheck(String requestPassword, String persistencePassword) {
+        if (!passwordEncoder.matches(requestPassword, persistencePassword)) {
+            throw new Exception400("Bad-Request", "잘못된 비밀번호입니다.");
+        }
     }
 }

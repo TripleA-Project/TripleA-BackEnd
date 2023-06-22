@@ -3,6 +3,7 @@ package com.triplea.triplea.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
+import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.user.UserRequest;
@@ -226,5 +227,71 @@ class UserControllerTest {
         //then
         verify(userService).login(any(), any(), any());
 
+    }
+
+    @Test
+    @DisplayName("개인정보 조회")
+    void userDetail() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        UserResponse.Detail detail = UserResponse.Detail.toDTO(user);
+        //when
+        when(userService.userDetail(any())).thenReturn(detail);
+        //then
+        mockMvc.perform(get("/api/user")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.email", is("test@example.com")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.fullName", is("tester")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.newsLetter", is(true)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.emailVerified", is(true)))
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("개인정보 수정")
+    void userUpdate() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        UserRequest.Update update = UserRequest.Update.builder()
+                .password("123456")
+                .passwordCheck("123456")
+                .newPassword("12345678")
+                .newPasswordCheck("12345678")
+                .fullName("newName")
+                .newsLetter(false)
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/api/user")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken)
+                        .contentType(contentType)
+                        .content(new ObjectMapper().writeValueAsString(update)))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("네비게이션 프로필")
+    void navigation() throws Exception{
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        UserResponse.Navigation navigation = UserResponse.Navigation.toDTO(user);
+        //when
+        when(userService.navigation(any())).thenReturn(navigation);
+        //then
+        mockMvc.perform(get("/api/user/me")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.email", is("test@example.com")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.fullName", is("tester")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.membership", is("BASIC")))
+                .andReturn();
     }
 }
