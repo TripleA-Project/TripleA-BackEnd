@@ -118,9 +118,14 @@ public class NewsService {
             List<NewsDTO> newsDTOList = new ArrayList<>();
             for (Data data : datas) {
                 List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
-                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO;
+                if(user != null){
+                    Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                }else{
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+                }
 
                 builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
                         .queryParam("token", moyaToken)
@@ -191,9 +196,14 @@ public class NewsService {
             List<NewsDTO> newsDTOList = new ArrayList<>();
             for (Data data : datas) {
                 List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
-                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO;
+                if(user != null) {
+                    Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                }else{
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+                }
 
                 builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
                         .queryParam("token", moyaToken)
