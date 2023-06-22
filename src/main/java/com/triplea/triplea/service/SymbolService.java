@@ -29,8 +29,8 @@ public class SymbolService {
     public List<SymbolResponse.SymbolDTO> getSymbol(String symbol){
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
-                .queryParam("token", moyaToken)
-                .queryParam("search", symbol);
+            .queryParam("token", moyaToken)
+            .queryParam("search", symbol);
 
         String url = builder.toUriString();
 

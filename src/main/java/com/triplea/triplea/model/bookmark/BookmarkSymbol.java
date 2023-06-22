@@ -1,9 +1,14 @@
 package com.triplea.triplea.model.bookmark;
 
+import com.triplea.triplea.model.category.Category;
+import com.triplea.triplea.model.category.MainCategory;
+import com.triplea.triplea.model.symbol.Symbol;
 import com.triplea.triplea.model.user.User;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Getter @Entity
@@ -18,6 +23,9 @@ public class BookmarkSymbol {
     private User user;
 
     private Long symbolId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Symbol symbol;
 
     private boolean isDeleted;
 

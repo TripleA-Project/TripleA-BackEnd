@@ -1,14 +1,17 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
+import com.triplea.triplea.model.bookmark.BookmarkSymbol;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
 import com.triplea.triplea.model.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -21,6 +24,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -291,6 +295,47 @@ public class BookmarkSymbolService {
         } catch (Exception e) {
             log.error("getLikedBookmarkSymbol: ", e.getMessage());
             throw new Exception500("getLikedBookmarkSymbol error");
+        }
+    }
+
+    @Transactional
+    public void insertSymbol(Long id, User user) {
+
+        Optional<BookmarkSymbol> nonDeletedBySymbolIdAndUserId = bookmarkSymbolRepository.findNonDeletedBySymbolIdAndUserId(id, user.getId());
+        if(nonDeletedBySymbolIdAndUserId.isPresent()){
+            log.error("Attempted to add a symbol that already exists. symbolID: " + id + ", user: " + user.getEmail());
+            throw new Exception400("BookmarkSymbol", "symbol ID " + id + " already exists");
+        }
+
+        BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder()
+            .id(id)
+            .user(user)
+            .isDeleted(false)
+            .build();
+
+        try {
+            bookmarkSymbolRepository.save(bookmarkSymbol);
+        } catch (DataAccessException e) {
+            log.error("Database error when inserting symbol", e);
+            throw new Exception500("Database error");
+        }
+    }
+
+    @Transactional
+    public void deleteSymbol(Long id, User user) {
+
+        try{
+            Optional<BookmarkSymbol> bookmarkSymbolPS = bookmarkSymbolRepository.findNonDeletedBySymbolIdAndUserId(id, user.getId());
+            if(false == bookmarkSymbolPS.isPresent()){
+                log.error("symbol not found for symbol {} and user {}", id, user);
+                throw new Exception400("symbol", "Symbol not found");
+            }
+
+            bookmarkSymbolPS.get().deleteBookmark();
+
+        }catch(DataAccessException e){
+            log.error("Database error when deleting bookmark", e);
+            throw new Exception500("Database error");
         }
     }
 }

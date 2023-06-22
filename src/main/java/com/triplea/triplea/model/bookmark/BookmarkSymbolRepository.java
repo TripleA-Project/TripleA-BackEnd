@@ -1,5 +1,6 @@
 package com.triplea.triplea.model.bookmark;
 
+import com.triplea.triplea.model.category.MainCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,4 +31,9 @@ public interface BookmarkSymbolRepository extends JpaRepository<BookmarkSymbol, 
             "ON s.id = bs.symbol_id " +
             "WHERE bs.is_deleted = false AND bs.user_id = :userId", nativeQuery = true)
     List<String> findNonDeletedSymbolByUserId(@Param("userId") Long userId);
+
+
+
+    @Query("select bs from BookmarkSymbol bs where bs.isDeleted=false and bs.symbolId=:symbolId and bs.user.id=:userId and bs.user.isActive=true")
+    Optional<BookmarkSymbol> findNonDeletedBySymbolIdAndUserId(@Param("symbolId") Long symbolId, @Param("userId") Long userId);
 }
