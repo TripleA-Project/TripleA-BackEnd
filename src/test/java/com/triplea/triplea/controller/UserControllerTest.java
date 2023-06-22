@@ -147,9 +147,9 @@ class UserControllerTest {
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         String url = "https://example.com";
-        when(userService.subscribe(any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
+        when(userService.subscribe(anyBoolean(), any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
         //then
-        mockMvc.perform(get("/api/subscribe")
+        mockMvc.perform(get("/api/subscribe?dev=true")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
