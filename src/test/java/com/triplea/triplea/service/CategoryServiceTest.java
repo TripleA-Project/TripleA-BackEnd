@@ -7,6 +7,7 @@ import com.triplea.triplea.model.bookmark.BookmarkCategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.model.user.UserRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -27,6 +29,9 @@ class CategoryServiceTest {
     private MainCategoryRepository mainCategoryRepository;
     @Mock
     private BookmarkCategoryRepository bookmarkCategoryRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     private final User user = User.builder()
             .id(1L)
@@ -174,4 +179,82 @@ class CategoryServiceTest {
             Assertions.assertDoesNotThrow(() -> categoryService.getLikeCategories(user));
         }
     }
+
+    @Nested
+    @DisplayName("관심 카테고리 생성")
+    class SaveLikeCategory {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+            //given
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
+
+            //then
+            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(1L,1L));
+        }
+        @Test
+        @DisplayName("실패1: 잘못된 userId")
+        void test2() {
+            //given
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+
+            //when
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
+
+        }
+        @Test
+        @DisplayName("실패2: 잘못된 categoryId")
+        void test3() {
+            //given
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+
+            //when
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
+
+        }
+    }
+    @Nested
+    @DisplayName("관심 카테고리 삭제")
+    class DeleteLikeCategory {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+            //given
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+            BookmarkCategory bookmarkCategory = BookmarkCategory.builder()
+                    .user(user)
+                    .mainCategory(mainCategory)
+                    .build();
+
+            //when
+            when(bookmarkCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(bookmarkCategory));
+
+            //then
+            Assertions.assertDoesNotThrow(() -> categoryService.deleteLikeCategory(1L));
+        }
+        @Test
+        @DisplayName("실패1: 잘못된 categoryId")
+        void test2() {
+            //given
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+            BookmarkCategory bookmarkCategory = BookmarkCategory.builder()
+                    .user(user)
+                    .mainCategory(mainCategory)
+                    .build();
+
+            //when
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> categoryService.deleteLikeCategory(1L));
+        }
+    }
+
 }
