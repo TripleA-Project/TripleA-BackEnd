@@ -11,7 +11,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Table(name = "bookmark_symbol_tb")
 public class BookmarkSymbol {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

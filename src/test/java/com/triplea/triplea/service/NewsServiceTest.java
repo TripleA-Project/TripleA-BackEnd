@@ -725,13 +725,13 @@ class NewsServiceTest {
                     .build();
             List<History> histories = List.of(history);
             when(historyRepository.findDateTimeByCreatedAtAndUser(anyInt(), anyInt(), any(User.class))).thenReturn(dateTimes);
-            when(bookmarkNewsRepository.findByCreatedAtAndUser(any(), any(User.class))).thenReturn(Collections.emptyList());
-            when(historyRepository.findByCreatedAtAndUser(any(), any(User.class))).thenReturn(histories);
+            when(bookmarkNewsRepository.findByCreatedAtAndUser(any(), anyLong())).thenReturn(Collections.emptyList());
+            when(historyRepository.findByCreatedAtAndUser(any(), anyLong())).thenReturn(histories);
             List<NewsResponse.HistoryOut> result = newsService.getHistory(year, month, user);
             //then
             verify(historyRepository, times(1)).findDateTimeByCreatedAtAndUser(anyInt(), anyInt(), any(User.class));
-            verify(bookmarkNewsRepository, times(1)).findByCreatedAtAndUser(any(), any(User.class));
-            verify(historyRepository, times(1)).findByCreatedAtAndUser(any(), any(User.class));
+            verify(bookmarkNewsRepository, times(1)).findByCreatedAtAndUser(any(), anyLong());
+            verify(historyRepository, times(1)).findByCreatedAtAndUser(any(), anyLong());
             Assertions.assertEquals(1, result.size());
             Assertions.assertEquals(0, result.get(0).getBookmark().getCount());
             Assertions.assertTrue(result.get(0).getBookmark().getNews().isEmpty());
