@@ -19,34 +19,34 @@ public class CategoryController {
 
     // 전체 카테고리 조회
     @GetMapping("/categories")
-    public ResponseEntity<?> getCategories(){
+    public ResponseEntity<?> getCategories() {
         List<CategoryResponse> categories = categoryService.getCategories();
         return ResponseEntity.ok().body(new ResponseDTO<>(categories));
     }
 
     // 카테고리 검색
     @GetMapping("/category")
-    public ResponseEntity<?> searchCategories(@RequestParam("search") String category){
+    public ResponseEntity<?> searchCategories(@RequestParam("search") String category) {
         List<CategoryResponse> categories = categoryService.searchCategories(category);
         return ResponseEntity.ok().body(new ResponseDTO<>(categories));
     }
 
     // 관심 카테고리 조회
     @GetMapping("/category/like")
-    public ResponseEntity<?> getLikeCategories(@AuthenticationPrincipal MyUserDetails myUserDetails){
+    public ResponseEntity<?> getLikeCategories(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         List<CategoryResponse> categories = categoryService.getLikeCategories(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
     @PostMapping("category/{id}")
     public ResponseEntity<?> saveLikeCategory(@AuthenticationPrincipal MyUserDetails myUserDetails,
-                                              @PathVariable String id){
+                                              @PathVariable String id) {
         categoryService.saveLikeCategory(myUserDetails.getUser().getId(), Long.valueOf(id));
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
     @DeleteMapping("category/{id}")
-    public ResponseEntity<?> deleteLikeCategory(@PathVariable String id){
+    public ResponseEntity<?> deleteLikeCategory(@PathVariable String id) {
         categoryService.deleteLikeCategory(Long.valueOf(id));
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
