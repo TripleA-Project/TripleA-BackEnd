@@ -165,6 +165,7 @@ class CategoryServiceTest {
             Assertions.assertEquals(mainCategory.getMainCategoryKor(), result.get(0).getCategory());
             Assertions.assertDoesNotThrow(() -> categoryService.getLikeCategories(user));
         }
+
         @Test
         @DisplayName("성공2: 결과 없음")
         void test2() {
@@ -194,8 +195,9 @@ class CategoryServiceTest {
             when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
 
             //then
-            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(1L,1L));
+            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(1L, 1L));
         }
+
         @Test
         @DisplayName("실패1: 잘못된 userId")
         void test2() {
@@ -208,6 +210,7 @@ class CategoryServiceTest {
             Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
 
         }
+
         @Test
         @DisplayName("실패2: 잘못된 categoryId")
         void test3() {
@@ -221,6 +224,7 @@ class CategoryServiceTest {
 
         }
     }
+
     @Nested
     @DisplayName("관심 카테고리 삭제")
     class DeleteLikeCategory {
@@ -240,6 +244,7 @@ class CategoryServiceTest {
             //then
             Assertions.assertDoesNotThrow(() -> categoryService.deleteLikeCategory(1L));
         }
+
         @Test
         @DisplayName("실패1: 잘못된 categoryId")
         void test2() {
