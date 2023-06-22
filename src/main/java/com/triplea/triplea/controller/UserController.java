@@ -35,6 +35,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid UserRequest.login login,
+                                   Errors errors,
                                    HttpServletRequest request) {
 
         return ResponseEntity.ok()

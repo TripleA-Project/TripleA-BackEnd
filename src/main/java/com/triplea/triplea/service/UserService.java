@@ -49,6 +49,7 @@ public class UserService {
     private String priceCode;
 
     //로그인
+    @Transactional
     public HttpHeaders login(UserRequest.login login, String userAgent, String ipAddress) {
         User userPS = userRepository.findUserByEmail(login.getEmail())
                 .orElseThrow(() -> new Exception400("Bad-Request", "가입되지 않은 E-MAIL 입니다."));
@@ -260,19 +261,22 @@ public class UserService {
                 () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 
-    public UserResponse.Detail userDetail(Long userId) {
+    private User getUser(Long userId){
         User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
-        return UserResponse.Detail.toDTO(userPS);
+        return userPS;
+    }
+
+    public UserResponse.Detail userDetail(Long userId) {
+
+        return UserResponse.Detail.toDTO(getUser(userId));
     }
 
 
     @Transactional
     public void userUpdate(UserRequest.Update update, Long userId) {
-        User userPS = userRepository.findById(userId).orElseThrow(
-                () -> new Exception400("bad-request", "잘못된 요청입니다.")
-        );
+        User userPS = getUser(userId);
         passwordCheck(update.getPassword(), userPS.getPassword());
         if (update.getNewPassword() != null) {
             userPS.updatePassword(passwordEncoder.encode(update.getNewPassword()));
@@ -286,11 +290,8 @@ public class UserService {
     }
 
     public UserResponse.Navigation navigation(Long userId) {
-        User userPS = userRepository.findById(userId).orElseThrow(
-                () -> new Exception400("bad-request", "잘못된 요청입니다.")
-        );
 
-        return UserResponse.Navigation.toDTO(userPS);
+        return UserResponse.Navigation.toDTO(getUser(userId));
     }
 
     public void passwordCheck(String requestPassword, String persistencePassword) {
