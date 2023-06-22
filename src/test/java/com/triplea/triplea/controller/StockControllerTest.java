@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("주식 차트 API")
 //@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class StockControllerTest {
