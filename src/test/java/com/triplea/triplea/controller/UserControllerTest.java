@@ -11,12 +11,6 @@ import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.RedisService;
 import com.triplea.triplea.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
-import com.triplea.triplea.core.config.MySecurityConfig;
-import com.triplea.triplea.dto.user.UserRequest;
-import com.triplea.triplea.dto.user.UserResponse;
-import com.triplea.triplea.model.user.User;
-import com.triplea.triplea.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -226,5 +220,19 @@ class UserControllerTest {
         //then
         verify(userService).login(any(), any(), any());
 
+    }
+
+    @Test
+    @DisplayName("회원탈퇴")
+    void deactivateAccount() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+        //then
+        mockMvc.perform(delete("/api/user")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
     }
 }

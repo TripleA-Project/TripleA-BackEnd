@@ -9,8 +9,6 @@ import com.triplea.triplea.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import com.triplea.triplea.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
@@ -109,5 +107,12 @@ public class UserController {
     public ResponseEntity<?> subscribeSession(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         UserResponse.Session session = userService.subscribeSession(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(session));
+    }
+
+    // 회원탈퇴
+    @DeleteMapping("/user")
+    public ResponseEntity<?> deactivateAccount(@AuthenticationPrincipal MyUserDetails myUserDetails){
+        userService.deactivateAccount(myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 }

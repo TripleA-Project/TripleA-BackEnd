@@ -22,11 +22,6 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -410,6 +405,40 @@ class UserServiceTest {
             when(subscriber.getSession(anyLong())).thenReturn(mockResponse);
             //then
             Assertions.assertThrows(Exception500.class, () -> userService.subscribeSession(user));
+        }
+    }
+
+    @Nested
+    @DisplayName("회원탈퇴")
+    class DeactivateAccount{
+        @Test
+        @DisplayName("성공1: BASIC")
+        void test1() throws IOException {
+            //given
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            userService.deactivateAccount(user);
+            //then
+            verify(userRepository, times(1)).findById(anyLong());
+            verify(customerRepository, times(0)).findCustomerByUserId(anyLong());
+            verify(subscriber, times(0)).isSubscribe(anyLong());
+            verify(subscriber, times(0)).cancelSubscription(anyLong());
+            Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
+        }
+        @Test
+        @DisplayName("성공2: PREMIUM")
+        void test2() throws IOException {
+            //given
+            user.changeMembership(User.Membership.PREMIUM);
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            userService.deactivateAccount(user);
+            //then
+            verify(userRepository, times(1)).findById(anyLong());
+            verify(customerRepository, times(1)).findCustomerByUserId(anyLong());
+            verify(subscriber, times(1)).isSubscribe(anyLong());
+            verify(subscriber, times(1)).cancelSubscription(anyLong());
+            Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
         }
     }
 }
