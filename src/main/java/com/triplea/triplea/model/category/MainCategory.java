@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "main_category_tb")
 public class MainCategory {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String mainCategoryEng;
     private String mainCategoryKor;

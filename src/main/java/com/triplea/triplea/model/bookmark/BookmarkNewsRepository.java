@@ -1,6 +1,5 @@
 package com.triplea.triplea.model.bookmark;
 
-import com.triplea.triplea.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,7 +19,7 @@ public interface BookmarkNewsRepository extends JpaRepository<BookmarkNews, Long
     @Query("select count(bn) from BookmarkNews bn where bn.isDeleted=false and bn.newsId=:newsId and bn.user.isActive=true")
     Integer countBookmarkNewsByNewsId(@Param("newsId") Long newsId);
 
-    @Query("select bn from BookmarkNews bn where function('DATE', bn.createdAt)=:date and bn.user=:user")
-    List<BookmarkNews> findByCreatedAtAndUser(@Param("date")LocalDate date, @Param("user") User user);
+    @Query(value = "select * from bookmark_news_tb bn where DATE(bn.created_at)=:date and bn.user_id=:userId", nativeQuery = true)
+    List<BookmarkNews> findByCreatedAtAndUser(@Param("date")LocalDate date, @Param("userId") Long userId);
 
 }

@@ -143,6 +143,7 @@ public class UserService {
     }
 
     // 구독
+    @Transactional
     public UserResponse.Payment subscribe(User user) {
         String orderCode;
         // 이미 구독을 한 적 있으면 새로 고객 생성을 하지 않기 위해
@@ -242,8 +243,7 @@ public class UserService {
     /**
      * customer 저장
      */
-    @Transactional
-    public void createCustomer(UserRequest.Order order, User user) {
+    private void createCustomer(UserRequest.Order order, User user) {
         Customer customer = Customer.builder()
                 .id(order.getCustomerId())
                 .customerCode(order.getCustomerCode())
