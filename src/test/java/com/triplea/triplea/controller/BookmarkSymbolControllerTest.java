@@ -143,7 +143,23 @@ public class BookmarkSymbolControllerTest {
         //// <---모야 API 호출 하지 않고 테스트 하기 위한 세팅
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOList = new ArrayList<>();
 
-        ApiResponse.Tiingo[] tiingoList = { ApiResponse.Tiingo.builder().build(), ApiResponse.Tiingo.builder().build()};
+        ApiResponse.Tiingo tiingo = ApiResponse.Tiingo.builder()
+                .date("2023-06-01T00:00:00.000Z")
+                .open(150.0)
+                .high(155.0)
+                .low(145.0)
+                .close(150.5)
+                .volume(10000L)
+                .adjOpen(150.0)
+                .adjHigh(155.0)
+                .adjLow(145.0)
+                .adjClose(150.5)
+                .adjVolume(10000L)
+                .divCash(0.0)
+                .splitFactor(1.0)
+                .build();
+
+        ApiResponse.Tiingo[] tiingoList = { tiingo, tiingo};
         BookmarkResponse.Price price = new BookmarkResponse.Price(tiingoList[0], tiingoList[1]);
 
                 BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
@@ -218,7 +234,23 @@ public class BookmarkSymbolControllerTest {
         //// <---모야 API 호출 하지 않고 테스트 하기 위한 세팅
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOList = new ArrayList<>();
 
-        ApiResponse.Tiingo[] tiingoList = { ApiResponse.Tiingo.builder().build(), ApiResponse.Tiingo.builder().build()};
+        ApiResponse.Tiingo tiingo = ApiResponse.Tiingo.builder()
+                .date("2023-06-01T00:00:00.000Z")
+                .open(150.0)
+                .high(155.0)
+                .low(145.0)
+                .close(150.5)
+                .volume(10000L)
+                .adjOpen(150.0)
+                .adjHigh(155.0)
+                .adjLow(145.0)
+                .adjClose(150.5)
+                .adjVolume(10000L)
+                .divCash(0.0)
+                .splitFactor(1.0)
+                .build();
+
+        ApiResponse.Tiingo[] tiingoList = { tiingo, tiingo};
         BookmarkResponse.Price price = new BookmarkResponse.Price(tiingoList[0], tiingoList[1]);
 
         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(

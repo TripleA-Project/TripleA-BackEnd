@@ -35,6 +35,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid UserRequest.login login,
+                                   Errors errors,
                                    HttpServletRequest request) {
 
         return ResponseEntity.ok()
@@ -114,5 +115,28 @@ public class UserController {
     public ResponseEntity<?> deactivateAccount(@AuthenticationPrincipal MyUserDetails myUserDetails){
         userService.deactivateAccount(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
+      
+    // 개인정보 조회
+    @GetMapping("/user")
+    public ResponseEntity<?> userDetail(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+        return ResponseEntity.ok()
+                .body(new ResponseDTO<>(userService.userDetail(myUserDetails.getUser().getId())));
+    }
+
+    // 개인정보 수정
+    @PostMapping("/user")
+    public ResponseEntity<?> userUpdate(@RequestBody @Valid UserRequest.Update update,
+                                        Errors errors,
+                                        @AuthenticationPrincipal MyUserDetails myUserDetails
+    ) {
+
+        userService.userUpdate(update, myUserDetails.getUser().getId());
+        return ResponseEntity.ok().body(new ResponseDTO<>("수정 성공"));
+    }
+
+    @GetMapping("/user/me")
+    public ResponseEntity<?> navigation(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+        return ResponseEntity.ok()
+                .body(new ResponseDTO<>(userService.navigation(myUserDetails.getUser().getId())));
     }
 }

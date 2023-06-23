@@ -53,10 +53,6 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.triplea.triplea.dto.news.ApiResponse.Data;
@@ -118,9 +114,14 @@ public class NewsService {
             List<NewsDTO> newsDTOList = new ArrayList<>();
             for (Data data : datas) {
                 List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
-                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO;
+                if(user != null){
+                    Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                }else{
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+                }
 
                 builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
                         .queryParam("token", moyaToken)
@@ -191,9 +192,14 @@ public class NewsService {
             List<NewsDTO> newsDTOList = new ArrayList<>();
             for (Data data : datas) {
                 List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
-                Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                BookmarkResponse.BookmarkDTO bookmarkDTO;
+                if(user != null) {
+                    Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                }else{
+                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+                }
 
                 builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
                         .queryParam("token", moyaToken)
@@ -287,6 +293,7 @@ public class NewsService {
     }
 
     // 뉴스 상세 조회
+    @Transactional
     public NewsResponse.Details getNewsDetails(Long id, User user) {
         user = getUser(user);
 
@@ -349,7 +356,7 @@ public class NewsService {
         return historyDateTimes.stream().map(dateTime -> {
             LocalDate date = dateTime.toLocalDate();
 
-            List<NewsResponse.HistoryOut.Bookmark.News> bookmarkNews = bookmarkNewsRepository.findByCreatedAtAndUser(date, user)
+            List<NewsResponse.HistoryOut.Bookmark.News> bookmarkNews = bookmarkNewsRepository.findByCreatedAtAndUser(date, user.getId())
                     .stream()
                     .map(bookmark -> NewsResponse.HistoryOut.Bookmark.News.builder()
                             .id(bookmark.getNewsId())
@@ -357,7 +364,7 @@ public class NewsService {
                             .build())
                     .collect(Collectors.toList());
 
-            List<NewsResponse.HistoryOut.History.News> historyNews = historyRepository.findByCreatedAtAndUser(date, user)
+            List<NewsResponse.HistoryOut.History.News> historyNews = historyRepository.findByCreatedAtAndUser(date, user.getId())
                     .stream()
                     .map(history -> new NewsResponse.HistoryOut.History.News(history.getNewsId()))
                     .collect(Collectors.toList());
@@ -381,6 +388,7 @@ public class NewsService {
     }
 
     // AI 뉴스 분석
+    @Transactional
     public NewsResponse.Analysis getAnalysisAI(Long id, NewsRequest.AI ai, User user) {
         user = getUser(user);
 
@@ -414,13 +422,15 @@ public class NewsService {
                 () -> new Exception401("잘못된 접근입니다"));
     }
 
-    @Transactional
-    public void saveHistory(User user, Long newsId) {
+    private void saveHistory(User user, Long newsId) {
         // 같은 날엔 뉴스당 한 번의 히스토리 내역만 저장
         ZonedDateTime today = ZonedDateTime.now(Timestamped.SEOUL_ZONE_ID);
         boolean historyExists = historyRepository.existsByCreatedAtAndUserAndNewsId(today.toLocalDate(), user, newsId);
         try {
-            if (!historyExists) historyRepository.save(History.builder().user(user).newsId(newsId).build());
+            if (!historyExists){
+                History history = History.builder().user(user).newsId(newsId).build();
+                historyRepository.save(history);
+            }
         } catch (Exception e) {
             throw new Exception500("history 저장 실패: " + e.getMessage());
         }
@@ -529,8 +539,7 @@ public class NewsService {
         return Integer.parseInt(value) + 1;
     }
 
-    @Transactional
-    public Integer saveCountsAIBenefit(String key, int benefitCount, int count, boolean isBack) {
+    private Integer saveCountsAIBenefit(String key, int benefitCount, int count, boolean isBack) {
         int leftCount = benefitCount - count;
         if (!isBack && leftCount < 0) throw new Exception400("Benefit", "오늘 혜택을 다 소진했습니다");
         redisTemplate.opsForValue().set(key, String.valueOf(count));
@@ -554,10 +563,11 @@ public class NewsService {
         redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
     }
 
-    @Transactional
-    public User.Membership getMembership(User user) {
+    private User.Membership getMembership(User user) {
         if (user.getMembership() == User.Membership.PREMIUM && !checkSubscription(user)) {
-            user.changeMembership(User.Membership.BASIC);
+            Customer customer = getCustomer(user);
+            customer.deactivateSubscription();
+//            user.changeMembership(User.Membership.BASIC);
         }
 
         return user.getMembership();
@@ -571,6 +581,14 @@ public class NewsService {
         } catch (Exception e) {
             throw new Exception500("구독 확인 실패: " + e.getMessage());
         }
+    }
+
+    /**
+     * user id로 customer 찾고 없으면 예외처리
+     */
+    private Customer getCustomer(User user) {
+        return customerRepository.findCustomerByUserId(user.getId()).orElseThrow(
+                () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 
     private CategoryResponse getCategory(String category) {
