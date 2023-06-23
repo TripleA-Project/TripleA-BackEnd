@@ -272,7 +272,7 @@ public class BookmarkSymbolControllerTest {
         //// --->
 
         ResultActions resultActions = mockMvc
-                .perform(get("/api/symbol/like").contentType(MediaType.APPLICATION_JSON));
+                .perform(get("/api/auth/symbol/like").contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
         ObjectMapper objectMapper = new ObjectMapper();

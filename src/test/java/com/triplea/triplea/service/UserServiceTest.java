@@ -203,9 +203,9 @@ class UserServiceTest {
                     .thenReturn(mockResponse);
             when(subscriber.getOrderCode(any(Response.class)))
                     .thenReturn("orderCode");
-            when(subscriber.getPaymentLink(anyBoolean(), anyString()))
+            when(subscriber.getPaymentLink(anyString(), anyString()))
                     .thenReturn(mockResponse);
-            userService.subscribe(true, user);
+            userService.subscribe("http://localhost:3000", user);
             //then
             verify(userRepository, times(1)).findById(anyLong());
             verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
@@ -214,8 +214,8 @@ class UserServiceTest {
             verify(customerRepository, times(1)).save(any(Customer.class));
             verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
             verify(subscriber, times(1)).getOrderCode(any(Response.class));
-            verify(subscriber, times(1)).getPaymentLink(anyBoolean(), anyString());
-            Assertions.assertDoesNotThrow(() -> userService.subscribe(true, user));
+            verify(subscriber, times(1)).getPaymentLink(anyString(), anyString());
+            Assertions.assertDoesNotThrow(() -> userService.subscribe("http://localhost:3000", user));
         }
 
         @Test
@@ -247,9 +247,9 @@ class UserServiceTest {
                     .thenReturn(mockResponse);
             when(subscriber.getOrderCode(any(Response.class)))
                     .thenReturn("orderCode");
-            when(subscriber.getPaymentLink(anyBoolean(), anyString()))
+            when(subscriber.getPaymentLink(anyString(), anyString()))
                     .thenReturn(mockResponse);
-            userService.subscribe(true, user);
+            userService.subscribe("http://localhost:3000/", user);
             //then
             verify(userRepository, times(1)).findById(anyLong());
             verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
@@ -258,8 +258,8 @@ class UserServiceTest {
             verify(customerRepository, times(0)).save(any(Customer.class));
             verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
             verify(subscriber, times(1)).getOrderCode(any(Response.class));
-            verify(subscriber, times(1)).getPaymentLink(anyBoolean(), anyString());
-            Assertions.assertDoesNotThrow(() -> userService.subscribe(true, user));
+            verify(subscriber, times(1)).getPaymentLink(anyString(), anyString());
+            Assertions.assertDoesNotThrow(() -> userService.subscribe("http://localhost:3000/", user));
         }
     }
 
@@ -593,7 +593,6 @@ class UserServiceTest {
         @DisplayName("성공")
         void test1() {
             //given
-
             //when
             when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
 

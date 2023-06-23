@@ -91,7 +91,37 @@ class CategoryControllerTest {
         //when
         when(categoryService.getLikeCategories(any(User.class))).thenReturn(List.of(CategoryResponse.builder().build()));
         //then
-        mockMvc.perform(get("/api/category/like")
+        mockMvc.perform(get("/api/auth/category/like")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("관심 카테고리 생성")
+    void saveLikeCategory() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+
+        //then
+        mockMvc.perform(post("/api/auth/category/{id}", 1L)
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("관심 카테고리 삭제")
+    void deleteLikeCategory() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+
+        //then
+        mockMvc.perform(delete("/api/auth/category/{id}", 1L)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

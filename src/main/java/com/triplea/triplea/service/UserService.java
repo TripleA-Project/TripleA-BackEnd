@@ -109,9 +109,9 @@ public class UserService {
 
     //AccessToken 재발급
 
-    public HttpHeaders refreshToken(String refreshToken, String userId) {
+    public HttpHeaders refreshToken(String refreshToken) {
         HttpHeaders header = new HttpHeaders();
-        if (redisService.existsRefreshToken(userId)) {
+        if (redisService.existsRefreshToken(refreshToken)) {
             String accessToken = myJwtProvider.recreationAccessToken(refreshToken);
             header.add("Authorization", accessToken);
             return header;
@@ -143,7 +143,7 @@ public class UserService {
 
     // 구독
     @Transactional
-    public UserResponse.Payment subscribe(Boolean dev, User user) {
+    public UserResponse.Payment subscribe(String url, User user) {
         User loginUser = getUser(user);
         String orderCode;
         // 이미 구독을 한 적 있으면 새로 고객 생성을 하지 않기 위해
@@ -157,7 +157,7 @@ public class UserService {
             throw new Exception500("주문 생성 실패: " + e.getMessage());
         }
         // 결제 링크
-        try (Response getLink = subscriber.getPaymentLink(dev, orderCode)) {
+        try (Response getLink = subscriber.getPaymentLink(url, orderCode)) {
             if (getLink.isSuccessful()) {
                 return new UserResponse.Payment(getLink.request().url().url());
             }
@@ -298,7 +298,7 @@ public class UserService {
                 () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 
-    private User getUser(Long userId){
+    private User getUser(Long userId) {
         User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
