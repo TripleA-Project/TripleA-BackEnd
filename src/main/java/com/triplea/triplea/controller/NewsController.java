@@ -27,7 +27,7 @@ public class NewsController {
 
         User user = null;
         if(myUserDetails != null) user = myUserDetails.getUser();
-        NewsResponse.News news = newsService.searchAllNews(myUserDetails.getUser(), size, page);
+        NewsResponse.News news = newsService.searchAllNews(user, size, page);
 
         ResponseDTO<?> responseDTO = new ResponseDTO<>(news);
         return ResponseEntity.ok().body(responseDTO);
@@ -40,7 +40,7 @@ public class NewsController {
 
         User user = null;
         if(myUserDetails != null) user = myUserDetails.getUser();
-        NewsResponse.News news = newsService.searchSymbolNews(myUserDetails.getUser(), symbol, size, page);
+        NewsResponse.News news = newsService.searchSymbolNews(user, symbol, size, page);
 
         ResponseDTO<?> responseDTO = new ResponseDTO<>(news);
         return ResponseEntity.ok().body(responseDTO);
