@@ -14,4 +14,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u where u.email=:email and u.isActive=true")
     Optional<User> findUserByEmail(@Param("email") String email);
 
+    /**
+     * 휴면계정의 이메일도 확인
+     */
+    @Query("select u from User u where u.email=:email")
+    Optional<User> findAllByEmail(@Param("email") String email);
 }

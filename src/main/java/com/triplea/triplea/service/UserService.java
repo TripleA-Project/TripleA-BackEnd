@@ -121,6 +121,7 @@ public class UserService {
 
     // 이메일 인증 요청
     public String email(UserRequest.EmailSend request) {
+        userRepository.findAllByEmail(request.getEmail()).ifPresent(user -> {throw new Exception400("email", "이미 존재하는 이메일입니다");});
         UUID code = UUID.randomUUID();
         String key = "code_" + request.getEmail();
         redisTemplate.opsForValue().set(key, code.toString());
