@@ -165,6 +165,7 @@ class UserServiceTest {
             ReflectionTestUtils.setField(userService, "productCode", productCode);
             ReflectionTestUtils.setField(userService, "priceCode", priceCode);
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(anyLong()))
                     .thenReturn(Optional.empty());
             ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
@@ -190,18 +191,19 @@ class UserServiceTest {
                     .thenReturn(mockResponse);
             when(subscriber.getOrderCode(any(Response.class)))
                     .thenReturn("orderCode");
-            when(subscriber.getPaymentLink(anyString()))
+            when(subscriber.getPaymentLink(anyBoolean(), anyString()))
                     .thenReturn(mockResponse);
-            userService.subscribe(user);
+            userService.subscribe(true, user);
             //then
+            verify(userRepository, times(1)).findById(anyLong());
             verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
             verify(subscriber, times(1)).postCustomer(user);
             verify(subscriber, times(1)).responseCustomer(any(Response.class), anyString(), anyString());
             verify(customerRepository, times(1)).save(any(Customer.class));
             verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
             verify(subscriber, times(1)).getOrderCode(any(Response.class));
-            verify(subscriber, times(1)).getPaymentLink(anyString());
-            Assertions.assertDoesNotThrow(() -> userService.subscribe(user));
+            verify(subscriber, times(1)).getPaymentLink(anyBoolean(), anyString());
+            Assertions.assertDoesNotThrow(() -> userService.subscribe(true, user));
         }
 
         @Test
@@ -218,6 +220,7 @@ class UserServiceTest {
                     .customerCode("customerCode")
                     .build();
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(1L))
                     .thenReturn(Optional.ofNullable(customer));
             ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
@@ -232,18 +235,19 @@ class UserServiceTest {
                     .thenReturn(mockResponse);
             when(subscriber.getOrderCode(any(Response.class)))
                     .thenReturn("orderCode");
-            when(subscriber.getPaymentLink(anyString()))
+            when(subscriber.getPaymentLink(anyBoolean(), anyString()))
                     .thenReturn(mockResponse);
-            userService.subscribe(user);
+            userService.subscribe(true, user);
             //then
+            verify(userRepository, times(1)).findById(anyLong());
             verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
             verify(subscriber, times(0)).postCustomer(user);
             verify(subscriber, times(0)).responseCustomer(any(Response.class), anyString(), anyString());
             verify(customerRepository, times(0)).save(any(Customer.class));
             verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
             verify(subscriber, times(1)).getOrderCode(any(Response.class));
-            verify(subscriber, times(1)).getPaymentLink(anyString());
-            Assertions.assertDoesNotThrow(() -> userService.subscribe(user));
+            verify(subscriber, times(1)).getPaymentLink(anyBoolean(), anyString());
+            Assertions.assertDoesNotThrow(() -> userService.subscribe(true, user));
         }
     }
 
@@ -261,6 +265,7 @@ class UserServiceTest {
                     .customerCode("customerCode")
                     .build();
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(anyLong()))
                     .thenReturn(Optional.ofNullable(customer));
             ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
@@ -277,6 +282,7 @@ class UserServiceTest {
                     .thenReturn(1L);
             userService.subscribeOk(orderCode, user);
             //then
+            verify(userRepository, times(1)).findById(anyLong());
             verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
             verify(subscriber, times(1)).getOrder(orderCode);
             verify(subscriber, times(1)).getSubscriptionId(mockResponse);
@@ -289,6 +295,7 @@ class UserServiceTest {
             //given
             String orderCode = "orderCode";
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(anyLong()))
                     .thenReturn(Optional.empty());
             //then
@@ -303,6 +310,7 @@ class UserServiceTest {
         @DisplayName("성공")
         void test1() throws IOException {
             //given
+            user.changeMembership(User.Membership.PREMIUM);
             Customer customer = Customer.builder()
                     .id(1L)
                     .user(user)
@@ -310,8 +318,8 @@ class UserServiceTest {
                     .build();
             customer.subscribe(1L);
             //when
-            when(customerRepository.findCustomerByUserId(anyLong()))
-                    .thenReturn(Optional.of(customer));
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
             ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
             Response mockResponse = new Response.Builder()
                     .code(200)
@@ -322,20 +330,29 @@ class UserServiceTest {
                     .build();
             when(subscriber.cancelSubscription(anyLong()))
                     .thenReturn(mockResponse);
-            userService.subscribeCancel(user);
             //then
-            verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
-            verify(subscriber, times(1)).cancelSubscription(anyLong());
             Assertions.assertDoesNotThrow(() -> userService.subscribeCancel(user));
         }
 
         @Test
-        @DisplayName("실패: customer 없음")
+        @DisplayName("실패1: customer 없음")
         void test2() {
             //given
+            user.changeMembership(User.Membership.PREMIUM);
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(anyLong()))
                     .thenReturn(Optional.empty());
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.subscribeCancel(user));
+        }
+
+        @Test
+        @DisplayName("실패2: 구독 중이 아님")
+        void test3(){
+            //given
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             //then
             Assertions.assertThrows(Exception400.class, () -> userService.subscribeCancel(user));
         }
@@ -355,6 +372,7 @@ class UserServiceTest {
                     .build();
             customer.subscribe(1L);
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(anyLong()))
                     .thenReturn(Optional.of(customer));
             ResponseBody body = ResponseBody.create("session", MediaType.parse("application/json"));
@@ -368,6 +386,7 @@ class UserServiceTest {
             when(subscriber.getSession(anyLong())).thenReturn(mockResponse);
             UserResponse.Session result = userService.subscribeSession(user);
             //then
+            verify(userRepository, times(1)).findById(anyLong());
             verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
             verify(subscriber, times(1)).getSession(anyLong());
             Assertions.assertEquals("session", result.getSession());
@@ -378,6 +397,7 @@ class UserServiceTest {
         void test2() {
             //given
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(anyLong()))
                     .thenReturn(Optional.empty());
             //then
@@ -395,6 +415,7 @@ class UserServiceTest {
                     .build();
             customer.subscribe(1L);
             //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(customerRepository.findCustomerByUserId(anyLong()))
                     .thenReturn(Optional.of(customer));
             ResponseBody body = ResponseBody.create("", MediaType.parse("application/json"));
@@ -411,6 +432,56 @@ class UserServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("회원탈퇴")
+    class DeactivateAccount{
+        @Test
+        @DisplayName("성공1: BASIC")
+        void test1() throws IOException {
+            //given
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            userService.deactivateAccount(user);
+            //then
+            verify(userRepository, times(1)).findById(anyLong());
+            verify(customerRepository, times(0)).findCustomerByUserId(anyLong());
+            verify(subscriber, times(0)).isSubscribe(anyLong());
+            verify(subscriber, times(0)).cancelSubscription(anyLong());
+            Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
+        }
+        @Test
+        @DisplayName("성공2: PREMIUM")
+        void test2() throws IOException {
+            //given
+            user.changeMembership(User.Membership.PREMIUM);
+            Customer customer = Customer.builder()
+                    .id(1L)
+                    .user(user)
+                    .customerCode("customerCode")
+                    .build();
+            customer.subscribe(1L);
+            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
+            Response response = new Response.Builder()
+                    .code(200)
+                    .message("OK")
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("https://example.com").build())
+                    .body(body)
+                    .build();
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
+            when(subscriber.isSubscribe(anyLong())).thenReturn(true);
+            when(subscriber.cancelSubscription(anyLong())).thenReturn(response);
+            userService.deactivateAccount(user);
+            //then
+            verify(userRepository, times(1)).findById(anyLong());
+            verify(customerRepository, times(1)).findCustomerByUserId(anyLong());
+            verify(subscriber, times(1)).isSubscribe(anyLong());
+            verify(subscriber, times(1)).cancelSubscription(anyLong());
+            Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
+    }
+      
     @Nested
     @DisplayName("개인정보 조회")
     class UserDetail {
