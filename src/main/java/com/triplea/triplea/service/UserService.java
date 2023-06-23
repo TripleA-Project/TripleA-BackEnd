@@ -108,9 +108,9 @@ public class UserService {
 
     //AccessToken 재발급
 
-    public HttpHeaders refreshToken(String refreshToken, String userId) {
+    public HttpHeaders refreshToken(String refreshToken) {
         HttpHeaders header = new HttpHeaders();
-        if (redisService.existsRefreshToken(userId)) {
+        if (redisService.existsRefreshToken(refreshToken)) {
             String accessToken = myJwtProvider.recreationAccessToken(refreshToken);
             header.add("Authorization", accessToken);
             return header;
@@ -261,7 +261,7 @@ public class UserService {
                 () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 
-    private User getUser(Long userId){
+    private User getUser(Long userId) {
         User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );
