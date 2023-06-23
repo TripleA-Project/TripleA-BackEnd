@@ -593,7 +593,6 @@ class UserServiceTest {
         @DisplayName("성공")
         void test1() {
             //given
-
             //when
             when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
 

@@ -32,20 +32,20 @@ public class CategoryController {
     }
 
     // 관심 카테고리 조회
-    @GetMapping("/category/like")
+    @GetMapping("/auth/category/like")
     public ResponseEntity<?> getLikeCategories(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         List<CategoryResponse> categories = categoryService.getLikeCategories(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
-    @PostMapping("category/{id}")
+    @PostMapping("/auth/category/{id}")
     public ResponseEntity<?> saveLikeCategory(@AuthenticationPrincipal MyUserDetails myUserDetails,
                                               @PathVariable String id) {
         categoryService.saveLikeCategory(myUserDetails.getUser().getId(), Long.valueOf(id));
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
-    @DeleteMapping("category/{id}")
+    @DeleteMapping("/auth/category/{id}")
     public ResponseEntity<?> deleteLikeCategory(@PathVariable String id) {
         categoryService.deleteLikeCategory(Long.valueOf(id));
         return ResponseEntity.ok().body(new ResponseDTO<>());

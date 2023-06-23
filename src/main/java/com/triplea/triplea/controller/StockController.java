@@ -25,7 +25,7 @@ public class StockController {
         return ResponseEntity.ok().body(new ResponseDTO<>(index));
     }
 
-    @GetMapping("/stocks")
+    @GetMapping("/auth/stocks")
     public ResponseEntity<?> getSymbol(@RequestParam(value = "symbol") String symbol,
                                        @RequestParam(value = "startDate") String startDate,
                                        @RequestParam(value = "endDate") String endDate,

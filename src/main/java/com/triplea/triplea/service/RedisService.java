@@ -16,7 +16,7 @@ public class RedisService {
 
     public void setValues(String refreshToken, String userId) {
         ValueOperations<String, String> values = redisTemplate.opsForValue();
-        values.set(userId, refreshToken, Duration.ofMinutes(1000 * 60 * 60 * 24 * 7)); // 7days
+        values.set(refreshToken, userId, Duration.ofMinutes(1000 * 60 * 60 * 24 * 7)); // 7days
     }
 
     public void setValuesBlackList(String AccessToken, String blackList) {
@@ -33,7 +33,7 @@ public class RedisService {
         redisTemplate.delete(key);
     }
 
-    public boolean existsRefreshToken(String userId) {
-        return getValues(userId) != null;
+    public boolean existsRefreshToken(String refreshToken) {
+        return getValues(refreshToken) != null;
     }
 }
