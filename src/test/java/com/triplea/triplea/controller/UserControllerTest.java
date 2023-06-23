@@ -3,7 +3,6 @@ package com.triplea.triplea.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
-import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.user.UserRequest;
@@ -148,9 +147,9 @@ class UserControllerTest {
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         String url = "https://example.com";
-        when(userService.subscribe(anyBoolean(), any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
+        when(userService.subscribe(anyString(), any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
         //then
-        mockMvc.perform(get("/api/subscribe?dev=true")
+        mockMvc.perform(get("/api/subscribe?url="+url)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

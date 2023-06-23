@@ -84,8 +84,8 @@ public class UserController {
 
     // 구독
     @GetMapping("/subscribe")
-    public ResponseEntity<?> subscribe(@RequestParam("dev") Boolean dev, @AuthenticationPrincipal MyUserDetails myUserDetails) {
-        UserResponse.Payment payment = userService.subscribe(dev, myUserDetails.getUser());
+    public ResponseEntity<?> subscribe(@RequestParam("url") String url, @AuthenticationPrincipal MyUserDetails myUserDetails) {
+        UserResponse.Payment payment = userService.subscribe(url, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(payment));
     }
 
