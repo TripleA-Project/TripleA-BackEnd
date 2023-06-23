@@ -1,10 +1,12 @@
 package com.triplea.triplea.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.news.ApiResponse;
+import com.triplea.triplea.dto.news.NewsRequest;
 import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.NewsService;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(NewsController.class)
@@ -124,7 +127,7 @@ public class NewsControllerUnitTest {
         when(newsService.getNewsDetails(anyLong(), any(User.class)))
                 .thenReturn(details);
         //then
-        mockMvc.perform(get("/api/news/" + newsId)
+        mockMvc.perform(get("/api/auth/news/" + newsId)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -144,7 +147,7 @@ public class NewsControllerUnitTest {
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
-            mockMvc.perform(get("/api/history?year=" + year + "&month=" + month)
+            mockMvc.perform(get("/api/auth/history?year=" + year + "&month=" + month)
                             .with(csrf())
                             .header(MyJwtProvider.HEADER, accessToken))
                     .andExpect(MockMvcResultMatchers.status().isOk())
@@ -160,7 +163,7 @@ public class NewsControllerUnitTest {
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
-            mockMvc.perform(get("/api/history?month=" + month)
+            mockMvc.perform(get("/api/auth/history?month=" + month)
                             .with(csrf())
                             .header(MyJwtProvider.HEADER, accessToken))
                     .andExpect(MockMvcResultMatchers.status().isInternalServerError())
@@ -176,11 +179,32 @@ public class NewsControllerUnitTest {
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
-            mockMvc.perform(get("/api/history?year=" + year)
+            mockMvc.perform(get("/api/auth/history?year=" + year)
                             .with(csrf())
                             .header(MyJwtProvider.HEADER, accessToken))
                     .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                     .andReturn();
         }
+    }
+
+    @Test
+    @DisplayName("AI 뉴스 분석")
+    void newsAnalysis() throws Exception {
+        //given
+        long id = 1L;
+        NewsRequest.AI ai = new NewsRequest.AI(null);
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        ObjectMapper om = new ObjectMapper();
+        String requestBody = om.writeValueAsString(ai);
+        //when
+        when(newsService.getAnalysisAI(anyLong(), any(NewsRequest.AI.class), any(User.class))).thenReturn(null);
+        //then
+        mockMvc.perform(post("/api/auth/news/" + id + "/ai")
+                        .with(csrf())
+                        .contentType(contentType)
+                        .content(requestBody)
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
     }
 }

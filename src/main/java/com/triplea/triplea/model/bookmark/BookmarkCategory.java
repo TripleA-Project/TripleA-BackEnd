@@ -12,7 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Table(name = "bookmark_category_tb")
 public class BookmarkCategory {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;

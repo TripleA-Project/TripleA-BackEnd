@@ -65,7 +65,7 @@ public class BookmarkNewsControllerTest {
         Long newsId = 999L;
 
         ResultActions resultActions = mockMvc
-                .perform(post("/api/news/" + newsId).contentType(MediaType.APPLICATION_JSON));
+                .perform(post("/api/auth/news/" + newsId).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
         resultActions.andExpect(status().isOk());
@@ -91,7 +91,7 @@ public class BookmarkNewsControllerTest {
         BookmarkNews bookmarkNewsPS = bookmarkNewsRepository.save(bookmarkNews);
 
         ResultActions resultActions = mockMvc
-                .perform(delete("/api/news/" + newsId).contentType(MediaType.APPLICATION_JSON));
+                .perform(delete("/api/auth/news/" + newsId).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
         List<BookmarkNews> all = bookmarkNewsRepository.findAll();

@@ -36,4 +36,11 @@ public class NewsRequest {
         private int endIndex;
         private Long nextPage;
     }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AI{
+        private String summary;
+    }
 }

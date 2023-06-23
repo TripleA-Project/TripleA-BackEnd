@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Table(name = "user_tb")
 public class User extends Timestamped {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(nullable = false)

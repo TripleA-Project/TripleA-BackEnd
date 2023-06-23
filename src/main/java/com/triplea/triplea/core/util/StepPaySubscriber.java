@@ -108,8 +108,7 @@ public class StepPaySubscriber {
      * @return Response
      * @throws IOException execute
      */
-    public Response getPaymentLink(String orderCode) throws IOException {
-        String successUrl = "";
+    public Response getPaymentLink(String successUrl, String orderCode) throws IOException {
         Request request = new Request.Builder()
                 .url("https://api.steppay.kr/api/v1/orders/" + orderCode + "/pay?successUrl=" + successUrl)
                 .get()

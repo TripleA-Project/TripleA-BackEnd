@@ -3,7 +3,6 @@ package com.triplea.triplea.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
-import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
 import com.triplea.triplea.dto.user.UserRequest;
@@ -148,9 +147,9 @@ class UserControllerTest {
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         String url = "https://example.com";
-        when(userService.subscribe(any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
+        when(userService.subscribe(anyString(), any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
         //then
-        mockMvc.perform(get("/api/subscribe")
+        mockMvc.perform(get("/api/auth/subscribe?url="+url)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -165,7 +164,7 @@ class UserControllerTest {
         String orderCode = "orderCode";
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when then
-        mockMvc.perform(get("/api/subscribe/success?order_code=" + orderCode)
+        mockMvc.perform(get("/api/auth/subscribe/success?order_code=" + orderCode)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -178,7 +177,7 @@ class UserControllerTest {
         //given
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when then
-        mockMvc.perform(delete("/api/subscribe")
+        mockMvc.perform(delete("/api/auth/subscribe")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -193,7 +192,7 @@ class UserControllerTest {
         //when
         when(userService.subscribeSession(any(User.class))).thenReturn(new UserResponse.Session("session"));
         //then
-        mockMvc.perform(get("/api/subscribe/session")
+        mockMvc.perform(get("/api/auth/subscribe/session")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -224,6 +223,20 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("회원탈퇴")
+    void deactivateAccount() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+        //then
+        mockMvc.perform(delete("/api/auth/user")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+  
+    @Test
     @DisplayName("개인정보 조회")
     void userDetail() throws Exception {
         //given
@@ -232,7 +245,7 @@ class UserControllerTest {
         //when
         when(userService.userDetail(any())).thenReturn(detail);
         //then
-        mockMvc.perform(get("/api/user")
+        mockMvc.perform(get("/api/auth/user")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -259,7 +272,7 @@ class UserControllerTest {
                 .build();
         //when
         //then
-        mockMvc.perform(post("/api/user")
+        mockMvc.perform(post("/api/auth/user")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken)
                         .contentType(contentType)
@@ -278,7 +291,7 @@ class UserControllerTest {
         //when
         when(userService.navigation(any())).thenReturn(navigation);
         //then
-        mockMvc.perform(get("/api/user/me")
+        mockMvc.perform(get("/api/auth/user/me")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

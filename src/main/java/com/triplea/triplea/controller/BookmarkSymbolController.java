@@ -28,7 +28,7 @@ public class BookmarkSymbolController {
         return ResponseEntity.ok().body(new ResponseDTO<>(bookmarkSymbolDTOS));
     }
 
-    @GetMapping("symbol/like")
+    @GetMapping("/auth/symbol/like")
     public ResponseEntity<?> getLikeSymbol(@AuthenticationPrincipal MyUserDetails myUserDetails){
 
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOS = bookmarkSymbolService.getLikedBookmarkSymbol(myUserDetails.getUser());
