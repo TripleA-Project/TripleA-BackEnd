@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(CategoryController.class)
@@ -42,7 +42,7 @@ class CategoryControllerTest {
     RedisConnectionFactory redisConnectionFactory;
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         when(redisConnectionFactory.getConnection()).thenReturn(mock(RedisConnection.class));
     }
 
@@ -92,6 +92,36 @@ class CategoryControllerTest {
         when(categoryService.getLikeCategories(any(User.class))).thenReturn(List.of(CategoryResponse.builder().build()));
         //then
         mockMvc.perform(get("/api/category/like")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("관심 카테고리 생성")
+    void saveLikeCategory() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+
+        //then
+        mockMvc.perform(post("/api/category/{id}", 1L)
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("관심 카테고리 삭제")
+    void deleteLikeCategory() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        //when
+
+        //then
+        mockMvc.perform(delete("/api/category/{id}", 1L)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

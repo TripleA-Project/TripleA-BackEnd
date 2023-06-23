@@ -2,12 +2,14 @@ package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.dto.category.CategoryResponse;
+import com.triplea.triplea.model.bookmark.BookmarkCategory;
 import com.triplea.triplea.model.bookmark.BookmarkCategoryRepository;
 import com.triplea.triplea.model.category.Category;
 import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,12 +26,13 @@ public class CategoryService {
     private final MainCategoryRepository mainCategoryRepository;
     private final CategoryRepository categoryRepository;
     private final BookmarkCategoryRepository bookmarkCategoryRepository;
+    private final UserRepository userRepository;
     private String[] categories;
     private HashMap<String, String> hm = new HashMap<>();
 
     // Category Data init
     @Transactional
-    public void insertMainCategories(){
+    public void insertMainCategories() {
         String str = "1\n" +
                 "/News\n" +
                 "2\n" +
@@ -597,14 +600,16 @@ public class CategoryService {
                 }).collect(Collectors.toList());
         mainCategoryRepository.saveAll(mainCategoryList);
     }
+
     @Transactional
-    public void updateMainCategories(){
+    public void updateMainCategories() {
         List<MainCategory> mainCategories = mainCategoryRepository.findAll();
         mainCategories.forEach(main -> main.translateMainCategory(hm.get(main.getMainCategoryEng())));
         mainCategoryRepository.saveAll(mainCategories);
     }
+
     @Transactional
-    public void insertSubCategories(){
+    public void insertSubCategories() {
         List<Category> categoryList = Arrays.stream(categories)
                 .map(cate -> {
                     int index = cate.indexOf("/", 1);
@@ -621,7 +626,7 @@ public class CategoryService {
     }
 
     // 전체 카테고리 조회
-    public List<CategoryResponse> getCategories(){
+    public List<CategoryResponse> getCategories() {
         return mainCategoryRepository.findAll().stream()
                 .map(main -> CategoryResponse.builder()
                         .categoryId(main.getId())
@@ -631,8 +636,8 @@ public class CategoryService {
     }
 
     // 카테고리 검색
-    public List<CategoryResponse> searchCategories(String category){
-        if(category == null || category.isBlank()) throw new Exception400("search", "검색어를 입력해주세요");
+    public List<CategoryResponse> searchCategories(String category) {
+        if (category == null || category.isBlank()) throw new Exception400("search", "검색어를 입력해주세요");
         return mainCategoryRepository.findAll().stream()
                 .filter(main -> main.getMainCategoryKor().contains(category))
                 .map(main -> CategoryResponse.builder()
@@ -643,12 +648,33 @@ public class CategoryService {
     }
 
     // 관심 카테고리 조회
-    public List<CategoryResponse> getLikeCategories(User user){
+    public List<CategoryResponse> getLikeCategories(User user) {
         return bookmarkCategoryRepository.findBookmarkCategoriesByUser(user.getId()).stream()
                 .map(category -> CategoryResponse.builder()
                         .categoryId(category.getId())
                         .category(category.getMainCategory().getMainCategoryKor())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    // 관심 카테고리 생성
+    @Transactional
+    public void saveLikeCategory(Long userId, Long id) {
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new Exception400("Bad-Request", "잘못된 userID입니다."));
+        MainCategory mainCategory = mainCategoryRepository.findById(id)
+                .orElseThrow(() -> new Exception400("Bad-Request", "해당 Category가 존재하지 않습니다."));
+        BookmarkCategory bookmarkCategory = BookmarkCategory.builder()
+                .user(userPS)
+                .mainCategory(mainCategory)
+                .build();
+        bookmarkCategoryRepository.save(bookmarkCategory);
+    }
+
+    @Transactional
+    public void deleteLikeCategory(Long id) {
+        BookmarkCategory bookmarkCategory = bookmarkCategoryRepository.findById(id)
+                .orElseThrow(() -> new Exception400("Bad-Request", "해당 Category가 존재하지 않습니다."));
+        bookmarkCategory.deleteBookmark();
     }
 }
