@@ -143,7 +143,7 @@ public class UserService {
 
     // 구독
     @Transactional
-    public UserResponse.Payment subscribe(Boolean dev, User user) {
+    public UserResponse.Payment subscribe(String url, User user) {
         User loginUser = getUser(user);
         String orderCode;
         // 이미 구독을 한 적 있으면 새로 고객 생성을 하지 않기 위해
@@ -157,7 +157,7 @@ public class UserService {
             throw new Exception500("주문 생성 실패: " + e.getMessage());
         }
         // 결제 링크
-        try (Response getLink = subscriber.getPaymentLink(dev, orderCode)) {
+        try (Response getLink = subscriber.getPaymentLink(url, orderCode)) {
             if (getLink.isSuccessful()) {
                 return new UserResponse.Payment(getLink.request().url().url());
             }
