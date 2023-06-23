@@ -446,7 +446,7 @@ class UserServiceTest {
 
     @Nested
     @DisplayName("회원탈퇴")
-    class DeactivateAccount{
+    class DeactivateAccount {
         @Test
         @DisplayName("성공1: BASIC")
         void test1() throws IOException {
@@ -461,6 +461,7 @@ class UserServiceTest {
             verify(subscriber, times(0)).cancelSubscription(anyLong());
             Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
         }
+
         @Test
         @DisplayName("성공2: PREMIUM")
         void test2() throws IOException {
@@ -492,6 +493,7 @@ class UserServiceTest {
             verify(subscriber, times(1)).isSubscribe(anyLong());
             verify(subscriber, times(1)).cancelSubscription(anyLong());
             Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
+        }
     }
       
     @Nested

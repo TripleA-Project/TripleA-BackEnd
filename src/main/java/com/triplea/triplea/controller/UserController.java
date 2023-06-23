@@ -115,6 +115,7 @@ public class UserController {
     public ResponseEntity<?> deactivateAccount(@AuthenticationPrincipal MyUserDetails myUserDetails){
         userService.deactivateAccount(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
       
     // 개인정보 조회
     @GetMapping("/user")
