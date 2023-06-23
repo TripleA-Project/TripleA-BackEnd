@@ -142,6 +142,7 @@ public class UserService {
     }
 
     // 구독
+    @Transactional
     public UserResponse.Payment subscribe(Boolean dev, User user) {
         User loginUser = getUser(user);
         String orderCode;
