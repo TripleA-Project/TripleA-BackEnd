@@ -1,6 +1,10 @@
 package com.triplea.triplea.core.config;
 
 import com.triplea.triplea.core.auth.jwt.BlackListFilter;
+import com.triplea.triplea.core.auth.jwt.MyJwtAuthorizationFilter;
+import com.triplea.triplea.core.exception.Exception401;
+import com.triplea.triplea.core.exception.Exception403;
+import com.triplea.triplea.core.util.MyFilterResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -15,17 +19,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.triplea.triplea.core.auth.jwt.MyJwtAuthorizationFilter;
-import com.triplea.triplea.core.exception.Exception401;
-import com.triplea.triplea.core.exception.Exception403;
-import com.triplea.triplea.core.util.MyFilterResponseUtil;
 
 @Slf4j
 @Configuration
 public class MySecurityConfig {
 
     @Bean
-    BCryptPasswordEncoder passwordEncoder(){
+    BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -70,22 +70,20 @@ public class MySecurityConfig {
 
         // 8. 인증 실패 처리
         http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-            log.warn("인증되지 않은 사용자가 자원에 접근하려 합니다 : "+authException.getMessage());
+            log.warn("인증되지 않은 사용자가 자원에 접근하려 합니다 : " + authException.getMessage());
             MyFilterResponseUtil.unAuthorized(response, new Exception401("인증되지 않았습니다"));
         });
 
         // 10. 권한 실패 처리
         http.exceptionHandling().accessDeniedHandler((request, response, accessDeniedException) -> {
-            log.warn("권한이 없는 사용자가 자원에 접근하려 합니다 : "+accessDeniedException.getMessage());
+            log.warn("권한이 없는 사용자가 자원에 접근하려 합니다 : " + accessDeniedException.getMessage());
             MyFilterResponseUtil.forbidden(response, new Exception403("권한이 없습니다"));
         });
 
         // 11. 인증, 권한 필터 설정
-        http.authorizeRequests(
-                authorize -> authorize.antMatchers("/api/user").authenticated()
-                        .anyRequest().permitAll()
-        );
-
+        http.authorizeRequests()
+                .antMatchers("/api/auth/**").authenticated()
+                .anyRequest().permitAll();
         return http.build();
     }
 
@@ -102,7 +100,7 @@ public class MySecurityConfig {
     }
 
     @Bean
-    public FilterRegistrationBean<BlackListFilter> blackListFilter(RedisConfig redisConfig){
+    public FilterRegistrationBean<BlackListFilter> blackListFilter(RedisConfig redisConfig) {
         FilterRegistrationBean<BlackListFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new BlackListFilter(redisConfig.redisTemplate()));
         registrationBean.addUrlPatterns("/*");

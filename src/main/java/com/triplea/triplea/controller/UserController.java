@@ -54,9 +54,8 @@ public class UserController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> recreationAccessToken(@AuthenticationPrincipal MyUserDetails myUserDetails,
-                                                   @CookieValue(value = "refreshToken") String refreshToken) {
-        HttpHeaders header = userService.refreshToken(refreshToken, String.valueOf(myUserDetails.getUser().getId()));
+    public ResponseEntity<?> recreationAccessToken(@CookieValue(value = "refreshToken") String refreshToken) {
+        HttpHeaders header = userService.refreshToken(refreshToken);
         return ResponseEntity.ok()
                 .headers(header)
                 .body(new ResponseDTO<>("AccessToken 재발급 성공"));
