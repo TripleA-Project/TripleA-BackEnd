@@ -91,7 +91,7 @@ class CategoryControllerTest {
         //when
         when(categoryService.getLikeCategories(any(User.class))).thenReturn(List.of(CategoryResponse.builder().build()));
         //then
-        mockMvc.perform(get("/api/category/like")
+        mockMvc.perform(get("/api/auth/category/like")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -106,7 +106,7 @@ class CategoryControllerTest {
         //when
 
         //then
-        mockMvc.perform(post("/api/category/{id}", 1L)
+        mockMvc.perform(post("/api/auth/category/{id}", 1L)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -121,7 +121,7 @@ class CategoryControllerTest {
         //when
 
         //then
-        mockMvc.perform(delete("/api/category/{id}", 1L)
+        mockMvc.perform(delete("/api/auth/category/{id}", 1L)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

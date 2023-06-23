@@ -127,7 +127,7 @@ public class NewsControllerUnitTest {
         when(newsService.getNewsDetails(anyLong(), any(User.class)))
                 .thenReturn(details);
         //then
-        mockMvc.perform(get("/api/news/" + newsId)
+        mockMvc.perform(get("/api/auth/news/" + newsId)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -147,7 +147,7 @@ public class NewsControllerUnitTest {
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
-            mockMvc.perform(get("/api/history?year=" + year + "&month=" + month)
+            mockMvc.perform(get("/api/auth/history?year=" + year + "&month=" + month)
                             .with(csrf())
                             .header(MyJwtProvider.HEADER, accessToken))
                     .andExpect(MockMvcResultMatchers.status().isOk())
@@ -163,7 +163,7 @@ public class NewsControllerUnitTest {
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
-            mockMvc.perform(get("/api/history?month=" + month)
+            mockMvc.perform(get("/api/auth/history?month=" + month)
                             .with(csrf())
                             .header(MyJwtProvider.HEADER, accessToken))
                     .andExpect(MockMvcResultMatchers.status().isInternalServerError())
@@ -179,7 +179,7 @@ public class NewsControllerUnitTest {
             //when
             when(newsService.getHistory(anyInt(), anyInt(), any(User.class))).thenReturn(Collections.emptyList());
             //then
-            mockMvc.perform(get("/api/history?year=" + year)
+            mockMvc.perform(get("/api/auth/history?year=" + year)
                             .with(csrf())
                             .header(MyJwtProvider.HEADER, accessToken))
                     .andExpect(MockMvcResultMatchers.status().isInternalServerError())
@@ -199,7 +199,7 @@ public class NewsControllerUnitTest {
         //when
         when(newsService.getAnalysisAI(anyLong(), any(NewsRequest.AI.class), any(User.class))).thenReturn(null);
         //then
-        mockMvc.perform(post("/api/news/" + id + "/ai")
+        mockMvc.perform(post("/api/auth/news/" + id + "/ai")
                         .with(csrf())
                         .contentType(contentType)
                         .content(requestBody)

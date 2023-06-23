@@ -116,7 +116,7 @@ public class StockControllerTest {
         //////<--- 세팅끝 --->
 
 
-        ResultActions resultActions = mockMvc.perform(get("/api/stocks")
+        ResultActions resultActions = mockMvc.perform(get("/api/auth/stocks")
                 .param("symbol", symbol)
                 .param("startDate", startDate)
                 .param("endDate", endDate)

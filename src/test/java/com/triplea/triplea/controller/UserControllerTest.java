@@ -149,7 +149,7 @@ class UserControllerTest {
         String url = "https://example.com";
         when(userService.subscribe(anyString(), any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
         //then
-        mockMvc.perform(get("/api/subscribe?url="+url)
+        mockMvc.perform(get("/api/auth/subscribe?url="+url)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -164,7 +164,7 @@ class UserControllerTest {
         String orderCode = "orderCode";
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when then
-        mockMvc.perform(get("/api/subscribe/success?order_code=" + orderCode)
+        mockMvc.perform(get("/api/auth/subscribe/success?order_code=" + orderCode)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -177,7 +177,7 @@ class UserControllerTest {
         //given
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when then
-        mockMvc.perform(delete("/api/subscribe")
+        mockMvc.perform(delete("/api/auth/subscribe")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -192,7 +192,7 @@ class UserControllerTest {
         //when
         when(userService.subscribeSession(any(User.class))).thenReturn(new UserResponse.Session("session"));
         //then
-        mockMvc.perform(get("/api/subscribe/session")
+        mockMvc.perform(get("/api/auth/subscribe/session")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -229,7 +229,7 @@ class UserControllerTest {
         String accessToken = MyJwtProvider.createAccessToken(user);
         //when
         //then
-        mockMvc.perform(delete("/api/user")
+        mockMvc.perform(delete("/api/auth/user")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -245,7 +245,7 @@ class UserControllerTest {
         //when
         when(userService.userDetail(any())).thenReturn(detail);
         //then
-        mockMvc.perform(get("/api/user")
+        mockMvc.perform(get("/api/auth/user")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -272,7 +272,7 @@ class UserControllerTest {
                 .build();
         //when
         //then
-        mockMvc.perform(post("/api/user")
+        mockMvc.perform(post("/api/auth/user")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken)
                         .contentType(contentType)
@@ -291,7 +291,7 @@ class UserControllerTest {
         //when
         when(userService.navigation(any())).thenReturn(navigation);
         //then
-        mockMvc.perform(get("/api/user/me")
+        mockMvc.perform(get("/api/auth/user/me")
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())

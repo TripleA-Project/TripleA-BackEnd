@@ -66,21 +66,21 @@ public class NewsController {
     }
 
     // 뉴스 상세 조회
-    @GetMapping("/news/{id}")
+    @GetMapping("/auth/news/{id}")
     public ResponseEntity<?> getNewsDetails(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
         NewsResponse.Details details = newsService.getNewsDetails(id, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(details));
     }
 
     // 히스토리 조회
-    @GetMapping("/history")
+    @GetMapping("/auth/history")
     public ResponseEntity<?> getHistory(@RequestParam("year") int year, @RequestParam("month") int month, @AuthenticationPrincipal MyUserDetails myUserDetails){
         List<NewsResponse.HistoryOut> histories = newsService.getHistory(year, month, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(histories));
     }
 
     // AI 뉴스 분석
-    @PostMapping("/news/{id}/ai")
+    @PostMapping("/auth/news/{id}/ai")
     public ResponseEntity<?> getAnalysisAI(@PathVariable Long id, @RequestBody NewsRequest.AI ai, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails){
         NewsResponse.Analysis analysis = newsService.getAnalysisAI(id, ai, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(analysis));
