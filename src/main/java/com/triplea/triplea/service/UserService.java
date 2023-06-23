@@ -78,6 +78,7 @@ public class UserService {
     // 회원가입
     @Transactional
     public void join(UserRequest.Join join, String userAgent, String ipAddress) {
+        duplicateEmail(join.getEmail());
         try {
             userRepository.save(join.toEntity(
                     passwordEncoder.encode(join.getPassword()),
@@ -121,7 +122,7 @@ public class UserService {
 
     // 이메일 인증 요청
     public String email(UserRequest.EmailSend request) {
-        userRepository.findAllByEmail(request.getEmail()).ifPresent(user -> {throw new Exception400("email", "이미 존재하는 이메일입니다");});
+        duplicateEmail(request.getEmail());
         UUID code = UUID.randomUUID();
         String key = "code_" + request.getEmail();
         redisTemplate.opsForValue().set(key, code.toString());
@@ -299,5 +300,13 @@ public class UserService {
         if (!passwordEncoder.matches(requestPassword, persistencePassword)) {
             throw new Exception400("Bad-Request", "잘못된 비밀번호입니다.");
         }
+    }
+
+    /**
+     * 중복 이메일 검증
+     * @param email String
+     */
+    private void duplicateEmail(String email){
+        userRepository.findAllByEmail(email).ifPresent(user -> {throw new Exception400("email", "이미 존재하는 이메일입니다");});
     }
 }
