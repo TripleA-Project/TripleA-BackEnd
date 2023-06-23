@@ -103,9 +103,21 @@ class UserServiceTest {
             //given
             UserRequest.EmailSend emailSend = new UserRequest.EmailSend(user.getEmail());
             //when
+            when(userRepository.findAllByEmail(anyString())).thenReturn(Optional.empty());
             when(redisTemplate.opsForValue()).thenReturn(valueOperations);
             //then
             Assertions.assertDoesNotThrow(() -> userService.email(emailSend));
+        }
+
+        @Test
+        @DisplayName("실패: 이미 있는 이메일")
+        void test2(){
+            //given
+            UserRequest.EmailSend emailSend = new UserRequest.EmailSend(user.getEmail());
+            //when
+            when(userRepository.findAllByEmail(anyString())).thenReturn(Optional.of(user));
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.email(emailSend));
         }
     }
 
