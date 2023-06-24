@@ -72,8 +72,8 @@ public class UserController {
     // 이메일 인증 확인
     @PostMapping("/email/verify")
     public ResponseEntity<?> emailVerified(@RequestBody @Valid UserRequest.EmailVerify request, Errors errors) {
-        userService.emailVerified(request);
-        return ResponseEntity.ok().body(new ResponseDTO<>());
+        String emailKey = userService.emailVerified(request);
+        return ResponseEntity.ok().body(new ResponseDTO<>(emailKey));
     }
 
     // 구독
