@@ -134,4 +134,11 @@ public class UserController {
         return ResponseEntity.ok()
                 .body(new ResponseDTO<>(userService.navigation(myUserDetails.getUser().getId())));
     }
+
+    // 새 비밀번호 발급
+    @PostMapping("/find/password")
+    public ResponseEntity<?> newPassword(@RequestBody @Valid UserRequest.NewPassword request, Errors errors){
+        userService.newPassword(request);
+        return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
 }

@@ -4,6 +4,7 @@ import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception401;
+import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -194,7 +196,7 @@ public class UserService {
     @Transactional
     public void subscribeCancel(User user) {
         user = getUser(user);
-        if(user.getMembership() != User.Membership.PREMIUM) throw new Exception400("subscribe", "구독 중이 아닙니다");
+        if (user.getMembership() != User.Membership.PREMIUM) throw new Exception400("subscribe", "구독 중이 아닙니다");
         Customer customer = getCustomer(user);
         cancelSubscription(customer);
     }
@@ -224,6 +226,49 @@ public class UserService {
         user = getUser(user);
         cancelSubscriptionIfSubscribed(user);
         user.deactivateAccount();
+    }
+
+    // 새 비밀번호 발급
+    @Transactional
+    public void newPassword(UserRequest.NewPassword request) {
+        User user = userRepository.findUserByEmailAndName(request.getEmail(), request.getFullName())
+                .orElseThrow(() -> new Exception404("찾는 계정이 없습니다"));
+        if (!user.isActive()) throw new Exception400("user", "탈퇴한 회원입니다");
+
+        String password = randomPassword();
+        user.updatePassword(passwordEncoder.encode(password));
+
+        String html = "<div>비밀번호: " + password + "<p style='font-weight:bold;'>개인정보 수정에서 비밀번호를 변경해주세요.</p></div>";
+        mailUtils.send(request.getEmail(), "[Triple A] 새로운 비밀번호 발급", html);
+    }
+
+    public String randomPassword() {
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+        char[] characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
+        char[] numbers = "0123456789".toCharArray();
+        char[] specialChars = "!@#$%^&*()-_=+{};:,<.>".toCharArray();
+        String pattern = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[" + new String(specialChars) + "]).{8,16}$";
+
+        // 첫 번째 문자: 알파벳
+        password.append(characters[secureRandom.nextInt(characters.length)]);
+        // 두 번째 문자: 숫자
+        password.append(numbers[secureRandom.nextInt(numbers.length)]);
+        // 세 번째 문자: 특수 문자
+        password.append(specialChars[secureRandom.nextInt(specialChars.length)]);
+
+        // 나머지 문자: 알파벳, 숫자, 특수 문자 중 랜덤하게 선택
+        for (int i = 3; i < 16; i++) {
+            char[] charType = secureRandom.nextBoolean() ? characters : (secureRandom.nextBoolean() ? numbers : specialChars);
+            password.append(charType[secureRandom.nextInt(charType.length)]);
+        }
+
+        // 패스워드 유효성 검사
+        if (!password.toString().matches(pattern)) {
+            return randomPassword(); // 재귀 호출
+        }
+
+        return password.toString();
     }
 
     private User getUser(User user) {
@@ -346,7 +391,9 @@ public class UserService {
      * 중복 이메일 검증
      * @param email String
      */
-    private void duplicateEmail(String email){
-        userRepository.findAllByEmail(email).ifPresent(user -> {throw new Exception400("email", "이미 존재하는 이메일입니다");});
+    private void duplicateEmail(String email) {
+        userRepository.findAllByEmail(email).ifPresent(user -> {
+            throw new Exception400("email", "이미 존재하는 이메일입니다");
+        });
     }
 }
