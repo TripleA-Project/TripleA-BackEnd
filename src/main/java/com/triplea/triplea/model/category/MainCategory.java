@@ -15,6 +15,7 @@ import java.util.List;
 public class MainCategory {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @Column(nullable = false)
     private String mainCategoryEng;
     private String mainCategoryKor;
     @OneToMany(mappedBy = "mainCategory", fetch = FetchType.LAZY, orphanRemoval = true)

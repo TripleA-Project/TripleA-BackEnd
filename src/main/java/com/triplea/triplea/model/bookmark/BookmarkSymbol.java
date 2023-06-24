@@ -15,10 +15,13 @@ public class BookmarkSymbol {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
     private Long symbolId;
 
+    @Column(nullable = false)
     private boolean isDeleted;
 
     public void deleteBookmark(){
