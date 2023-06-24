@@ -79,15 +79,20 @@ public class UserService {
     @Transactional
     public void join(UserRequest.Join join, String userAgent, String ipAddress) {
         duplicateEmail(join.getEmail());
+        String key = "code_" + join.getEmail();
+        String code = redisTemplate.opsForValue().get(key);
+        if (!code.equals(join.getEmailKey())) throw new Exception400("email", "이메일 인증이 되지 않았습니다");
         try {
             userRepository.save(join.toEntity(
                     passwordEncoder.encode(join.getPassword()),
+                    true,
                     userAgent,
                     ipAddress,
                     "profile" + new Random().nextInt(4)));
         } catch (Exception e) {
             throw new Exception500("User 생성 실패: " + e.getMessage());
         }
+        redisTemplate.delete(key);
     }
 
     @Transactional
@@ -121,7 +126,7 @@ public class UserService {
     }
 
     // 이메일 인증 요청
-    public String email(UserRequest.EmailSend request) {
+    public void email(UserRequest.EmailSend request) {
         duplicateEmail(request.getEmail());
         UUID code = UUID.randomUUID();
         String key = "code_" + request.getEmail();
@@ -129,16 +134,17 @@ public class UserService {
         redisTemplate.expire(key, 3, TimeUnit.MINUTES);
         String html = "<div>인증코드: " + code + "<p style='font-weight:bold;'>해당 인증코드는 3분간 유효합니다.</p></div>";
         mailUtils.send(request.getEmail(), "[Triple A] 이메일 인증을 진행해주세요.", html);
-        return code.toString();
     }
 
     // 이메일 인증 확인
-    public void emailVerified(UserRequest.EmailVerify request) {
+    public String emailVerified(UserRequest.EmailVerify request) {
         String key = "code_" + request.getEmail();
         String code = redisTemplate.opsForValue().get(key);
+        UUID emailVerified = UUID.randomUUID();
         if (code == null) throw new Exception400("code", "인증 코드를 찾을 수 없습니다");
         else if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
-        else redisTemplate.delete(key);
+        else redisTemplate.opsForValue().set(key, emailVerified.toString());
+        return emailVerified.toString();
     }
 
     // 구독
@@ -176,7 +182,6 @@ public class UserService {
             if (response.isSuccessful()) {
                 Long subscriptionId = subscriber.getSubscriptionId(response);
                 customer.subscribe(subscriptionId);
-                user.changeMembership(User.Membership.PREMIUM);
                 return;
             }
         } catch (Exception e) {

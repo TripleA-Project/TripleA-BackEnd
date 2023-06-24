@@ -4,6 +4,7 @@ import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
+import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.dto.category.CategoryResponse;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.service.CategoryService;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(CategoryController.class)
-class CategoryControllerTest {
+class CategoryControllerTest extends DummyEntity {
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,17 +47,7 @@ class CategoryControllerTest {
         when(redisConnectionFactory.getConnection()).thenReturn(mock(RedisConnection.class));
     }
 
-    private final User user = User.builder()
-            .id(1L)
-            .email("test@example.com")
-            .password("123456")
-            .fullName("tester")
-            .newsLetter(true)
-            .emailVerified(true)
-            .userAgent("Custom User Agent")
-            .clientIP("127.0.0.1")
-            .profile("profile1")
-            .build();
+    private final User user = newMockUser(1L, "test@example.com", "tester");
 
     @Test
     @DisplayName("전체 카테고리 조회")
