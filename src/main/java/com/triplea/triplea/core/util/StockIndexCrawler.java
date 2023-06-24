@@ -10,7 +10,6 @@ import org.jsoup.nodes.Element;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class StockIndexCrawler {
         saveRedis(results);
     }
 
-    public StockResponse.Index.Stock parseStockElement(Document document) {
+    private StockResponse.Index.Stock parseStockElement(Document document) {
         String urlSelector = "#quote-header-info > div:nth-child(3) > div:nth-child(1) > div";
         String nameSelector = "#quote-header-info > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > h1";
         Element element = document.selectFirst(urlSelector);
@@ -68,8 +67,7 @@ public class StockIndexCrawler {
                 .build();
     }
 
-    @Transactional
-    public void saveRedis(List<StockResponse.Index.Stock> indexList) {
+    private void saveRedis(List<StockResponse.Index.Stock> indexList) {
         try {
             for (StockResponse.Index.Stock index : indexList) {
                 String serialize = OM.writeValueAsString(index);
