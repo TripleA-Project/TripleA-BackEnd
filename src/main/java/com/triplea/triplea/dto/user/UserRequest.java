@@ -155,4 +155,18 @@ public class UserRequest {
             return false;
         }
     }
+
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NewPassword{
+        @Email
+        @NotBlank
+        private String email;
+        @NotBlank
+        @Pattern(regexp = "^[a-zA-Z]*$|^[가-힣]*$", message = "한글 혹은 영문으로만 작성해주세요")
+        private String fullName;
+    }
 }

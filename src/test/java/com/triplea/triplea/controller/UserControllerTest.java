@@ -294,4 +294,26 @@ class UserControllerTest extends DummyEntity {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.membership", is("BASIC")))
                 .andReturn();
     }
+
+    @Test
+    @DisplayName("새 비밀번호 발급")
+    void newPassword() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .build();
+        ObjectMapper om = new ObjectMapper();
+        String requestBody = om.writeValueAsString(request);
+        //when
+        //then
+        mockMvc.perform(post("/api/find/password")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken)
+                        .contentType(contentType)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+    }
 }

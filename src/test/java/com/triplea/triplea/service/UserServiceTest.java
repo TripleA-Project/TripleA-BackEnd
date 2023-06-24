@@ -3,6 +3,7 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.core.exception.Exception400;
+import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
@@ -637,6 +638,53 @@ class UserServiceTest extends DummyEntity {
 
             //then
             Assertions.assertThrows(Exception400.class, () -> userService.navigation(1L));
+        }
+    }
+
+    @Nested
+    @DisplayName("새 비밀번호 발급")
+    class NewsPassword{
+        @Test
+        @DisplayName("성공")
+        void test1(){
+            //given
+            UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .build();
+            //when
+            when(userRepository.findUserByEmailAndName(anyString(), anyString())).thenReturn(Optional.of(user));
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.newPassword(request));
+        }
+
+        @Test
+        @DisplayName("실패1: 계정 없음")
+        void test2(){
+            //given
+            UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .build();
+            //when
+            when(userRepository.findUserByEmailAndName(anyString(), anyString())).thenReturn(Optional.empty());
+            //then
+            Assertions.assertThrows(Exception404.class, () -> userService.newPassword(request));
+        }
+
+        @Test
+        @DisplayName("실패2: 탈퇴한 계정")
+        void test3(){
+            //given
+            user.deactivateAccount();
+            UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .build();
+            //when
+            when(userRepository.findUserByEmailAndName(anyString(), anyString())).thenReturn(Optional.of(user));
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.newPassword(request));
         }
     }
 }
