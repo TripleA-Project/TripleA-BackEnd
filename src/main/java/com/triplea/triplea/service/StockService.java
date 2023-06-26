@@ -48,9 +48,11 @@ public class StockService {
 
     // 주가 지수 조회
     public StockResponse.Index getStockIndex() {
-        String nasdaqSerialize = redisTemplate.opsForValue().get("index_ixic");
-        String dowJonesSerialize = redisTemplate.opsForValue().get("index_dji");
-        String sp500Serialize = redisTemplate.opsForValue().get("index_gspc");
+        String key = "index_";
+        List<String> indexList = List.of("^IXIC", "^DJI", "^GSPC");
+        String nasdaqSerialize = redisTemplate.opsForValue().get(key + indexList.get(0));
+        String dowJonesSerialize = redisTemplate.opsForValue().get(key + indexList.get(1));
+        String sp500Serialize = redisTemplate.opsForValue().get(key + indexList.get(2));
         try {
             StockResponse.Index.Stock nasdaq = OM.readValue(nasdaqSerialize, StockResponse.Index.Stock.class);
             StockResponse.Index.Stock dowJones = OM.readValue(dowJonesSerialize, StockResponse.Index.Stock.class);
