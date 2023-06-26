@@ -32,11 +32,7 @@ class StockControllerUnitTest {
     void getStockIndex() throws Exception {
         //given
         //when
-        StockResponse.Index index = StockResponse.Index.builder()
-                .nasdaq(null)
-                .dowJones(null)
-                .sp500(null)
-                .build();
+        StockResponse.Index index = new StockResponse.Index();
         when(stockService.getStockIndex()).thenReturn(index);
         //then
         mockMvc.perform(get("/api/stocks/index")
