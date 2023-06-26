@@ -34,16 +34,16 @@ public class BookmarkSymbolController {
         return ResponseEntity.ok().body(new ResponseDTO<>(bookmarkSymbolDTOS));
     }
 
-    @PostMapping("/auth/symbol/{id}")
+    @GetMapping("/auth/symbol")
     public ResponseEntity<?> saveLikeSymbol(@AuthenticationPrincipal MyUserDetails myUserDetails,
-                                            @PathVariable String id) {
-        bookmarkSymbolService.saveLikeSymbol(myUserDetails.getUser().getId(), Long.valueOf(id));
+                                            @RequestParam("symbol") String symbol) {
+        bookmarkSymbolService.saveLikeSymbol(myUserDetails.getUser().getId(), symbol);
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
     @DeleteMapping("/auth/symbol/{id}")
-    public ResponseEntity<?> deleteLikeSymbol(@PathVariable String id) {
-        bookmarkSymbolService.deleteLikeSymbol(Long.valueOf(id));
+    public ResponseEntity<?> deleteLikeSymbol(@AuthenticationPrincipal MyUserDetails myUserDetails, @PathVariable Long id) {
+        bookmarkSymbolService.deleteLikeSymbol(myUserDetails.getUser(), id);
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 }

@@ -3,8 +3,11 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.LogoUtil;
+import com.triplea.triplea.core.util.provide.symbol.MoyaSymbolProvider;
+import com.triplea.triplea.core.util.provide.symbol.TiingoSymbolProvider;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
+import com.triplea.triplea.dto.symbol.SymbolRequest;
 import com.triplea.triplea.model.bookmark.BookmarkSymbol;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
 import com.triplea.triplea.model.symbol.Symbol;
@@ -16,11 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +37,8 @@ public class BookmarkSymbolService {
     private final UserRepository userRepository;
     private final BookmarkSymbolRepository bookmarkSymbolRepository;
     private final SymbolRepository symbolRepository;
+    private final MoyaSymbolProvider moyaSymbolProvider;
+    private final TiingoSymbolProvider tiingoSymbolProvider;
 
     @Value("${moya.token}")
     private String moyaToken;
@@ -310,23 +314,29 @@ public class BookmarkSymbolService {
 
     // 관심 심볼 생성
     @Transactional
-    public void saveLikeSymbol(Long userId, Long id) {
+    public void saveLikeSymbol(Long userId, String symbol) {
         User userPS = userRepository.findById(userId)
-            .orElseThrow(() -> new Exception400("Bad-Request", "잘못된 userID입니다."));
-        Symbol symbol = symbolRepository.findById(id)
-            .orElseThrow(() -> new Exception400("Bad-Request", "해당 Symbol이 존재하지 않습니다."));
+                .orElseThrow(() -> new Exception400("Bad-Request", "잘못된 userID입니다."));
+        SymbolRequest.MoyaSymbol symbolInfo = moyaSymbolProvider.getSymbolInfo(symbol);
+        if (symbolInfo == null) symbolInfo = tiingoSymbolProvider.getSymbolInfo(symbol);
+
+        Long symbolId = symbolInfo.getId();
+        symbolRepository.findById(symbolId).orElse(symbolRepository.save(Symbol.builder().id(symbolId).symbol(symbolInfo.getSymbol()).build()));
+        bookmarkSymbolRepository.findBySymbolIdAndUser(symbolId, userPS).ifPresent(bookmark -> {
+            throw new Exception400("symbol", "이미 관심 설정한 심볼입니다");
+        });
         BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder()
-            .user(userPS)
-            .symbol(symbol)
-            .build();
+                .user(userPS)
+                .symbolId(symbolId)
+                .build();
         bookmarkSymbolRepository.save(bookmarkSymbol);
     }
 
     // 관심 심볼 삭제
     @Transactional
-    public void deleteLikeSymbol(Long id) {
-        BookmarkSymbol bookmarkSymbol = bookmarkSymbolRepository.findById(id)
-            .orElseThrow(() -> new Exception400("Bad-Request", "해당 Symbol이 존재하지 않습니다."));
+    public void deleteLikeSymbol(User user, Long id) {
+        BookmarkSymbol bookmarkSymbol = bookmarkSymbolRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new Exception400("Bad-Request", "해당 Symbol이 존재하지 않습니다."));
         bookmarkSymbol.deleteBookmark();
     }
 }
