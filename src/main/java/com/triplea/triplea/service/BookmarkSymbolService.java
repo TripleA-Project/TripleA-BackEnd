@@ -1,11 +1,16 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.LogoUtil;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
+import com.triplea.triplea.model.bookmark.BookmarkSymbol;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
+import com.triplea.triplea.model.symbol.Symbol;
+import com.triplea.triplea.model.symbol.SymbolRepository;
 import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +32,9 @@ import java.util.List;
 @Service
 public class BookmarkSymbolService {
 
+    private final UserRepository userRepository;
     private final BookmarkSymbolRepository bookmarkSymbolRepository;
+    private final SymbolRepository symbolRepository;
 
     @Value("${moya.token}")
     private String moyaToken;
@@ -299,5 +306,27 @@ public class BookmarkSymbolService {
         }
 
         return bookmarkSymbolDTOList;
+    }
+
+    // 관심 심볼 생성
+    @Transactional
+    public void saveLikeSymbol(Long userId, Long id) {
+        User userPS = userRepository.findById(userId)
+            .orElseThrow(() -> new Exception400("Bad-Request", "잘못된 userID입니다."));
+        Symbol symbol = symbolRepository.findById(id)
+            .orElseThrow(() -> new Exception400("Bad-Request", "해당 Symbol이 존재하지 않습니다."));
+        BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder()
+            .user(userPS)
+            .symbol(symbol)
+            .build();
+        bookmarkSymbolRepository.save(bookmarkSymbol);
+    }
+
+    // 관심 심볼 삭제
+    @Transactional
+    public void deleteLikeSymbol(Long id) {
+        BookmarkSymbol bookmarkSymbol = bookmarkSymbolRepository.findById(id)
+            .orElseThrow(() -> new Exception400("Bad-Request", "해당 Symbol이 존재하지 않습니다."));
+        bookmarkSymbol.deleteBookmark();
     }
 }
