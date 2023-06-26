@@ -1,6 +1,7 @@
 package com.triplea.triplea.controller;
 
 import com.triplea.triplea.core.auth.session.MyUserDetails;
+import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.service.BookmarkNewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class BookmarkNewsController {
 
         bookmarkNewsService.insertBookmark(id,  myUserDetails.getUser());
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ResponseDTO<>());
     }
 
     @DeleteMapping("/news/{id}")
@@ -27,6 +28,6 @@ public class BookmarkNewsController {
 
         bookmarkNewsService.deleteBookmark(id, myUserDetails.getUser());
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ResponseDTO<>());
     }
 }
