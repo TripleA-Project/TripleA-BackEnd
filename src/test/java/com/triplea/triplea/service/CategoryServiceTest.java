@@ -230,6 +230,23 @@ class CategoryServiceTest extends DummyEntity {
             //then
             Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
         }
+
+        @Test
+        @DisplayName("성공2: 삭제된 카테고리")
+        void test5() {
+            //given
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+            BookmarkCategory bookmarkCategory = BookmarkCategory.builder().mainCategory(mainCategory).user(user).build();
+            bookmarkCategory.deleteBookmark();
+
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
+            when(bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(anyLong(), anyLong())).thenReturn(bookmarkCategory);
+
+            //then
+            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(2L, 1L));
+        }
     }
 
     @Nested
