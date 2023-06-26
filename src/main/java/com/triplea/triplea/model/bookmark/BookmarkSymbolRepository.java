@@ -21,9 +21,9 @@ public interface BookmarkSymbolRepository extends JpaRepository<BookmarkSymbol, 
     List<String> findMostFrequentSymbols();
 
     @Query("select bs from BookmarkSymbol bs where bs.id=:id and bs.user=:user and bs.isDeleted=false")
-    Optional<BookmarkSymbol> findByIdAndUser(@Param("id") Long id, @Param("user") User user);
+    Optional<BookmarkSymbol> findNonDeletedByIdAndUser(@Param("id") Long id, @Param("user") User user);
 
-    @Query("select bs from BookmarkSymbol bs where bs.symbolId=:id and bs.user=:user and bs.isDeleted=false")
+    @Query("select bs from BookmarkSymbol bs where bs.symbolId=:id and bs.user=:user")
     Optional<BookmarkSymbol> findBySymbolIdAndUser(@Param("id") Long id, @Param("user") User user);
 
     @Query(value = "SELECT s.symbol " +
