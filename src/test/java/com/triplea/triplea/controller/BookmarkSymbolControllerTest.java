@@ -297,7 +297,7 @@ public class BookmarkSymbolControllerTest {
     void saveLikeCategory() throws Exception {
 
         DummyEntity dummy = new DummyEntity();
-        User tester = dummy.newMockUser(1L, "test@example.com", "tester");
+        User tester = dummy.newMockUser(1L, "test1@example.com", "tester");
         User testerPS = userRepository.save(tester);
 
         //given
@@ -305,7 +305,7 @@ public class BookmarkSymbolControllerTest {
         //when
 
         //then
-        mockMvc.perform(post("/api/auth/symbol/{id}", 1L)
+        mockMvc.perform(get("/api/auth/symbol?symbol=AAPL")
                 .with(csrf())
                 .header(MyJwtProvider.HEADER, accessToken))
             .andExpect(MockMvcResultMatchers.status().isOk())
@@ -317,15 +317,17 @@ public class BookmarkSymbolControllerTest {
     void deleteLikeCategory() throws Exception {
 
         DummyEntity dummy = new DummyEntity();
-        User tester = dummy.newMockUser(1L, "test@example.com", "tester");
+        User tester = dummy.newMockUser(1L, "test1@example.com", "tester");
         User testerPS = userRepository.save(tester);
+        BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder().id(1L).symbolId(1L).isDeleted(false).user(testerPS).build();
+        bookmarkSymbolRepository.save(bookmarkSymbol);
 
         //given
         String accessToken = MyJwtProvider.createAccessToken(testerPS);
         //when
 
         //then
-        mockMvc.perform(delete("/api/auth/symbol/{id}", 1L)
+        mockMvc.perform(delete("/api/auth/symbol/1")
                 .with(csrf())
                 .header(MyJwtProvider.HEADER, accessToken))
             .andExpect(MockMvcResultMatchers.status().isOk())

@@ -1,7 +1,5 @@
 package com.triplea.triplea.model.bookmark;
 
-import com.triplea.triplea.model.category.MainCategory;
-import com.triplea.triplea.model.symbol.Symbol;
 import com.triplea.triplea.model.user.User;
 import lombok.*;
 
@@ -22,10 +20,6 @@ public class BookmarkSymbol {
 
     @Column(nullable = false)
     private Long symbolId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "symbol_id", nullable = false)
-    private Symbol symbol;
 
     @Column(nullable = false)
     private boolean isDeleted;
