@@ -664,11 +664,16 @@ public class CategoryService {
                 .orElseThrow(() -> new Exception400("Bad-Request", "잘못된 userID입니다."));
         MainCategory mainCategory = mainCategoryRepository.findById(id)
                 .orElseThrow(() -> new Exception400("Bad-Request", "해당 Category가 존재하지 않습니다."));
-        BookmarkCategory bookmarkCategory = BookmarkCategory.builder()
-                .user(userPS)
-                .mainCategory(mainCategory)
-                .build();
-        bookmarkCategoryRepository.save(bookmarkCategory);
+        if (bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(id, userId) != null) {
+            throw new Exception400("Bad-Request", "해당 Category는 이미 등록되어 있습니다.");
+        } else {
+            BookmarkCategory bookmarkCategory = BookmarkCategory.builder()
+                    .user(userPS)
+                    .mainCategory(mainCategory)
+                    .build();
+            bookmarkCategoryRepository.save(bookmarkCategory);
+        }
+
     }
 
     @Transactional

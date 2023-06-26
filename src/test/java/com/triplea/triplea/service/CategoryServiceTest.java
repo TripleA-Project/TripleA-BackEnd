@@ -214,6 +214,22 @@ class CategoryServiceTest extends DummyEntity {
             Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
 
         }
+
+        @Test
+        @DisplayName("실패3: 중복된 mainCategory")
+        void test4() {
+            //given
+            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+            BookmarkCategory bookmarkCategory = BookmarkCategory.builder().mainCategory(mainCategory).user(user).build();
+
+            //when
+            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
+            when(bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(anyLong(), anyLong())).thenReturn(bookmarkCategory);
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
+        }
     }
 
     @Nested
