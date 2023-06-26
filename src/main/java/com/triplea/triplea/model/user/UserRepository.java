@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findById(@NotNull @Param("id") Long id);
     @Query("select u from User u where u.email=:email and u.isActive=true")
     Optional<User> findUserByEmail(@Param("email") String email);
+    @Query("select u from User u where u.email=:email and u.fullName=:name")
+    Optional<User> findUserByEmailAndName(@Param("email") String email, @Param("name") String name);
 
     /**
      * 휴면계정의 이메일도 확인

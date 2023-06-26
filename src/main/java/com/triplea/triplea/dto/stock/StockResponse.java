@@ -21,9 +21,7 @@ public class StockResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Index{
-        private Stock nasdaq;
-        private Stock dowJones;
-        private Stock sp500;
+        private List<Stock> stocks;
         @Getter
         @Builder
         @NoArgsConstructor

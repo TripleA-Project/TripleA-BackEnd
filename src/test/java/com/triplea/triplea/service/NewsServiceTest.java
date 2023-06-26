@@ -1,6 +1,7 @@
 package com.triplea.triplea.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception500;
@@ -52,7 +53,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
-class NewsServiceTest {
+class NewsServiceTest extends DummyEntity {
     @InjectMocks
     private NewsService newsService;
     @Mock
@@ -86,17 +87,7 @@ class NewsServiceTest {
     @Mock
     ValueOperations<String, String> valueOperations;
 
-    private final User user = User.builder()
-            .id(1L)
-            .email("test@example.com")
-            .password("123456")
-            .fullName("tester")
-            .newsLetter(true)
-            .emailVerified(true)
-            .userAgent("Custom User Agent")
-            .clientIP("127.0.0.1")
-            .profile("profile1")
-            .build();
+    private final User user = newMockUser(1L, "test@example.com", "tester");
 
     @Nested
     @DisplayName("뉴스 조회(키워드)")

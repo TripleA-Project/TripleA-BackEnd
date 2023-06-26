@@ -5,6 +5,7 @@ import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
+import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.news.NewsRequest;
 import com.triplea.triplea.dto.news.NewsResponse;
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(NewsController.class)
-public class NewsControllerUnitTest {
+public class NewsControllerUnitTest extends DummyEntity {
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,17 +58,7 @@ public class NewsControllerUnitTest {
                     MediaType.APPLICATION_JSON.getSubtype(),
                     StandardCharsets.UTF_8);
 
-    private final User user = User.builder()
-            .id(1L)
-            .email("test@example.com")
-            .password("123456")
-            .fullName("tester")
-            .newsLetter(true)
-            .emailVerified(true)
-            .userAgent("Custom User Agent")
-            .clientIP("127.0.0.1")
-            .profile("profile1")
-            .build();
+    private final User user = newMockUser(1L, "test@example.com", "tester");
 
     @Test
     @DisplayName("뉴스 조회(키워드)")

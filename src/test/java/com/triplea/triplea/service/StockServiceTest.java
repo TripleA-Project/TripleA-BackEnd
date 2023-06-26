@@ -51,9 +51,9 @@ class StockServiceTest {
             //then
             verify(redisTemplate.opsForValue(), times(3)).get(anyString());
             verify(OM, times(3)).readValue(anyString(), eq(StockResponse.Index.Stock.class));
-            Assertions.assertEquals(stock.getName(), result.getNasdaq().getName());
-            Assertions.assertEquals(stock.getName(), result.getDowJones().getName());
-            Assertions.assertEquals(stock.getName(), result.getSp500().getName());
+            Assertions.assertEquals(stock.getName(), result.getStocks().get(0).getName());
+            Assertions.assertEquals(stock.getName(), result.getStocks().get(1).getName());
+            Assertions.assertEquals(stock.getName(), result.getStocks().get(2).getName());
             Assertions.assertDoesNotThrow(() -> stockService.getStockIndex());
         }
 

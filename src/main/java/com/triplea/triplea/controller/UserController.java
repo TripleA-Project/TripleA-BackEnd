@@ -72,8 +72,8 @@ public class UserController {
     // 이메일 인증 확인
     @PostMapping("/email/verify")
     public ResponseEntity<?> emailVerified(@RequestBody @Valid UserRequest.EmailVerify request, Errors errors) {
-        userService.emailVerified(request);
-        return ResponseEntity.ok().body(new ResponseDTO<>());
+        String emailKey = userService.emailVerified(request);
+        return ResponseEntity.ok().body(new ResponseDTO<>(emailKey));
     }
 
     // 구독
@@ -133,5 +133,12 @@ public class UserController {
     public ResponseEntity<?> navigation(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         return ResponseEntity.ok()
                 .body(new ResponseDTO<>(userService.navigation(myUserDetails.getUser().getId())));
+    }
+
+    // 새 비밀번호 발급
+    @PostMapping("/find/password")
+    public ResponseEntity<?> newPassword(@RequestBody @Valid UserRequest.NewPassword request, Errors errors){
+        userService.newPassword(request);
+        return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 }

@@ -14,10 +14,13 @@ import javax.persistence.*;
 public class Customer {
     @Id
     private Long id;
+    @Column(nullable = false)
     private String customerCode;
     private Long subscriptionId;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+    @Column(nullable = false)
     private boolean isActive;
 
     @Builder
@@ -25,12 +28,13 @@ public class Customer {
         this.id = id;
         this.customerCode = customerCode;
         this.user = user;
-        this.isActive = true;
+        this.isActive = false;
     }
 
     public void subscribe(Long subscriptionId){
         if(!this.isActive) this.isActive = true;
         this.subscriptionId = subscriptionId;
+        this.user.changeMembership(User.Membership.PREMIUM);
     }
     public void deactivateSubscription(){
         this.isActive = false;

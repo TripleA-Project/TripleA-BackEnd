@@ -1,5 +1,6 @@
 package com.triplea.triplea.service;
 
+import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.dto.category.CategoryResponse;
 import com.triplea.triplea.model.bookmark.BookmarkCategory;
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
-class CategoryServiceTest {
+class CategoryServiceTest extends DummyEntity {
     @InjectMocks
     private CategoryService categoryService;
     @Mock
@@ -33,17 +34,7 @@ class CategoryServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    private final User user = User.builder()
-            .id(1L)
-            .email("test@example.com")
-            .password("123456")
-            .fullName("tester")
-            .newsLetter(true)
-            .emailVerified(true)
-            .userAgent("Custom User Agent")
-            .clientIP("127.0.0.1")
-            .profile("profile1")
-            .build();
+    private final User user = newMockUser(1L, "test@example.com", "tester");
 
     @Nested
     @DisplayName("전체 카테고리 조회")

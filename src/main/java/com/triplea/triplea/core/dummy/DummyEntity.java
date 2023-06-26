@@ -8,12 +8,13 @@ public class DummyEntity {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return User.builder()
                 .email(email)
-                .password(passwordEncoder.encode("1234"))
+                .password(passwordEncoder.encode("Abcdefg123!@#"))
                 .fullName(fullName)
                 .newsLetter(true)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
                 .clientIP("192.168.1.100")
                 .profile("profile1")
+                .emailVerified(true)
                 .build();
     }
 
@@ -21,13 +22,14 @@ public class DummyEntity {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return User.builder()
                 .id(id)
-                .password(passwordEncoder.encode("1234"))
+                .password(passwordEncoder.encode("Abcdefg123!@#"))
                 .fullName(fullName)
                 .email(email)
                 .newsLetter(true)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
                 .clientIP("192.168.1.100")
                 .profile("profile1")
+                .emailVerified(true)
                 .build();
     }
 }

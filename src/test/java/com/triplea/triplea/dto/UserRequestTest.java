@@ -43,7 +43,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -51,8 +51,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("올바른 형식의 이메일 주소여야 합니다"));
             }
 
             @Test
@@ -65,7 +63,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -73,11 +71,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> {
-//                            String errorMsg = error.getMessage();
-//                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 이메일 주소여야 합니다");
-//                        });
             }
 
             @Test
@@ -90,7 +83,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -98,8 +91,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
 
             @Test
@@ -112,7 +103,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -120,8 +111,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
         }
 
@@ -138,7 +127,7 @@ class UserRequestTest {
                         .passwordCheck("!@#$")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -146,8 +135,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("올바른 형식의 비밀번호여야 합니다"));
             }
 
             @Test
@@ -160,7 +147,7 @@ class UserRequestTest {
                         .passwordCheck("12345678")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -168,8 +155,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("password must be equals passwordCheck"));
             }
 
             @Test
@@ -182,7 +167,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -190,11 +175,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> {
-//                            String errorMsg = error.getMessage();
-//                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 비밀번호여야 합니다", "password must be equals passwordCheck");
-//                        });
             }
 
             @Test
@@ -207,7 +187,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -215,11 +195,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> {
-//                            String errorMsg = error.getMessage();
-//                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 비밀번호여야 합니다", "password must be equals passwordCheck");
-//                        });
             }
 
             @Test
@@ -232,7 +207,7 @@ class UserRequestTest {
                         .passwordCheck(null)
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -240,11 +215,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> {
-//                            String errorMsg = error.getMessage();
-//                            assertThat(errorMsg).isIn("공백일 수 없습니다", "password must be equals passwordCheck");
-//                        });
             }
         }
 
@@ -261,7 +231,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName(" ")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -269,8 +239,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
 
             @Test
@@ -283,7 +251,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("")
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -291,8 +259,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
 
             @Test
@@ -305,7 +271,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName(null)
                         .newsLetter(true)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -313,8 +279,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
         }
 
@@ -331,7 +295,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(null)
-                        .emailVerified(true)
+                        .emailKey("key")
                         .build();
 
                 //when
@@ -339,8 +303,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
         }
 
@@ -357,7 +319,7 @@ class UserRequestTest {
                         .passwordCheck("123456")
                         .fullName("tester")
                         .newsLetter(true)
-                        .emailVerified(null)
+                        .emailKey(null)
                         .build();
 
                 //when
@@ -365,8 +327,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
         }
     }
@@ -390,8 +350,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("올바른 형식의 이메일 주소여야 합니다"));
             }
 
             @Test
@@ -407,11 +365,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> {
-//                            String errorMsg = error.getMessage();
-//                            assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 이메일 주소여야 합니다");
-//                        });
             }
 
             @Test
@@ -427,8 +380,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
 
             @Test
@@ -444,8 +395,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
         }
 
@@ -465,8 +414,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
 
             @Test
@@ -482,8 +429,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
 
             @Test
@@ -499,8 +444,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
             }
         }
     }
@@ -528,8 +471,6 @@ class UserRequestTest {
 
                     //then
                     assertThat(violations).isNotNull();
-//                    violations.forEach(
-//                            error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
                 }
 
                 @Test
@@ -546,8 +487,6 @@ class UserRequestTest {
 
                     //then
                     assertThat(violations).isNotNull();
-//                    violations.forEach(
-//                            error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
                 }
 
                 @Test
@@ -564,8 +503,6 @@ class UserRequestTest {
 
                     //then
                     assertThat(violations).isNotNull();
-//                    violations.forEach(
-//                            error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
                 }
             }
 
@@ -586,8 +523,6 @@ class UserRequestTest {
 
                     //then
                     assertThat(violations).isNotNull();
-//                    violations.forEach(
-//                            error -> assertThat(error.getMessage()).isEqualTo("올바른 형식의 이메일 주소여야 합니다"));
                 }
 
                 @Test
@@ -604,11 +539,6 @@ class UserRequestTest {
 
                     //then
                     assertThat(violations).isNotNull();
-//                    violations.forEach(
-//                            error -> {
-//                                String errorMsg = error.getMessage();
-//                                assertThat(errorMsg).isIn("공백일 수 없습니다", "올바른 형식의 이메일 주소여야 합니다");
-//                            });
                 }
 
                 @Test
@@ -625,8 +555,6 @@ class UserRequestTest {
 
                     //then
                     assertThat(violations).isNotNull();
-//                    violations.forEach(
-//                            error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
                 }
 
                 @Test
@@ -643,8 +571,6 @@ class UserRequestTest {
 
                     //then
                     assertThat(violations).isNotNull();
-//                    violations.forEach(
-//                            error -> assertThat(error.getMessage()).isEqualTo("공백일 수 없습니다"));
                 }
             }
         }
@@ -667,8 +593,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
 
             @Test
@@ -689,8 +613,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
 
             @Test
@@ -711,8 +633,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
 
             @Test
@@ -733,8 +653,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
 
             @Test
@@ -755,8 +673,6 @@ class UserRequestTest {
 
                 //then
                 assertThat(violations).isNotNull();
-//                violations.forEach(
-//                        error -> assertThat(error.getMessage()).isEqualTo("널이어서는 안됩니다"));
             }
         }
     }
