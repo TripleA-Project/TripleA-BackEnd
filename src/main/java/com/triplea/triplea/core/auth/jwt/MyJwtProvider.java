@@ -15,7 +15,7 @@ import java.util.Date;
 public class MyJwtProvider {
 
     private static String SUBJECT;
-    private static final int EXP = 1000 * 60 * 5; // 5분
+    private static final int EXP = 1000 * 60 * 60; // 5분
     private static final int REFRESH_EXP = 1000 * 60 * 60 * 7; // 일주일
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
