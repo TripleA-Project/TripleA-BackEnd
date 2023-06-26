@@ -12,6 +12,7 @@ import javax.persistence.*;
 public class Category {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @Column(nullable = false)
     private String category;
     @ManyToOne(fetch = FetchType.LAZY)
     private MainCategory mainCategory;

@@ -21,14 +21,14 @@ import java.util.List;
 public class StockIndexCrawler {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper OM;
-    private final List<String> indexList = List.of("^IXIC", "^DJI", "^GSPC");
+    public static final List<String> INDEXES = List.of("^IXIC", "^DJI", "^GSPC");
 
     @Scheduled(cron = "0 20 17 * * *", zone = "America/New_York") // 매일 오후 5시 20분에 실행 (EST 기준)
     public void getStockIndex() {
         String URL = "https://finance.yahoo.com/quote/";
         List<StockResponse.Index.Stock> results = new ArrayList<>();
         try {
-            for (String index : indexList) {
+            for (String index : INDEXES) {
                 Document document = Jsoup.connect(URL + index).get();
                 results.add(parseStockElement(document));
             }

@@ -5,6 +5,7 @@ import com.triplea.triplea.core.auth.jwt.BlackListFilter;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.config.MySecurityConfig;
 import com.triplea.triplea.core.config.RedisConfig;
+import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.user.User;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import({MySecurityConfig.class, MyJwtProvider.class, BlackListFilter.class, RedisConfig.class})
 @WebMvcTest(UserController.class)
-class UserControllerTest {
+class UserControllerTest extends DummyEntity {
 
     @Autowired
     private MockMvc mockMvc;
@@ -55,7 +56,7 @@ class UserControllerTest {
     RedisConnectionFactory redisConnectionFactory;
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         when(redisConnectionFactory.getConnection()).thenReturn(mock(RedisConnection.class));
     }
 
@@ -64,29 +65,19 @@ class UserControllerTest {
                     MediaType.APPLICATION_JSON.getSubtype(),
                     StandardCharsets.UTF_8);
 
-    private final User user = User.builder()
-            .id(1L)
-            .email("test@example.com")
-            .password("123456")
-            .fullName("tester")
-            .newsLetter(true)
-            .emailVerified(true)
-            .userAgent("Custom User Agent")
-            .clientIP("127.0.0.1")
-            .profile("profile1")
-            .build();
+    private final User user = newMockUser(1L, "test@example.com", "tester");
 
     @Test
     @DisplayName("회원가입")
     void join() throws Exception {
         //given
         UserRequest.Join join = UserRequest.Join.builder()
-                .email("test@example.com")
-                .password("123456")
-                .passwordCheck("123456")
-                .fullName("tester")
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .passwordCheck(user.getPassword())
+                .fullName(user.getFullName())
                 .newsLetter(true)
-                .emailVerified(true)
+                .emailKey("key")
                 .build();
         ObjectMapper om = new ObjectMapper();
         String requestBody = om.writeValueAsString(join);
@@ -112,7 +103,6 @@ class UserControllerTest {
         UserRequest.EmailSend email = new UserRequest.EmailSend("test@example.com");
         ObjectMapper om = new ObjectMapper();
         String requestBody = om.writeValueAsString(email);
-        given(userService.email(any())).willReturn("code");
 
         //when then
         mockMvc.perform(post("/api/email")
@@ -127,9 +117,11 @@ class UserControllerTest {
     @DisplayName("이메일 인증 확인")
     void emailVerified() throws Exception {
         //given
+        String key = "key";
         UserRequest.EmailVerify email = new UserRequest.EmailVerify("test@example.com", "code");
         ObjectMapper om = new ObjectMapper();
         String requestBody = om.writeValueAsString(email);
+        given(userService.emailVerified(any())).willReturn(key);
 
         //when then
         mockMvc.perform(post("/api/email/verify")
@@ -137,6 +129,7 @@ class UserControllerTest {
                         .contentType(contentType)
                         .content(requestBody))
                 .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data", is(key)))
                 .andReturn();
     }
 
@@ -149,7 +142,7 @@ class UserControllerTest {
         String url = "https://example.com";
         when(userService.subscribe(anyString(), any(User.class))).thenReturn(new UserResponse.Payment(new URL(url)));
         //then
-        mockMvc.perform(get("/api/auth/subscribe?url="+url)
+        mockMvc.perform(get("/api/auth/subscribe?url=" + url)
                         .with(csrf())
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -235,7 +228,7 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
-  
+
     @Test
     @DisplayName("개인정보 조회")
     void userDetail() throws Exception {
@@ -263,10 +256,10 @@ class UserControllerTest {
         //given
         String accessToken = MyJwtProvider.createAccessToken(user);
         UserRequest.Update update = UserRequest.Update.builder()
-                .password("123456")
-                .passwordCheck("123456")
-                .newPassword("12345678")
-                .newPasswordCheck("12345678")
+                .password(user.getPassword())
+                .passwordCheck(user.getPassword())
+                .newPassword(user.getPassword() + "123")
+                .newPasswordCheck(user.getPassword() + "123")
                 .fullName("newName")
                 .newsLetter(false)
                 .build();
@@ -284,7 +277,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("네비게이션 프로필")
-    void navigation() throws Exception{
+    void navigation() throws Exception {
         //given
         String accessToken = MyJwtProvider.createAccessToken(user);
         UserResponse.Navigation navigation = UserResponse.Navigation.toDTO(user);
@@ -296,9 +289,31 @@ class UserControllerTest {
                         .header(MyJwtProvider.HEADER, accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.email", is("test@example.com")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.fullName", is("tester")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.email", is(user.getEmail())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.fullName", is(user.getFullName())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.membership", is("BASIC")))
+                .andReturn();
+    }
+
+    @Test
+    @DisplayName("새 비밀번호 발급")
+    void newPassword() throws Exception {
+        //given
+        String accessToken = MyJwtProvider.createAccessToken(user);
+        UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .build();
+        ObjectMapper om = new ObjectMapper();
+        String requestBody = om.writeValueAsString(request);
+        //when
+        //then
+        mockMvc.perform(post("/api/find/password")
+                        .with(csrf())
+                        .header(MyJwtProvider.HEADER, accessToken)
+                        .contentType(contentType)
+                        .content(requestBody))
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
 }

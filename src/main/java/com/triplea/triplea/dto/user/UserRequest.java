@@ -20,17 +20,18 @@ public class UserRequest {
         @NotBlank
         private String email;
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String password;
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String passwordCheck;
         @NotBlank
+        @Pattern(regexp = "^[a-zA-Z]*$|^[가-힣]*$", message = "한글 혹은 영문으로만 작성해주세요")
         private String fullName;
         @NotNull
         private Boolean newsLetter;
-        @NotNull
-        private Boolean emailVerified;
+        @NotBlank
+        private String emailKey;
 
         @AssertTrue(message = "password must be equals passwordCheck")
         private boolean isPasswordMatch() {
@@ -38,7 +39,7 @@ public class UserRequest {
             return false;
         }
 
-        public User toEntity(String password, String userAgent, String ipAddress, String profile) {
+        public User toEntity(String password, boolean emailVerified, String userAgent, String ipAddress, String profile) {
             return User.builder()
                     .email(email)
                     .password(password)
@@ -61,7 +62,7 @@ public class UserRequest {
         @NotBlank
         private String email;
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String password;
     }
 
@@ -129,15 +130,16 @@ public class UserRequest {
     @AllArgsConstructor
     public static class Update {
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String password;
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String passwordCheck;
-        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String newPassword;
-        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$", message = "올바른 형식의 비밀번호여야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+{};:,<.>]).{8,16}$", message = "올바른 형식의 비밀번호여야 합니다")
         private String newPasswordCheck;
+        @Pattern(regexp = "^[a-zA-Z]*$|^[가-힣]*$", message = "한글 혹은 영문으로만 작성해주세요")
         private String fullName;
         private Boolean newsLetter;
 
@@ -152,5 +154,19 @@ public class UserRequest {
             if (newPassword != null) return newPassword.equals(newPasswordCheck);
             return false;
         }
+    }
+
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NewPassword{
+        @Email
+        @NotBlank
+        private String email;
+        @NotBlank
+        @Pattern(regexp = "^[a-zA-Z]*$|^[가-힣]*$", message = "한글 혹은 영문으로만 작성해주세요")
+        private String fullName;
     }
 }

@@ -1,7 +1,9 @@
 package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
+import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.core.exception.Exception400;
+import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
@@ -31,7 +33,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
-class UserServiceTest {
+class UserServiceTest extends DummyEntity {
     @InjectMocks
     private UserService userService;
     @Mock
@@ -53,17 +55,7 @@ class UserServiceTest {
     @Mock
     private MyJwtProvider myJwtProvider;
 
-    private final User user = User.builder()
-            .id(1L)
-            .email("test@example.com")
-            .password("123456")
-            .fullName("tester")
-            .newsLetter(true)
-            .emailVerified(true)
-            .userAgent("Custom User Agent")
-            .clientIP("127.0.0.1")
-            .profile("profile1")
-            .build();
+    private final User user = newMockUser(1L, "test@example.com", "tester");
 
     @Nested
     @DisplayName("회원가입")
@@ -72,25 +64,61 @@ class UserServiceTest {
         @DisplayName("성공")
         void test1() {
             //given
+            String key = "key";
             UserRequest.Join join = UserRequest.Join.builder()
                     .email(user.getEmail())
                     .password(user.getPassword())
                     .passwordCheck(user.getPassword())
                     .fullName(user.getFullName())
                     .newsLetter(user.isNewsLetter())
-                    .emailVerified(user.isEmailVerified())
+                    .emailKey(key)
                     .build();
-            //when then
+            //when
+            when(userRepository.findAllByEmail(anyString())).thenReturn(Optional.empty());
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+            when(redisTemplate.opsForValue().get(anyString())).thenReturn(key);
+            //then
             Assertions.assertDoesNotThrow(() -> userService.join(join, user.getUserAgent(), user.getClientIP()));
         }
 
         @Test
-        @DisplayName("실페: null")
+        @DisplayName("실패1: 이미 존재하는 이메일")
         void test2() {
             //given
-            UserRequest.Join join = UserRequest.Join.builder().build();
-            //when then
-            Assertions.assertThrows(Exception500.class, () -> userService.join(join, user.getUserAgent(), user.getClientIP()));
+            String key = "key";
+            UserRequest.Join join = UserRequest.Join.builder()
+                    .email(user.getEmail())
+                    .password(user.getPassword())
+                    .passwordCheck(user.getPassword())
+                    .fullName(user.getFullName())
+                    .newsLetter(user.isNewsLetter())
+                    .emailKey(key)
+                    .build();
+            //when
+            when(userRepository.findAllByEmail(anyString())).thenReturn(Optional.of(user));
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.join(join, user.getUserAgent(), user.getClientIP()));
+        }
+
+        @Test
+        @DisplayName("실패2: 인증키 일치하지 않음")
+        void test3(){
+            //given
+            String key = "key";
+            UserRequest.Join join = UserRequest.Join.builder()
+                    .email(user.getEmail())
+                    .password(user.getPassword())
+                    .passwordCheck(user.getPassword())
+                    .fullName(user.getFullName())
+                    .newsLetter(user.isNewsLetter())
+                    .emailKey(key)
+                    .build();
+            //when
+            when(userRepository.findAllByEmail(anyString())).thenReturn(Optional.empty());
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+            when(redisTemplate.opsForValue().get(anyString())).thenReturn("key2");
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.join(join, user.getUserAgent(), user.getClientIP()));
         }
     }
 
@@ -610,6 +638,53 @@ class UserServiceTest {
 
             //then
             Assertions.assertThrows(Exception400.class, () -> userService.navigation(1L));
+        }
+    }
+
+    @Nested
+    @DisplayName("새 비밀번호 발급")
+    class NewsPassword{
+        @Test
+        @DisplayName("성공")
+        void test1(){
+            //given
+            UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .build();
+            //when
+            when(userRepository.findUserByEmailAndName(anyString(), anyString())).thenReturn(Optional.of(user));
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.newPassword(request));
+        }
+
+        @Test
+        @DisplayName("실패1: 계정 없음")
+        void test2(){
+            //given
+            UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .build();
+            //when
+            when(userRepository.findUserByEmailAndName(anyString(), anyString())).thenReturn(Optional.empty());
+            //then
+            Assertions.assertThrows(Exception404.class, () -> userService.newPassword(request));
+        }
+
+        @Test
+        @DisplayName("실패2: 탈퇴한 계정")
+        void test3(){
+            //given
+            user.deactivateAccount();
+            UserRequest.NewPassword request = UserRequest.NewPassword.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .build();
+            //when
+            when(userRepository.findUserByEmailAndName(anyString(), anyString())).thenReturn(Optional.of(user));
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.newPassword(request));
         }
     }
 }
