@@ -27,4 +27,5 @@ public class BookmarkSymbol {
     public void deleteBookmark(){
         this.isDeleted = true;
     }
+    public void bookmark(){this.isDeleted = false;}
 }
