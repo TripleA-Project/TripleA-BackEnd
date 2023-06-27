@@ -301,11 +301,6 @@ public class UserService {
         return password.toString();
     }
 
-    private User getUser(User user) {
-        return userRepository.findById(user.getId()).orElseThrow(
-                () -> new Exception401("잘못된 접근입니다"));
-    }
-
     private void cancelSubscriptionIfSubscribed(User user) {
         if (User.Membership.BASIC == user.getMembership()) return;
 
