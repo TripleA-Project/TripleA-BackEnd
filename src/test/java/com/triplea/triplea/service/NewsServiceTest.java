@@ -10,7 +10,6 @@ import com.triplea.triplea.core.util.provide.MoyaNewsProvider;
 import com.triplea.triplea.core.util.provide.TiingoStockProvider;
 import com.triplea.triplea.core.util.provide.symbol.MoyaSymbolProvider;
 import com.triplea.triplea.core.util.provide.symbol.TiingoSymbolProvider;
-import com.triplea.triplea.core.util.timestamp.Timestamped;
 import com.triplea.triplea.core.util.translate.Papago;
 import com.triplea.triplea.core.util.translate.WiseSTGlobal;
 import com.triplea.triplea.dto.news.ApiResponse;
@@ -42,11 +41,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -707,8 +702,7 @@ class NewsServiceTest extends DummyEntity {
             int year = 2023;
             int month = 6;
             //when
-            ZonedDateTime zonedDateTime = ZonedDateTime.now(Timestamped.SEOUL_ZONE_ID);
-            List<ZonedDateTime> dateTimes = List.of(zonedDateTime);
+            List<Date> dateTimes = List.of(new Date());
             History history = History.builder()
                     .id(1L)
                     .user(user)
