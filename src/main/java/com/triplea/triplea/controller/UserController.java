@@ -7,6 +7,7 @@ import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.service.RedisService;
 import com.triplea.triplea.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class UserController {
     @Operation(summary = "로그아웃")
     @PostMapping("/auth/logout")
     public ResponseEntity<?> logout(HttpServletResponse response,
-                                    @AuthenticationPrincipal MyUserDetails myUserDetails,
+                                    @Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails,
                                     HttpServletRequest request) {
         String accessToken = request.getHeader("Authorization");
         String msg = userService.logout(response, accessToken, myUserDetails);
@@ -88,7 +89,7 @@ public class UserController {
     // 구독
     @Operation(summary = "구독")
     @GetMapping("/auth/subscribe")
-    public ResponseEntity<?> subscribe(@RequestParam("url") String url, @AuthenticationPrincipal MyUserDetails myUserDetails) {
+    public ResponseEntity<?> subscribe(@RequestParam("url") String url, @Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         UserResponse.Payment payment = userService.subscribe(url, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(payment));
     }
@@ -96,7 +97,7 @@ public class UserController {
     // 구독 확인
     @Operation(summary = "구독 확인")
     @GetMapping("/auth/subscribe/success")
-    public ResponseEntity<?> subscribeOk(@RequestParam("order_code") String orderCode, @AuthenticationPrincipal MyUserDetails myUserDetails) {
+    public ResponseEntity<?> subscribeOk(@RequestParam("order_code") String orderCode, @Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         userService.subscribeOk(orderCode, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
@@ -104,7 +105,7 @@ public class UserController {
     // 구독 취소
     @Operation(summary = "구독 취소")
     @DeleteMapping("/auth/subscribe")
-    public ResponseEntity<?> subscribeCancel(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+    public ResponseEntity<?> subscribeCancel(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         userService.subscribeCancel(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
@@ -112,7 +113,7 @@ public class UserController {
     // 구독내역 조회용 세션키
     @Operation(summary = "구독내역 조회용 세션키")
     @GetMapping("/auth/subscribe/session")
-    public ResponseEntity<?> subscribeSession(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+    public ResponseEntity<?> subscribeSession(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         UserResponse.Session session = userService.subscribeSession(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(session));
     }
@@ -120,7 +121,7 @@ public class UserController {
     // 회원탈퇴
     @Operation(summary = "회원탈퇴")
     @DeleteMapping("/auth/user")
-    public ResponseEntity<?> deactivateAccount(@AuthenticationPrincipal MyUserDetails myUserDetails){
+    public ResponseEntity<?> deactivateAccount(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails){
         userService.deactivateAccount(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
@@ -128,7 +129,7 @@ public class UserController {
     // 개인정보 조회
     @Operation(summary = "개인정보 조회")
     @GetMapping("/auth/user")
-    public ResponseEntity<?> userDetail(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+    public ResponseEntity<?> userDetail(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         return ResponseEntity.ok()
                 .body(new ResponseDTO<>(userService.userDetail(myUserDetails.getUser().getId())));
     }
@@ -138,7 +139,7 @@ public class UserController {
     @PostMapping("/auth/user")
     public ResponseEntity<?> userUpdate(@RequestBody @Valid UserRequest.Update update,
                                         Errors errors,
-                                        @AuthenticationPrincipal MyUserDetails myUserDetails
+                                        @Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails
     ) {
 
         userService.userUpdate(update, myUserDetails.getUser().getId());
@@ -147,7 +148,7 @@ public class UserController {
 
     @Operation(summary = "네비게이션 프로필")
     @GetMapping("/auth/user/me")
-    public ResponseEntity<?> navigation(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+    public ResponseEntity<?> navigation(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         return ResponseEntity.ok()
                 .body(new ResponseDTO<>(userService.navigation(myUserDetails.getUser().getId())));
     }

@@ -5,6 +5,7 @@ import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.service.BookmarkSymbolService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class BookmarkSymbolController {
 
     @Operation(summary = "심볼 조회(관심)")
     @GetMapping("/auth/symbol/like")
-    public ResponseEntity<?> getLikeSymbol(@AuthenticationPrincipal MyUserDetails myUserDetails){
+    public ResponseEntity<?> getLikeSymbol(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails){
 
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOS = bookmarkSymbolService.getLikedBookmarkSymbol(myUserDetails.getUser());
 
@@ -41,7 +42,7 @@ public class BookmarkSymbolController {
 
     @Operation(summary = "관심 심볼 생성")
     @GetMapping("/auth/symbol")
-    public ResponseEntity<?> saveLikeSymbol(@AuthenticationPrincipal MyUserDetails myUserDetails,
+    public ResponseEntity<?> saveLikeSymbol(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails,
                                             @RequestParam("symbol") String symbol) {
         bookmarkSymbolService.saveLikeSymbol(myUserDetails.getUser().getId(), symbol);
         return ResponseEntity.ok().body(new ResponseDTO<>());
@@ -49,7 +50,7 @@ public class BookmarkSymbolController {
 
     @Operation(summary = "관심 심볼 삭제")
     @DeleteMapping("/auth/symbol/{id}")
-    public ResponseEntity<?> deleteLikeSymbol(@AuthenticationPrincipal MyUserDetails myUserDetails, @PathVariable Long id) {
+    public ResponseEntity<?> deleteLikeSymbol(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails, @PathVariable Long id) {
         bookmarkSymbolService.deleteLikeSymbol(myUserDetails.getUser(), id);
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
