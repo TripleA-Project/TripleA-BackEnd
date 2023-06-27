@@ -1,6 +1,6 @@
 package com.triplea.triplea.core.config;
 
-import com.triplea.triplea.core.util.MailProperties;
+import com.triplea.triplea.core.util.mail.MailProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

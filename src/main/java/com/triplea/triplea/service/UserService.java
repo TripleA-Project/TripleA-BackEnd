@@ -6,8 +6,9 @@ import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.core.util.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
+import com.triplea.triplea.core.util.mail.MailTemplate;
+import com.triplea.triplea.core.util.mail.MailUtils;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.customer.Customer;
@@ -95,6 +96,8 @@ public class UserService {
             throw new Exception500("User 생성 실패: " + e.getMessage());
         }
         redisTemplate.delete(key);
+        String html = MailTemplate.sendJoinTemplate();
+        mailUtils.send(join.getEmail(), MailUtils.MailType.JOIN, html);
     }
 
     @Transactional
@@ -115,7 +118,6 @@ public class UserService {
     }
 
     //AccessToken 재발급
-
     public HttpHeaders refreshToken(String refreshToken) {
         HttpHeaders header = new HttpHeaders();
         if (redisService.existsRefreshToken(refreshToken)) {
@@ -134,8 +136,8 @@ public class UserService {
         String key = "code_" + request.getEmail();
         redisTemplate.opsForValue().set(key, code.toString());
         redisTemplate.expire(key, 3, TimeUnit.MINUTES);
-        String html = "<div>인증코드: " + code + "<p style='font-weight:bold;'>해당 인증코드는 3분간 유효합니다.</p></div>";
-        mailUtils.send(request.getEmail(), "[Triple A] 이메일 인증을 진행해주세요.", html);
+        String html = MailTemplate.sendEmailVerificationCodeTemplate(code.toString());
+        mailUtils.send(request.getEmail(), MailUtils.MailType.CODE, html);
     }
 
     // 이메일 인증 확인
@@ -238,11 +240,39 @@ public class UserService {
         String password = randomPassword();
         user.updatePassword(passwordEncoder.encode(password));
 
-        String html = "<div>비밀번호: " + password + "<p style='font-weight:bold;'>개인정보 수정에서 비밀번호를 변경해주세요.</p></div>";
-        mailUtils.send(request.getEmail(), "[Triple A] 새로운 비밀번호 발급", html);
+        String html = MailTemplate.sendNewPasswordEmailTemplate(password);
+        mailUtils.send(request.getEmail(), MailUtils.MailType.PASSWORD, html);
     }
 
-    public String randomPassword() {
+    // 개인정보 조회
+    public UserResponse.Detail userDetail(Long userId) {
+
+        return UserResponse.Detail.toDTO(getUser(userId));
+    }
+
+    // 개인정보 수정
+    @Transactional
+    public void userUpdate(UserRequest.Update update, Long userId) {
+        User userPS = getUser(userId);
+        passwordCheck(update.getPassword(), userPS.getPassword());
+        if (update.getNewPassword() != null) {
+            userPS.updatePassword(passwordEncoder.encode(update.getNewPassword()));
+        }
+        if (update.getFullName() != null) {
+            userPS.updateFullName(update.getFullName());
+        }
+        if (update.getNewsLetter() != null) {
+            userPS.updateNewsLetter(update.getNewsLetter());
+        }
+    }
+
+    // 네비게이션 프로필
+    public UserResponse.Navigation navigation(Long userId) {
+
+        return UserResponse.Navigation.toDTO(getUser(userId));
+    }
+
+    private String randomPassword() {
         SecureRandom secureRandom = new SecureRandom();
         StringBuilder password = new StringBuilder();
         char[] characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
@@ -348,6 +378,11 @@ public class UserService {
                 () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 
+    private User getUser(User user) {
+        return userRepository.findById(user.getId()).orElseThrow(
+                () -> new Exception401("잘못된 접근입니다"));
+    }
+
     private User getUser(Long userId) {
         User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
@@ -355,33 +390,7 @@ public class UserService {
         return userPS;
     }
 
-    public UserResponse.Detail userDetail(Long userId) {
-
-        return UserResponse.Detail.toDTO(getUser(userId));
-    }
-
-
-    @Transactional
-    public void userUpdate(UserRequest.Update update, Long userId) {
-        User userPS = getUser(userId);
-        passwordCheck(update.getPassword(), userPS.getPassword());
-        if (update.getNewPassword() != null) {
-            userPS.updatePassword(passwordEncoder.encode(update.getNewPassword()));
-        }
-        if (update.getFullName() != null) {
-            userPS.updateFullName(update.getFullName());
-        }
-        if (update.getNewsLetter() != null) {
-            userPS.updateNewsLetter(update.getNewsLetter());
-        }
-    }
-
-    public UserResponse.Navigation navigation(Long userId) {
-
-        return UserResponse.Navigation.toDTO(getUser(userId));
-    }
-
-    public void passwordCheck(String requestPassword, String persistencePassword) {
+    private void passwordCheck(String requestPassword, String persistencePassword) {
         if (!passwordEncoder.matches(requestPassword, persistencePassword)) {
             throw new Exception400("Bad-Request", "잘못된 비밀번호입니다.");
         }
