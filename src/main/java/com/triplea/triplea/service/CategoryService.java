@@ -671,9 +671,9 @@ public class CategoryService {
                 .orElseThrow(() -> new Exception400("Bad-Request", "해당 Category가 존재하지 않습니다."));
         BookmarkCategory bookmarkCategoryPS = bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(id, userId);
         User.Membership membership = CheckMembership.getMembership(userPS, customerRepository, subscriber);
-        if(membership == User.Membership.BASIC){
+        if (membership == User.Membership.BASIC) {
             Integer count = bookmarkCategoryRepository.countAllByUser(userPS);
-            if(count >= 3) throw new Exception400("benefit", "혜택을 모두 소진했습니다");
+            if (count >= 3) throw new Exception400("benefit", "혜택을 모두 소진했습니다");
         }
         if (bookmarkCategoryPS != null) { // bookmarkCategory가 이미 존재하는 지 체크
             if (!bookmarkCategoryPS.isDeleted()) { // 삭제되지 않은 category가 존재하다면 throw
