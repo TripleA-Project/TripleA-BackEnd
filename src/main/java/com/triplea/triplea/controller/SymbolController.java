@@ -21,11 +21,18 @@ public class SymbolController {
 
     private final SymbolService symbolService;
 
-    @GetMapping("/symbol")
-    public ResponseEntity<?> getSymbol(@RequestParam(value = "symbol") @Valid String symbol){
+    @GetMapping("/symbol/search")//심볼검색
+    public ResponseEntity<?> searchSymbol(@RequestParam(value = "symbol") @Valid String symbol){
 
-        List<SymbolResponse.SymbolDTO> symbolDTOList = symbolService.getSymbol(symbol);
+        List<SymbolResponse.SymbolDTO> symbolDTOList = symbolService.searchSymbol(symbol);
 
         return ResponseEntity.ok().body(new ResponseDTO<>(symbolDTOList));
+    }
+
+    @GetMapping("/symbol")//심볼조회
+    public ResponseEntity<?> getSymbol(@RequestParam(value = "symbol") @Valid String symbol){
+
+        List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOS = symbolService.getSymbol(symbol);
+        return ResponseEntity.ok().body(new ResponseDTO<>(bookmarkSymbolDTOS));
     }
 }
