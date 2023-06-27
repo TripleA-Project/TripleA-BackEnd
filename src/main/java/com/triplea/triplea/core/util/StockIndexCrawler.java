@@ -10,7 +10,6 @@ import org.jsoup.nodes.Element;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,14 +21,14 @@ import java.util.List;
 public class StockIndexCrawler {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper OM;
-    private final List<String> indexList = List.of("^IXIC", "^DJI", "^GSPC");
+    public static final List<String> INDEXES = List.of("^IXIC", "^DJI", "^GSPC");
 
     @Scheduled(cron = "0 20 17 * * *", zone = "America/New_York") // 매일 오후 5시 20분에 실행 (EST 기준)
     public void getStockIndex() {
         String URL = "https://finance.yahoo.com/quote/";
         List<StockResponse.Index.Stock> results = new ArrayList<>();
         try {
-            for (String index : indexList) {
+            for (String index : INDEXES) {
                 Document document = Jsoup.connect(URL + index).get();
                 results.add(parseStockElement(document));
             }
@@ -41,7 +40,7 @@ public class StockIndexCrawler {
         saveRedis(results);
     }
 
-    public StockResponse.Index.Stock parseStockElement(Document document) {
+    private StockResponse.Index.Stock parseStockElement(Document document) {
         String urlSelector = "#quote-header-info > div:nth-child(3) > div:nth-child(1) > div";
         String nameSelector = "#quote-header-info > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > h1";
         Element element = document.selectFirst(urlSelector);
@@ -68,8 +67,7 @@ public class StockIndexCrawler {
                 .build();
     }
 
-    @Transactional
-    public void saveRedis(List<StockResponse.Index.Stock> indexList) {
+    private void saveRedis(List<StockResponse.Index.Stock> indexList) {
         try {
             for (StockResponse.Index.Stock index : indexList) {
                 String serialize = OM.writeValueAsString(index);

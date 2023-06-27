@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.StepPaySubscriber;
+import com.triplea.triplea.core.util.StockIndexCrawler;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.stock.StockResponse;
 import com.triplea.triplea.model.customer.Customer;
@@ -48,21 +49,16 @@ public class StockService {
 
     // 주가 지수 조회
     public StockResponse.Index getStockIndex() {
-        String nasdaqSerialize = redisTemplate.opsForValue().get("index_ixic");
-        String dowJonesSerialize = redisTemplate.opsForValue().get("index_dji");
-        String sp500Serialize = redisTemplate.opsForValue().get("index_gspc");
+        List<StockResponse.Index.Stock> indexes = new ArrayList<>();
         try {
-            StockResponse.Index.Stock nasdaq = OM.readValue(nasdaqSerialize, StockResponse.Index.Stock.class);
-            StockResponse.Index.Stock dowJones = OM.readValue(dowJonesSerialize, StockResponse.Index.Stock.class);
-            StockResponse.Index.Stock sp500 = OM.readValue(sp500Serialize, StockResponse.Index.Stock.class);
-            return StockResponse.Index.builder()
-                    .nasdaq(nasdaq)
-                    .dowJones(dowJones)
-                    .sp500(sp500)
-                    .build();
+            for(String index : StockIndexCrawler.INDEXES){
+                String serialize = redisTemplate.opsForValue().get("index_" + index);
+                indexes.add(OM.readValue(serialize, StockResponse.Index.Stock.class));
+            }
         } catch (Exception e) {
             throw new Exception500("주가 지수 조회 실패: " + e.getMessage());
         }
+        return new StockResponse.Index(indexes);
     }
 
     @Transactional(readOnly = true)

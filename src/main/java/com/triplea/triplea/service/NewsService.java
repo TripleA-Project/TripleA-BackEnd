@@ -1,9 +1,11 @@
 package com.triplea.triplea.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.core.util.CheckMembership;
 import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.core.util.provide.MoyaNewsProvider;
 import com.triplea.triplea.core.util.provide.TiingoStockProvider;
@@ -26,7 +28,6 @@ import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
-import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.history.History;
 import com.triplea.triplea.model.history.HistoryRepository;
@@ -79,6 +80,7 @@ public class NewsService {
     private final Papago papagoTranslator;
     private final WiseSTGlobal wiseTranslator;
     private final RedisTemplate<String, String> redisTemplate;
+    private final CheckMembership checkMembership;
 
     private final int globalNewsMaxSize = 100;
     @Value("${moya.token}")
@@ -104,56 +106,73 @@ public class NewsService {
 
         String url = builder.toUriString();
 
-        ResponseEntity<GlobalNewsDTO> response = restTemplate.getForEntity(url, GlobalNewsDTO.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            GlobalNewsDTO globalNewsDTO = response.getBody();
-
-            List<Data> datas = globalNewsDTO.getDatas();
 
             List<NewsDTO> newsDTOList = new ArrayList<>();
-            for (Data data : datas) {
-                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
+            GlobalNewsDTO globalNewsDTO = null;
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO;
-                if(user != null){
-                    Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
-                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
-                }else{
-                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+            if (response.getBody().equals("[]")) {
+                //비어있음
+            } else {
+                ObjectMapper mapper = new ObjectMapper();
+
+                try{
+                    globalNewsDTO = mapper.readValue(response.getBody(), GlobalNewsDTO.class);
+                }catch (Exception e){
+                      throw new Exception500("");
                 }
 
-                builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
-                        .queryParam("token", moyaToken)
-                        .queryParam("search", data.getSymbol());
+                List<Data> datas = globalNewsDTO.getDatas();
 
-                ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
-                try {
-                    bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
-                } catch (RestClientException e) {
-                    log.error(url, e.getMessage());
-                    throw new Exception500("API 호출 실패");
-                }
+                for (Data data : datas) {
+                    List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());//bookmark의 newsId 같은거 가져와야함
 
-                ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+                    BookmarkResponse.BookmarkDTO bookmarkDTO;
+                    if (user != null) {
+                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+                        bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                    } else {
+                        bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+                    }
 
-                String companyName = "";
-                if (dtos != null) {
-                    for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
-                        //symbol 글자 완전 일치하는것만 가져온다
-                        if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
-                            companyName = dto.getCompanyName();
-                            break;
+                    builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
+                            .queryParam("token", moyaToken)
+                            .queryParam("search", data.getSymbol());
+
+                    ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
+                    try {
+                        bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
+                    } catch (RestClientException e) {
+                        log.error(url, e.getMessage());
+                        throw new Exception500("API 호출 실패");
+                    }
+
+                    ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+
+                    String companyName = "";
+                    if (dtos != null) {
+                        for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
+                            //symbol 글자 완전 일치하는것만 가져온다
+                            if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
+                                companyName = dto.getCompanyName();
+                                break;
+                            }
                         }
                     }
-                }
 
-                newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
+                    newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
+                }
             }
+
+            Long nextPage = 0L;
+            if(null != globalNewsDTO)
+                nextPage = globalNewsDTO.getNextPage();
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
-                    .nextPage(globalNewsDTO.getNextPage())
+                    .nextPage(nextPage)
                     .build();
 
             return news;
@@ -182,56 +201,73 @@ public class NewsService {
 
         String url = builder.toUriString();
 
-        ResponseEntity<GlobalNewsDTO> response = restTemplate.getForEntity(url, GlobalNewsDTO.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            GlobalNewsDTO globalNewsDTO = response.getBody();
-
-            List<Data> datas = globalNewsDTO.getDatas();
 
             List<NewsDTO> newsDTOList = new ArrayList<>();
-            for (Data data : datas) {
-                List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
+            GlobalNewsDTO globalNewsDTO = null;
 
-                BookmarkResponse.BookmarkDTO bookmarkDTO;
-                if(user != null) {
-                    Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
-                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
-                }else{
-                    bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+            if (response.getBody().equals("[]")) {
+                //비어있음
+            } else {
+
+                ObjectMapper mapper = new ObjectMapper();
+                try{
+                    globalNewsDTO = mapper.readValue(response.getBody(), GlobalNewsDTO.class);
+                }catch (Exception e){
+                    throw new Exception500("");
                 }
 
-                builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
-                        .queryParam("token", moyaToken)
-                        .queryParam("search", data.getSymbol());
+                List<Data> datas = globalNewsDTO.getDatas();
 
-                ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
-                try {
-                    bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
-                } catch (RestClientException e) {
-                    log.error(url, e.getMessage());
-                    throw new Exception500("API 호출 실패");
-                }
+                for (Data data : datas) {
+                    List<BookmarkNews> bookmarkNewsList = bookmarkNewsRepository.findNonDeletedByNewsId(data.getId());
 
-                ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+                    BookmarkResponse.BookmarkDTO bookmarkDTO;
+                    if (user != null) {
+                        Optional<BookmarkNews> opBookmark = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(data.getId(), user.getId());
+                        bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), opBookmark.isPresent());
+                    } else {
+                        bookmarkDTO = new BookmarkResponse.BookmarkDTO(bookmarkNewsList.size(), false);
+                    }
 
-                String companyName = "";
-                if (dtos != null) {
-                    for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
-                        //symbol 글자 완전 일치하는것만 가져온다
-                        if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
-                            companyName = dto.getCompanyName();
-                            break;
+                    builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
+                            .queryParam("token", moyaToken)
+                            .queryParam("search", data.getSymbol());
+
+                    ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> bsresponse;
+                    try {
+                        bsresponse = restTemplate.getForEntity(builder.toUriString(), ApiResponse.BookmarkSymbolDTO[].class);
+                    } catch (RestClientException e) {
+                        log.error(url, e.getMessage());
+                        throw new Exception500("API 호출 실패");
+                    }
+
+                    ApiResponse.BookmarkSymbolDTO[] dtos = bsresponse.getBody();
+
+                    String companyName = "";
+                    if (dtos != null) {
+                        for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
+                            //symbol 글자 완전 일치하는것만 가져온다
+                            if (dto.getSymbol().equals(data.getSymbol().toUpperCase())) {
+                                companyName = dto.getCompanyName();
+                                break;
+                            }
                         }
                     }
-                }
 
-                newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
+                    newsDTOList.add(new NewsDTO(data, companyName, bookmarkDTO));
+                }
             }
+
+            Long nextPage = 0L;
+            if(null != globalNewsDTO)
+                nextPage = globalNewsDTO.getNextPage();
 
             NewsResponse.News news = NewsResponse.News.builder()
                     .news(newsDTOList)
-                    .nextPage(globalNewsDTO.getNextPage())
+                    .nextPage(nextPage)
                     .build();
 
             return news;
@@ -324,7 +360,7 @@ public class NewsService {
                 .build();
 
         // 일반 회원 베네핏 설정
-        User.Membership membership = getMembership(user);
+        User.Membership membership = CheckMembership.getMembership(user, customerRepository, subscriber);
         String key = "news_" + user.getEmail(); int benefitCount = 10;
         List<Long> newsId = getNewsIdForBasicMembership(details.getDescription(), membership, key, benefitCount, id);
         NewsResponse.TranslateOut.Article articles = getArticles(isArticleViewable(membership, newsId, id), details);
@@ -393,7 +429,7 @@ public class NewsService {
         user = getUser(user);
 
         // 베네핏 설정
-        User.Membership membership = getMembership(user);
+        User.Membership membership = CheckMembership.getMembership(user, customerRepository, subscriber);
         if (membership != User.Membership.PREMIUM) throw new Exception401("유료 회원만 사용할 수 있습니다");
         String key = "ai_" + user.getEmail(); int benefitCount = 10;
 
@@ -561,34 +597,6 @@ public class NewsService {
         Duration duration = Duration.between(now, midnight);
         long secondsUntilMidnight = duration.getSeconds();
         redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
-    }
-
-    private User.Membership getMembership(User user) {
-        if (user.getMembership() == User.Membership.PREMIUM && !checkSubscription(user)) {
-            Customer customer = getCustomer(user);
-            customer.deactivateSubscription();
-//            user.changeMembership(User.Membership.BASIC);
-        }
-
-        return user.getMembership();
-    }
-
-    private boolean checkSubscription(User user) {
-        Long subscriptionId = customerRepository.findCustomerByUserId(user.getId()).map(Customer::getSubscriptionId).orElse(null);
-        if (subscriptionId == null) return false;
-        try {
-            return subscriber.isSubscribe(subscriptionId);
-        } catch (Exception e) {
-            throw new Exception500("구독 확인 실패: " + e.getMessage());
-        }
-    }
-
-    /**
-     * user id로 customer 찾고 없으면 예외처리
-     */
-    private Customer getCustomer(User user) {
-        return customerRepository.findCustomerByUserId(user.getId()).orElseThrow(
-                () -> new Exception400("customer", "잘못된 요청입니다"));
     }
 
     private CategoryResponse getCategory(String category) {
