@@ -74,9 +74,6 @@ public class BookmarkSymbolControllerTest {
         DummyEntity dummy = new DummyEntity();
         User user = dummy.newUser(email, "dotori");
         User userPS = userRepository.save(user);
-
-        User user1 = dummy.newMockUser(1L, "test@example.com", "tester");
-        User user1PS = userRepository.save(user1);
     }
 
     @DisplayName("북마크심볼 조회")
