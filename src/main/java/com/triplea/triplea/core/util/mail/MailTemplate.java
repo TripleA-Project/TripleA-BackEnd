@@ -58,7 +58,7 @@ public class MailTemplate {
         return "<tr>" +
                 "                    <td style='padding:20px 0'>" +
                 "                        <h1 style='font: 20px bold'>" + title + "</h1>" + contents +
-                "                        <a style='display: block; text-decoration: none; color: #fff; background-color: #FD954A; margin: 0; padding: 20px 10px; font: 14px bold; text-align: center;' href='" + link + "'>" + button + "</a>" +
+                "                        <a style='display: block; text-decoration: none; color: #fff; background-color: #FD954A; margin: 0; padding: 20px 10px; font-family: inherit; font: 14px bold; text-align: center;' href='" + link + "'>" + button + "</a>" +
                 "                    </td>" +
                 "                </tr>";
     }
