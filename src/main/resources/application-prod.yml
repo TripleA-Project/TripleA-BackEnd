@@ -6,6 +6,9 @@ server:
   port: 8081
 
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${HOST_NAME}:${MYSQL_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8
