@@ -26,6 +26,9 @@ public interface BookmarkSymbolRepository extends JpaRepository<BookmarkSymbol, 
     @Query("select bs from BookmarkSymbol bs where bs.symbolId=:id and bs.user=:user")
     Optional<BookmarkSymbol> findBySymbolIdAndUser(@Param("id") Long id, @Param("user") User user);
 
+    @Query("select count(bs) from BookmarkSymbol bs where bs.user=:user and bs.isDeleted=false")
+    Integer countAllByUser(@Param("user") User user);
+
     @Query(value = "SELECT s.symbol " +
             "FROM symbol_tb s " +
             "INNER JOIN bookmark_symbol_tb bs " +

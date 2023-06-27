@@ -3,13 +3,16 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.core.util.CheckMembership;
 import com.triplea.triplea.core.util.LogoUtil;
+import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.core.util.provide.symbol.MoyaSymbolProvider;
 import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.dto.symbol.SymbolRequest;
 import com.triplea.triplea.model.bookmark.BookmarkSymbol;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
+import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.symbol.Symbol;
 import com.triplea.triplea.model.symbol.SymbolRepository;
 import com.triplea.triplea.model.user.User;
@@ -37,6 +40,8 @@ public class BookmarkSymbolService {
     private final UserRepository userRepository;
     private final BookmarkSymbolRepository bookmarkSymbolRepository;
     private final SymbolRepository symbolRepository;
+    private final CustomerRepository customerRepository;
+    private final StepPaySubscriber subscriber;
     private final MoyaSymbolProvider moyaSymbolProvider;
 
     @Value("${moya.token}")
@@ -321,6 +326,12 @@ public class BookmarkSymbolService {
 
         Long symbolId = symbolInfo.getId();
         symbolRepository.findById(symbolId).orElse(symbolRepository.save(Symbol.builder().id(symbolId).symbol(symbolInfo.getSymbol()).build()));
+
+        User.Membership membership = CheckMembership.getMembership(userPS, customerRepository, subscriber);
+        if(membership == User.Membership.BASIC){
+            Integer count = bookmarkSymbolRepository.countAllByUser(userPS);
+            if(count >= 3) throw new Exception400("benefit", "혜택을 모두 소진했습니다");
+        }
         bookmarkSymbolRepository.findBySymbolIdAndUser(symbolId, userPS).ifPresentOrElse(bookmarkSymbol -> {
             if (!bookmarkSymbol.isDeleted()) throw new Exception400("symbol", "이미 관심 설정한 심볼입니다");
             bookmarkSymbol.bookmark();
