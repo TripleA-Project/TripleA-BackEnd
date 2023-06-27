@@ -1,6 +1,8 @@
 package com.triplea.triplea.service;
 
 import com.triplea.triplea.core.exception.Exception400;
+import com.triplea.triplea.core.util.CheckMembership;
+import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.dto.category.CategoryResponse;
 import com.triplea.triplea.model.bookmark.BookmarkCategory;
 import com.triplea.triplea.model.bookmark.BookmarkCategoryRepository;
@@ -8,6 +10,7 @@ import com.triplea.triplea.model.category.Category;
 import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
+import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,8 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final BookmarkCategoryRepository bookmarkCategoryRepository;
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
+    private final StepPaySubscriber subscriber;
     private String[] categories;
     private HashMap<String, String> hm = new HashMap<>();
 
@@ -665,6 +670,11 @@ public class CategoryService {
         MainCategory mainCategory = mainCategoryRepository.findById(id)
                 .orElseThrow(() -> new Exception400("Bad-Request", "해당 Category가 존재하지 않습니다."));
         BookmarkCategory bookmarkCategoryPS = bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(id, userId);
+        User.Membership membership = CheckMembership.getMembership(userPS, customerRepository, subscriber);
+        if(membership == User.Membership.BASIC){
+            Integer count = bookmarkCategoryRepository.countAllByUser(userPS);
+            if(count >= 3) throw new Exception400("benefit", "혜택을 모두 소진했습니다");
+        }
         if (bookmarkCategoryPS != null) { // bookmarkCategory가 이미 존재하는 지 체크
             if (!bookmarkCategoryPS.isDeleted()) { // 삭제되지 않은 category가 존재하다면 throw
                 throw new Exception400("Bad-Request", "해당 Category는 이미 등록되어 있습니다.");
