@@ -1,4 +1,4 @@
-package com.triplea.triplea.core.util;
+package com.triplea.triplea.core.util.mail;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

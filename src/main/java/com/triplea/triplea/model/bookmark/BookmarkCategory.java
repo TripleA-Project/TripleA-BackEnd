@@ -33,4 +33,8 @@ public class BookmarkCategory {
     public void deleteBookmark(){
         this.isDeleted = true;
     }
+
+    public void unDeleteBookmark(){
+        this.isDeleted = false;
+    }
 }

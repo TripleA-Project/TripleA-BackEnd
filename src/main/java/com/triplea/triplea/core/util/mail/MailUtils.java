@@ -1,4 +1,4 @@
-package com.triplea.triplea.core.util;
+package com.triplea.triplea.core.util.mail;
 
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
@@ -21,8 +21,30 @@ public class MailUtils {
         MailUtils.mailSender = mailSender;
     }
 
-    public void send(String to, String subject, String contents){
+    public enum MailType{
+        CODE, PASSWORD, JOIN
+    }
+
+    public void send(String to, MailType type, String contents){
         if(to.isEmpty()) return;
+
+        String subject;
+        switch (type) {
+            case CODE:
+                subject = "[Triple A] 이메일 인증을 진행해주세요.";
+                break;
+            case PASSWORD:
+                subject = "[Triple A] 새로운 비밀번호 발급";
+                break;
+            case JOIN:
+                subject = "[Triple A] 가입을 환영합니다.";
+                break;
+            default:
+                // 기본값 처리 또는 예외 상황에 대한 처리
+                subject = "[Triple A] 이메일 알림";
+                break;
+        }
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(message, false, "UTF-8");
