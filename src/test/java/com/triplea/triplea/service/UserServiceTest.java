@@ -5,7 +5,7 @@ import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.core.util.MailUtils;
+import com.triplea.triplea.core.util.mail.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;

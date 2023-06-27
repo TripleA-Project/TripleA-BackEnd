@@ -48,6 +48,9 @@ dependencies {
     // scheduled
     implementation 'org.springframework:spring-context'
 
+    // swagger
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.15'
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
