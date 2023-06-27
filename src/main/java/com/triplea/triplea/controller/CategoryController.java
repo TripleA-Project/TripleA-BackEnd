@@ -5,6 +5,7 @@ import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.category.CategoryResponse;
 import com.triplea.triplea.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -39,14 +40,14 @@ public class CategoryController {
     // 관심 카테고리 조회
     @Operation(summary = "관심 카테고리 조회")
     @GetMapping("/auth/category/like")
-    public ResponseEntity<?> getLikeCategories(@AuthenticationPrincipal MyUserDetails myUserDetails) {
+    public ResponseEntity<?> getLikeCategories(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         List<CategoryResponse> categories = categoryService.getLikeCategories(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
     @Operation(summary = "관심 카테고리 생성")
     @PostMapping("/auth/category/{id}")
-    public ResponseEntity<?> saveLikeCategory(@AuthenticationPrincipal MyUserDetails myUserDetails,
+    public ResponseEntity<?> saveLikeCategory(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails,
                                               @PathVariable String id) {
         categoryService.saveLikeCategory(myUserDetails.getUser().getId(), Long.valueOf(id));
         return ResponseEntity.ok().body(new ResponseDTO<>());

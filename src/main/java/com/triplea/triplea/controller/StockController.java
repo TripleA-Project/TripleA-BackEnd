@@ -5,6 +5,7 @@ import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.stock.StockResponse;
 import com.triplea.triplea.service.StockService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class StockController {
                                        @RequestParam(value = "startDate") String startDate,
                                        @RequestParam(value = "endDate") String endDate,
                                        @RequestParam(value = "resampleFreq") String resampleFreq,
-                                       @AuthenticationPrincipal MyUserDetails myUserDetails
+                                       @Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails
     ){
 
         StockResponse.StockInfoDTO stockInfoDTO = stockService.getChart(symbol, startDate, endDate, resampleFreq, myUserDetails.getUser());
