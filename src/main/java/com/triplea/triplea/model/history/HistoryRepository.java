@@ -6,12 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 public interface HistoryRepository extends JpaRepository<History, Long> {
-    @Query("select h.createdAt from History h where year (h.createdAt)=:year and month (h.createdAt)=:month and h.user=:user order by h.createdAt asc")
-    List<ZonedDateTime> findDateTimeByCreatedAtAndUser(@Param("year") int year, @Param("month") int month, @Param("user") User user);
+    @Query(value = "select DISTINCT DATE (h.created_at) from history_tb h where year (h.created_at)=:year and month (h.created_at)=:month and h.user_id=:user order by DATE(h.created_at) asc", nativeQuery = true)
+    List<Date> findDateTimeByCreatedAtAndUser(@Param("year") int year, @Param("month") int month, @Param("user") User user);
 
     @Query(value = "select * from history_tb h where DATE(h.created_at)=:date and h.user_id=:userId", nativeQuery = true)
     List<History> findByCreatedAtAndUser(@Param("date") LocalDate date, @Param("userId") Long userId);

@@ -48,10 +48,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -387,11 +384,10 @@ public class NewsService {
 
     // 히스토리 조회
     public List<NewsResponse.HistoryOut> getHistory(int year, int month, User user) {
-        List<ZonedDateTime> historyDateTimes = historyRepository.findDateTimeByCreatedAtAndUser(year, month, user);
+        List<Date> historyDateTimes = historyRepository.findDateTimeByCreatedAtAndUser(year, month, user);
 
-        return historyDateTimes.stream().map(dateTime -> {
-            LocalDate date = dateTime.toLocalDate();
-
+        return historyDateTimes.stream().map(historyDate -> {
+            LocalDate date = Instant.ofEpochMilli(historyDate.getTime()).atZone(Timestamped.SEOUL_ZONE_ID).toLocalDate();
             List<NewsResponse.HistoryOut.Bookmark.News> bookmarkNews = bookmarkNewsRepository.findByCreatedAtAndUser(date, user.getId())
                     .stream()
                     .map(bookmark -> NewsResponse.HistoryOut.Bookmark.News.builder()
