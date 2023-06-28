@@ -530,7 +530,7 @@ public class NewsService {
      */
     private BookmarkResponse.BookmarkDTO getBookmark(Long newsId, User user) {
         // 내가 북마크한 뉴스인지 여부
-        boolean isBookmark = user != null & bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsId, user.getId()).isPresent();
+        boolean isBookmark = user != null && bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsId, user.getId()).isPresent();
         // 총 북마크한 수
         int bookmarkCount = bookmarkNewsRepository.countBookmarkNewsByNewsId(newsId);
 
