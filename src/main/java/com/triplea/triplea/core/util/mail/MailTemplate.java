@@ -45,17 +45,16 @@ public class MailTemplate {
         String title = "이메일 인증해주세요.";
         String description = "인증번호 안내";
         String contents = "아래 인증번호를 인증번호 입력창에 입력해주세요.";
-        String link = URL + "";
         String button = "Triple A로 이동하기";
-        return getHtmlTop(description) + template(title, contents, code, true, link, button) + htmlBottom;
+        return getHtmlTop(description) + template(title, contents, code, true, URL, button) + htmlBottom;
     }
 
     public static String sendNewPasswordEmailTemplate(String password) {
         String title = "새로운 비밀번호가 발급되었습니다.";
         String description = "비밀번호 발급";
         String contents = "개인정보 수정에서 비밀번호를 변경해주세요.";
-        String link = URL + "";
-        String button = "Triple A로 이동하기";
+        String link = URL + "me/edit/password";
+        String button = "비밀번호 수정하기";
         return getHtmlTop(description) + template(title, contents, password, false, link, button) + htmlBottom;
     }
 
@@ -63,9 +62,8 @@ public class MailTemplate {
         String title = "가입을 환영합니다.";
         String description = "회원가입";
         String contents = "지금부터 이 계정으로 Triple A를 이용하실 수 있습니다.";
-        String link = URL + "";
         String button = "Triple A로 이동하기";
-        return getHtmlTop(description) + template(title, contents, email, false, link, button) + htmlBottom;
+        return getHtmlTop(description) + template(title, contents, email, false, URL, button) + htmlBottom;
     }
 
     private static String template(String title, String contents, String code, boolean isEmailVerify, String link, String button) {
