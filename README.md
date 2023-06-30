@@ -66,12 +66,13 @@
 
 ## 트러블 슈팅
 [WIKI 기술 이슈](https://github.com/TripleA-Project/TripleA-BackEnd/wiki/기술-이슈)
+
 <br/>
 
 ## Member
-| 포지션 | 이름  | 담당                                                                        | GitHub |
-| --- |-----|---------------------------------------------------------------------------| --- |
+| 포지션 | 이름  | 담당                                                                             | GitHub |
+| --- |-----|--------------------------------------------------------------------------------| --- |
 | `BE` `팀장` | 박주영 | - CI / CD<br/>- 회원가입 및 이메일 인증<br/>- 구독<br/>- 뉴스 조회 및 검색<br/>- 히스토리<br/>- 웹 크롤링 | https://github.com/ju-ei8ht |
-| `BE` | 임진묵 | - 뉴스 조회 및 검색<br/>- 심볼 조회 및 검색<br/>- 주식 차트                                 | https://github.com/zidanemook |
-| `BE` | 김우람 | - JWT 인증 / 인가<br/>-회원정보 수정<br/>-관심 카테고리 생성 및 삭제                           | https://github.com/ramloper |
-| `BE` | 예병창 | - 관심 심볼 생성 및 삭제                                                 | https://github.com/DW-RYU |
+| `BE` | 임진묵 | - 뉴스 조회 및 검색<br/>- 심볼 조회 및 검색<br/>- 주식 차트                                      | https://github.com/zidanemook |
+| `BE` | 김우람 | - JWT 인증 / 인가<br/>- 회원정보 수정<br/>- 관심 카테고리 생성 및 삭제                              | https://github.com/ramloper |
+| `BE` | 예병창 | - 관심 심볼 생성 및 삭제                                                                | https://github.com/DW-RYU |
