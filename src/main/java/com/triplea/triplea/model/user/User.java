@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Table(name = "user_tb")
 public class User extends Timestamped {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -65,13 +65,30 @@ public class User extends Timestamped {
         this.profile = profile;
     }
 
+
+    @Builder
+    public User(String email, String password, String fullName, boolean newsLetter, boolean emailVerified, String userAgent, String clientIP, String profile) {
+        this.email = email;
+        this.password = password;
+        this.fullName = fullName;
+        this.newsLetter = newsLetter;
+        this.isEmailVerified = emailVerified;
+        this.isActive = true;
+        this.membership = Membership.BASIC;
+        this.userAgent = userAgent;
+        this.clientIP = clientIP;
+        this.profile = profile;
+    }
+
     public void updatePassword(String password) {
         this.password = password;
     }
-    public void updateFullName(String fullName){
+
+    public void updateFullName(String fullName) {
         this.fullName = fullName;
     }
-    public void updateNewsLetter(boolean newsLetter){
+
+    public void updateNewsLetter(boolean newsLetter) {
         this.newsLetter = newsLetter;
     }
 
