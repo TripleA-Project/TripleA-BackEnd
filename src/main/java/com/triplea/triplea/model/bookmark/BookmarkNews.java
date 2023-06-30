@@ -1,19 +1,18 @@
 package com.triplea.triplea.model.bookmark;
 
+import com.querydsl.core.annotations.QueryEntity;
 import com.triplea.triplea.core.util.timestamp.CreatedTimestamped;
 import com.triplea.triplea.model.user.User;
 import lombok.*;
 
 import javax.persistence.*;
 
-@Builder
-@Setter
+@Setter @QueryEntity
 @Getter @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Table(name = "bookmark_news_tb")
 public class BookmarkNews extends CreatedTimestamped {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,6 +25,13 @@ public class BookmarkNews extends CreatedTimestamped {
     @Column(nullable = false)
     private boolean isDeleted;
 
+    @Builder
+    public BookmarkNews(Long id, User user, Long newsId, boolean isDeleted) {
+        this.id = id;
+        this.user = user;
+        this.newsId = newsId;
+        this.isDeleted = isDeleted;
+    }
 
     public BookmarkNews(User user, Long newsId) {
         this.user = user;
