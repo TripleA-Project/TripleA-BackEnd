@@ -5,8 +5,8 @@ import com.triplea.triplea.core.dummy.DummyEntity;
 import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception404;
 import com.triplea.triplea.core.exception.Exception500;
-import com.triplea.triplea.core.util.mail.MailUtils;
 import com.triplea.triplea.core.util.StepPaySubscriber;
+import com.triplea.triplea.core.util.mail.MailUtils;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.customer.Customer;
@@ -55,6 +55,9 @@ class UserServiceTest extends DummyEntity {
     @Mock
     private MyJwtProvider myJwtProvider;
 
+    @Mock
+    private RedisService redisService;
+
     private final User user = newMockUser(1L, "test@example.com", "tester");
 
     @Nested
@@ -102,7 +105,7 @@ class UserServiceTest extends DummyEntity {
 
         @Test
         @DisplayName("실패2: 인증키 일치하지 않음")
-        void test3(){
+        void test3() {
             //given
             String key = "key";
             UserRequest.Join join = UserRequest.Join.builder()
@@ -139,7 +142,7 @@ class UserServiceTest extends DummyEntity {
 
         @Test
         @DisplayName("실패: 이미 있는 이메일")
-        void test2(){
+        void test2() {
             //given
             UserRequest.EmailSend emailSend = new UserRequest.EmailSend(user.getEmail());
             //when
@@ -389,7 +392,7 @@ class UserServiceTest extends DummyEntity {
 
         @Test
         @DisplayName("실패2: 구독 중이 아님")
-        void test3(){
+        void test3() {
             //given
             //when
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
@@ -523,7 +526,7 @@ class UserServiceTest extends DummyEntity {
             Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
         }
     }
-      
+
     @Nested
     @DisplayName("개인정보 조회")
     class UserDetail {
@@ -643,10 +646,10 @@ class UserServiceTest extends DummyEntity {
 
     @Nested
     @DisplayName("새 비밀번호 발급")
-    class NewsPassword{
+    class NewsPassword {
         @Test
         @DisplayName("성공")
-        void test1(){
+        void test1() {
             //given
             UserRequest.NewPassword request = UserRequest.NewPassword.builder()
                     .email(user.getEmail())
@@ -660,7 +663,7 @@ class UserServiceTest extends DummyEntity {
 
         @Test
         @DisplayName("실패1: 계정 없음")
-        void test2(){
+        void test2() {
             //given
             UserRequest.NewPassword request = UserRequest.NewPassword.builder()
                     .email(user.getEmail())
@@ -674,7 +677,7 @@ class UserServiceTest extends DummyEntity {
 
         @Test
         @DisplayName("실패2: 탈퇴한 계정")
-        void test3(){
+        void test3() {
             //given
             user.deactivateAccount();
             UserRequest.NewPassword request = UserRequest.NewPassword.builder()
@@ -685,6 +688,66 @@ class UserServiceTest extends DummyEntity {
             when(userRepository.findUserByEmailAndName(anyString(), anyString())).thenReturn(Optional.of(user));
             //then
             Assertions.assertThrows(Exception400.class, () -> userService.newPassword(request));
+        }
+    }
+
+    @Nested
+    @DisplayName("로그인")
+    class Login {
+        @Test
+        @DisplayName("성공")
+        void test1() {
+            //given
+            UserRequest.login login = UserRequest.login.builder().email("test@example.com").password("Abcdefg123!@#").build();
+
+            String secretKey = "IyRQvqcFu4I3zWZS"; // 사용하고자하는 비밀 키
+
+            // MyJwtProvider의 SECRET 필드를 설정
+            ReflectionTestUtils.setField(myJwtProvider, "SECRET", secretKey);
+
+            //when
+            when(userRepository.findUserByEmail(any())).thenReturn(Optional.ofNullable(user));
+            when(passwordEncoder.matches(any(), any())).thenReturn(true);
+
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.login(login, user.getUserAgent(), user.getClientIP()));
+        }
+
+        @Test
+        @DisplayName("실패1: 계정없음")
+        void test2() {
+            //given
+            UserRequest.login login = UserRequest.login.builder().email("test@example.com").password("Abcdefg123!@#").build();
+
+            String secretKey = "IyRQvqcFu4I3zWZS"; // 사용하고자하는 비밀 키
+
+            // MyJwtProvider의 SECRET 필드를 설정
+            ReflectionTestUtils.setField(myJwtProvider, "SECRET", secretKey);
+
+            //when
+            when(userRepository.findUserByEmail(any())).thenReturn(Optional.empty());
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.login(login, user.getUserAgent(), user.getClientIP()));
+        }
+
+        @Test
+        @DisplayName("실패2: 비밀번호 불일치")
+        void test3() {
+            //given
+            UserRequest.login login = UserRequest.login.builder().email("test@example.com").password("Abcdefg123!@#").build();
+
+            String secretKey = "IyRQvqcFu4I3zWZS"; // 사용하고자하는 비밀 키
+
+            // MyJwtProvider의 SECRET 필드를 설정
+            ReflectionTestUtils.setField(myJwtProvider, "SECRET", secretKey);
+
+            //when
+            when(userRepository.findUserByEmail(any())).thenReturn(Optional.ofNullable(user));
+            when(passwordEncoder.matches(any(), any())).thenReturn(false);
+
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.login(login, user.getUserAgent(), user.getClientIP()));
         }
     }
 }
