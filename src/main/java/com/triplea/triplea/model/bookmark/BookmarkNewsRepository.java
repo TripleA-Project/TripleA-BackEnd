@@ -18,7 +18,4 @@ public interface BookmarkNewsRepository extends JpaRepository<BookmarkNews, Long
     @Query("select count(bn) from BookmarkNews bn where bn.isDeleted=false and bn.newsId=:newsId and bn.user.isActive=true")
     Integer countBookmarkNewsByNewsId(@Param("newsId") Long newsId);
 
-//    @Query(value = "select * from bookmark_news_tb bn where DATE(bn.created_at)=:date and bn.user_id=:userId", nativeQuery = true)
-//    List<BookmarkNews> findByCreatedAtAndUser(@Param("date")LocalDate date, @Param("userId") Long userId);
-
 }
