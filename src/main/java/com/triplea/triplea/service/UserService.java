@@ -96,7 +96,7 @@ public class UserService {
             throw new Exception500("User 생성 실패: " + e.getMessage());
         }
         redisTemplate.delete(key);
-        String html = MailTemplate.sendJoinTemplate();
+        String html = MailTemplate.sendJoinTemplate(join.getEmail());
         mailUtils.send(join.getEmail(), MailUtils.MailType.JOIN, html);
     }
 
