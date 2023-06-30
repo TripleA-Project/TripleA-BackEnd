@@ -5,13 +5,11 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Builder
 @Getter @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Table(name = "bookmark_symbol_tb")
 public class BookmarkSymbol {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -23,6 +21,14 @@ public class BookmarkSymbol {
 
     @Column(nullable = false)
     private boolean isDeleted;
+
+    @Builder
+    public BookmarkSymbol(Long id, User user, Long symbolId, boolean isDeleted) {
+        this.id = id;
+        this.user = user;
+        this.symbolId = symbolId;
+        this.isDeleted = isDeleted;
+    }
 
     public void deleteBookmark(){
         this.isDeleted = true;

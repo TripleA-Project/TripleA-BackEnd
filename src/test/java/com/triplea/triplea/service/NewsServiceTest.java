@@ -18,6 +18,7 @@ import com.triplea.triplea.dto.news.NewsResponse;
 import com.triplea.triplea.dto.stock.StockRequest;
 import com.triplea.triplea.dto.stock.StockResponse;
 import com.triplea.triplea.dto.symbol.SymbolRequest;
+import com.triplea.triplea.model.bookmark.BookmarkNewsQuerydslRepository;
 import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.category.Category;
 import com.triplea.triplea.model.category.CategoryRepository;
@@ -26,6 +27,7 @@ import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.history.History;
+import com.triplea.triplea.model.history.HistoryQuerydslRepository;
 import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
@@ -41,7 +43,10 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -54,6 +59,8 @@ class NewsServiceTest extends DummyEntity {
     @Mock
     BookmarkNewsRepository bookmarkNewsRepository;
     @Mock
+    BookmarkNewsQuerydslRepository bookmarkNewsQuerydslRepository;
+    @Mock
     MainCategoryRepository mainCategoryRepository;
     @Mock
     CategoryRepository categoryRepository;
@@ -63,6 +70,8 @@ class NewsServiceTest extends DummyEntity {
     CustomerRepository customerRepository;
     @Mock
     HistoryRepository historyRepository;
+    @Mock
+    HistoryQuerydslRepository historyQuerydslRepository;
     @Mock
     MoyaNewsProvider newsProvider;
     @Mock
@@ -494,7 +503,7 @@ class NewsServiceTest extends DummyEntity {
                         .content("내용")
                         .build();
                 when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-                when(historyRepository.existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong())).thenReturn(true);
+                when(historyQuerydslRepository.existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong())).thenReturn(true);
                 when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
                 when(newsProvider.getNewsDetails(any(Response.class))).thenReturn(data);
                 when(mainCategoryRepository.findMainCategoryBySubCategory(anyString())).thenReturn(Optional.of(mainCategory));
@@ -508,7 +517,7 @@ class NewsServiceTest extends DummyEntity {
                 NewsResponse.Details result = newsService.getNewsDetails(id, user);
                 //then
                 verify(userRepository, times(1)).findById(anyLong());
-                verify(historyRepository, times(1)).existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong());
+                verify(historyQuerydslRepository, times(1)).existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong());
                 verify(newsProvider, times(1)).getNewsById(anyLong());
                 verify(newsProvider, times(1)).getNewsDetails(any());
                 verify(mainCategoryRepository, times(1)).findMainCategoryBySubCategory(anyString());
@@ -581,7 +590,7 @@ class NewsServiceTest extends DummyEntity {
                 String title = "제목";
                 List<Long> newsId = List.of(2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L);
                 when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-                when(historyRepository.existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong())).thenReturn(true);
+                when(historyQuerydslRepository.existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong())).thenReturn(true);
                 when(newsProvider.getNewsById(anyLong())).thenReturn(newsResponse);
                 when(newsProvider.getNewsDetails(any(Response.class))).thenReturn(data);
                 when(mainCategoryRepository.findMainCategoryBySubCategory(anyString())).thenReturn(Optional.of(mainCategory));
@@ -595,7 +604,7 @@ class NewsServiceTest extends DummyEntity {
                 NewsResponse.Details result = newsService.getNewsDetails(id, user);
                 //then
                 verify(userRepository, times(1)).findById(anyLong());
-                verify(historyRepository, times(1)).existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong());
+                verify(historyQuerydslRepository, times(1)).existsByCreatedAtAndUserAndNewsId(any(), any(User.class), anyLong());
                 verify(newsProvider, times(1)).getNewsById(anyLong());
                 verify(newsProvider, times(1)).getNewsDetails(any());
                 verify(mainCategoryRepository, times(1)).findMainCategoryBySubCategory(anyString());
@@ -702,21 +711,21 @@ class NewsServiceTest extends DummyEntity {
             int year = 2023;
             int month = 6;
             //when
-            List<Date> dateTimes = List.of(new Date());
+            List<LocalDate> dates = List.of(LocalDate.now());
             History history = History.builder()
                     .id(1L)
                     .user(user)
                     .newsId(newsId)
                     .build();
             List<History> histories = List.of(history);
-            when(historyRepository.findDateTimeByCreatedAtAndUser(anyInt(), anyInt(), any(User.class))).thenReturn(dateTimes);
-            when(bookmarkNewsRepository.findByCreatedAtAndUser(any(), anyLong())).thenReturn(Collections.emptyList());
-            when(historyRepository.findByCreatedAtAndUser(any(), anyLong())).thenReturn(histories);
+            when(historyQuerydslRepository.findDateByCreatedAtAndUser(anyInt(), anyInt(), any(User.class))).thenReturn(dates);
+            when(bookmarkNewsQuerydslRepository.findByCreatedAtAndUser(any(), anyLong())).thenReturn(Collections.emptyList());
+            when(historyQuerydslRepository.findByCreatedAtAndUser(any(), anyLong())).thenReturn(histories);
             List<NewsResponse.HistoryOut> result = newsService.getHistory(year, month, user);
             //then
-            verify(historyRepository, times(1)).findDateTimeByCreatedAtAndUser(anyInt(), anyInt(), any(User.class));
-            verify(bookmarkNewsRepository, times(1)).findByCreatedAtAndUser(any(), anyLong());
-            verify(historyRepository, times(1)).findByCreatedAtAndUser(any(), anyLong());
+            verify(historyQuerydslRepository, times(1)).findDateByCreatedAtAndUser(anyInt(), anyInt(), any(User.class));
+            verify(bookmarkNewsQuerydslRepository, times(1)).findByCreatedAtAndUser(any(), anyLong());
+            verify(historyQuerydslRepository, times(1)).findByCreatedAtAndUser(any(), anyLong());
             Assertions.assertEquals(1, result.size());
             Assertions.assertEquals(0, result.get(0).getBookmark().getCount());
             Assertions.assertTrue(result.get(0).getBookmark().getNews().isEmpty());

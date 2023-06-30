@@ -24,12 +24,14 @@ import com.triplea.triplea.dto.symbol.SymbolRequest;
 import com.triplea.triplea.dto.symbol.SymbolResponse;
 import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.bookmark.BookmarkNews;
+import com.triplea.triplea.model.bookmark.BookmarkNewsQuerydslRepository;
 import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
 import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.history.History;
+import com.triplea.triplea.model.history.HistoryQuerydslRepository;
 import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
@@ -64,11 +66,13 @@ import static com.triplea.triplea.dto.news.NewsResponse.NewsDTO;
 public class NewsService {
 
     private final BookmarkNewsRepository bookmarkNewsRepository;
+    private final BookmarkNewsQuerydslRepository bookmarkNewsQuerydslRepository;
     private final MainCategoryRepository mainCategoryRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final HistoryRepository historyRepository;
+    private final HistoryQuerydslRepository historyQuerydslRepository;
     private final MoyaNewsProvider newsProvider;
     private final MoyaSymbolProvider moyaSymbolProvider;
     private final TiingoSymbolProvider tiingoSymbolProvider;
@@ -384,11 +388,9 @@ public class NewsService {
 
     // 히스토리 조회
     public List<NewsResponse.HistoryOut> getHistory(int year, int month, User user) {
-        List<Date> historyDateTimes = historyRepository.findDateTimeByCreatedAtAndUser(year, month, user);
-
-        return historyDateTimes.stream().map(historyDate -> {
-            LocalDate date = Instant.ofEpochMilli(historyDate.getTime()).atZone(Timestamped.SEOUL_ZONE_ID).toLocalDate();
-            List<NewsResponse.HistoryOut.Bookmark.News> bookmarkNews = bookmarkNewsRepository.findByCreatedAtAndUser(date, user.getId())
+        List<LocalDate> historyDateTimes = historyQuerydslRepository.findDateByCreatedAtAndUser(year, month, user);
+        return historyDateTimes.stream().map(date -> {
+            List<NewsResponse.HistoryOut.Bookmark.News> bookmarkNews = bookmarkNewsQuerydslRepository.findByCreatedAtAndUser(date, user.getId())
                     .stream()
                     .map(bookmark -> NewsResponse.HistoryOut.Bookmark.News.builder()
                             .id(bookmark.getNewsId())
@@ -396,7 +398,7 @@ public class NewsService {
                             .build())
                     .collect(Collectors.toList());
 
-            List<NewsResponse.HistoryOut.History.News> historyNews = historyRepository.findByCreatedAtAndUser(date, user.getId())
+            List<NewsResponse.HistoryOut.History.News> historyNews = historyQuerydslRepository.findByCreatedAtAndUser(date, user.getId())
                     .stream()
                     .map(history -> new NewsResponse.HistoryOut.History.News(history.getNewsId()))
                     .collect(Collectors.toList());
@@ -457,7 +459,7 @@ public class NewsService {
     private void saveHistory(User user, Long newsId) {
         // 같은 날엔 뉴스당 한 번의 히스토리 내역만 저장
         ZonedDateTime today = ZonedDateTime.now(Timestamped.SEOUL_ZONE_ID);
-        boolean historyExists = historyRepository.existsByCreatedAtAndUserAndNewsId(today.toLocalDate(), user, newsId);
+        boolean historyExists = historyQuerydslRepository.existsByCreatedAtAndUserAndNewsId(today.toLocalDate(), user, newsId);
         try {
             if (!historyExists){
                 History history = History.builder().user(user).newsId(newsId).build();
