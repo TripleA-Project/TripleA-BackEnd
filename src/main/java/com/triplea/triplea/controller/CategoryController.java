@@ -42,7 +42,7 @@ public class CategoryController {
     @GetMapping("/auth/category/like")
     public ResponseEntity<?> getLikeCategories(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         List<CategoryResponse> categories = categoryService.getLikeCategories(myUserDetails.getUser());
-        return ResponseEntity.ok().body(new ResponseDTO<>());
+        return ResponseEntity.ok().body(new ResponseDTO<>(categories));
     }
 
     @Operation(summary = "관심 카테고리 생성")
