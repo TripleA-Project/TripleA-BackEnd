@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface BookmarkCategoryRepository extends JpaRepository<BookmarkCategory, Long> {
-    @Query("select bc from BookmarkCategory bc where bc.user.id=:userId and bc.isDeleted=false")
+    @Query("select bc from BookmarkCategory bc join fetch bc.mainCategory mc where bc.user.id=:userId and bc.isDeleted=false")
     List<BookmarkCategory> findBookmarkCategoriesByUser(@Param("userId") Long userId);
 
     @Query("select bc from BookmarkCategory bc where bc.mainCategory.id = :categoryId and bc.user.id = :userId")
