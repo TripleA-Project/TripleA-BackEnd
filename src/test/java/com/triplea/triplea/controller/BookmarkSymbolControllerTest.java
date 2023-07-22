@@ -9,8 +9,6 @@ import com.triplea.triplea.dto.bookmark.BookmarkResponse;
 import com.triplea.triplea.dto.news.ApiResponse;
 import com.triplea.triplea.model.bookmark.BookmarkSymbol;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
-import com.triplea.triplea.model.symbol.Symbol;
-import com.triplea.triplea.model.symbol.SymbolRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import com.triplea.triplea.service.BookmarkSymbolService;
@@ -37,7 +35,8 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @DisplayName("북마크심볼 API")
 //@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
@@ -58,16 +57,12 @@ public class BookmarkSymbolControllerTest {
     private BookmarkSymbolRepository bookmarkSymbolRepository;
 
     @Autowired
-    private SymbolRepository symbolRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
     @BeforeEach
     public void setup() {
 
         bookmarkSymbolRepository.deleteAll();
-        symbolRepository.deleteAll();
         userRepository.deleteAll();
 
         String email = "dotori@nate.com";
@@ -91,31 +86,28 @@ public class BookmarkSymbolControllerTest {
         User kiwi = dummy.newUser("kiwi@nate.com", "kiwi");
         User kiwiPS = userRepository.save(potato);
 
-        Symbol symbol = new Symbol(0L, "AA");//3
-        Symbol symbol2 = new Symbol(0L, "BB");//2
-        Symbol symbol3 = new Symbol(0L, "CC");//1
-        Symbol symbolPS = symbolRepository.save(symbol);
-        Symbol symbol2PS = symbolRepository.save(symbol2);
-        Symbol symbol3PS = symbolRepository.save(symbol3);
+        String symbol = "AA";//3
+        String symbol2 = "BB";//2
+        String symbol3 = "CC";//1
 
         //dotori
         BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder()
                 .user(dotoriPS.get())
-                .symbolId(symbolPS.getId())
+                .symbol(symbol)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol);
 
         BookmarkSymbol bookmarkSymbol2 = BookmarkSymbol.builder()
                 .user(dotoriPS.get())
-                .symbolId(symbol2PS.getId())
+                .symbol(symbol2)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol2);
 
         BookmarkSymbol bookmarkSymbol3 = BookmarkSymbol.builder()
                 .user(dotoriPS.get())
-                .symbolId(symbol3PS.getId())
+                .symbol(symbol3)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol3);
@@ -123,14 +115,14 @@ public class BookmarkSymbolControllerTest {
         //potato
         BookmarkSymbol bookmarkSymbol4 = BookmarkSymbol.builder()
                 .user(potatoPS)
-                .symbolId(symbolPS.getId())
+                .symbol(symbol)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol4);
 
         BookmarkSymbol bookmarkSymbol5 = BookmarkSymbol.builder()
                 .user(potatoPS)
-                .symbolId(symbol2PS.getId())
+                .symbol(symbol2)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol5);
@@ -138,7 +130,7 @@ public class BookmarkSymbolControllerTest {
         //kiwi
         BookmarkSymbol bookmarkSymbol6 = BookmarkSymbol.builder()
                 .user(kiwiPS)
-                .symbolId(symbolPS.getId())
+                .symbol(symbol)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol6);
@@ -205,31 +197,28 @@ public class BookmarkSymbolControllerTest {
 
         Optional<User> dotoriPS = userRepository.findUserByEmail("dotori@nate.com");
 
-        Symbol symbol = new Symbol(0L, "AA");//3
-        Symbol symbol2 = new Symbol(0L, "BB");//2
-        Symbol symbol3 = new Symbol(0L, "CC");//1
-        Symbol symbolPS = symbolRepository.save(symbol);
-        Symbol symbol2PS = symbolRepository.save(symbol2);
-        Symbol symbol3PS = symbolRepository.save(symbol3);
+        String symbol = "AA";//3
+        String symbol2 = "BB";//2
+        String symbol3 = "CC";//1
 
         //dotori
         BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder()
                 .user(dotoriPS.get())
-                .symbolId(symbolPS.getId())
+                .symbol(symbol)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol);
 
         BookmarkSymbol bookmarkSymbol2 = BookmarkSymbol.builder()
                 .user(dotoriPS.get())
-                .symbolId(symbol2PS.getId())
+                .symbol(symbol2)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol2);
 
         BookmarkSymbol bookmarkSymbol3 = BookmarkSymbol.builder()
                 .user(dotoriPS.get())
-                .symbolId(symbol3PS.getId())
+                .symbol(symbol3)
                 .isDeleted(false)
                 .build();
         bookmarkSymbolRepository.save(bookmarkSymbol3);
@@ -316,7 +305,7 @@ public class BookmarkSymbolControllerTest {
         DummyEntity dummy = new DummyEntity();
         User tester = dummy.newMockUser(1L, "test1@example.com", "tester");
         User testerPS = userRepository.save(tester);
-        BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder().id(1L).symbolId(1L).isDeleted(false).user(testerPS).build();
+        BookmarkSymbol bookmarkSymbol = BookmarkSymbol.builder().id(1L).symbol("AA").isDeleted(false).user(testerPS).build();
         bookmarkSymbolRepository.save(bookmarkSymbol);
 
         //given
