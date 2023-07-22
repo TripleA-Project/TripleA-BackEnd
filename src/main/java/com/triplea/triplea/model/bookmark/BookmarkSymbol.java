@@ -17,16 +17,16 @@ public class BookmarkSymbol {
     private User user;
 
     @Column(nullable = false)
-    private Long symbolId;
+    private String symbol;
 
     @Column(nullable = false)
     private boolean isDeleted;
 
     @Builder
-    public BookmarkSymbol(Long id, User user, Long symbolId, boolean isDeleted) {
+    public BookmarkSymbol(Long id, User user, String symbol, boolean isDeleted) {
         this.id = id;
         this.user = user;
-        this.symbolId = symbolId;
+        this.symbol = symbol;
         this.isDeleted = isDeleted;
     }
 
