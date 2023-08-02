@@ -188,11 +188,11 @@ public class BookmarkSymbolService {
 
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOList = new ArrayList<>();
 
-        List<String> symbolList = bookmarkSymbolRepository.findNonDeletedSymbolByUserId(user.getId());
+        List<BookmarkSymbol> symbolList = bookmarkSymbolRepository.findNonDeletedSymbolByUserId(user.getId());
 
-        for (String symbol : symbolList) {
+        for (BookmarkSymbol symbol : symbolList) {
 
-            String search = symbol;
+            String search = symbol.getSymbol();
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
                     .queryParam("token", moyaToken)
@@ -265,7 +265,7 @@ public class BookmarkSymbolService {
                         }
                         String symbolcopy = dto.getSymbol();
                         if (symbolcopy == null)
-                            symbolcopy = symbol;
+                            symbolcopy = search;
 
                         String companyName = dto.getCompanyName();
                         if (companyName == null) {
@@ -292,7 +292,7 @@ public class BookmarkSymbolService {
                         }
 
                         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
-                                dto.getId(),
+                                symbol.getId(),
                                 dto.getSymbol(),
                                 dto.getCompanyName(),
                                 dto.getSector(),
@@ -327,12 +327,13 @@ public class BookmarkSymbolService {
             Integer count = bookmarkSymbolRepository.countAllByUser(userPS);
             if (count >= 3) throw new Exception400("benefit", "혜택을 모두 소진했습니다");
         }
-        bookmarkSymbolRepository.findBySymbolAndUser(symbol, userPS).ifPresentOrElse(bookmarkSymbol -> {
+        String finalSymbol = symbolInfo.getSymbol();
+        bookmarkSymbolRepository.findBySymbolAndUser(finalSymbol, userPS).ifPresentOrElse(bookmarkSymbol -> {
             if (!bookmarkSymbol.isDeleted()) throw new Exception400("symbol", "이미 관심 설정한 심볼입니다");
             bookmarkSymbol.bookmark();
         }, () -> bookmarkSymbolRepository.save(BookmarkSymbol.builder()
                 .user(userPS)
-                .symbol(symbol)
+                .symbol(finalSymbol)
                 .build()));
     }
 
