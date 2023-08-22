@@ -244,7 +244,7 @@ public class UserService {
         bookmarkSymbolRepository.findAllByUser(user).ifPresent(bookmarkSymbolRepository::deleteAll);
         historyRepository.findAllByUser(user).ifPresent(historyRepository::deleteAll);
 
-        userRepository.findAllByEmail(user.getEmail()).ifPresent(userRepository::delete);
+        userRepository.delete(user);
     }
 
     // 새 비밀번호 발급

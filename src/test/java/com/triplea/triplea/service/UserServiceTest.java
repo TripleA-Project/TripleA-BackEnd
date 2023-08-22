@@ -9,8 +9,12 @@ import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.core.util.mail.MailUtils;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
+import com.triplea.triplea.model.bookmark.BookmarkCategoryRepository;
+import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
+import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
+import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import okhttp3.*;
@@ -25,6 +29,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +45,14 @@ class UserServiceTest extends DummyEntity {
     private UserRepository userRepository;
     @Mock
     private CustomerRepository customerRepository;
+    @Mock
+    private BookmarkCategoryRepository bookmarkCategoryRepository;
+    @Mock
+    private BookmarkNewsRepository bookmarkNewsRepository;
+    @Mock
+    private BookmarkSymbolRepository bookmarkSymbolRepository;
+    @Mock
+    private HistoryRepository historyRepository;
 
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
@@ -484,12 +497,22 @@ class UserServiceTest extends DummyEntity {
             //given
             //when
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.empty());
+            when(bookmarkCategoryRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+            when(bookmarkNewsRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+            when(bookmarkSymbolRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+            when(historyRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
             userService.deactivateAccount(user);
             //then
             verify(userRepository, times(1)).findById(anyLong());
-            verify(customerRepository, times(0)).findCustomerByUserId(anyLong());
+            verify(customerRepository, times(1)).findCustomerByUserId(anyLong());
             verify(subscriber, times(0)).isSubscribe(anyLong());
             verify(subscriber, times(0)).cancelSubscription(anyLong());
+            verify(bookmarkCategoryRepository, times(0)).deleteAll();
+            verify(bookmarkNewsRepository, times(0)).deleteAll();
+            verify(bookmarkSymbolRepository, times(0)).deleteAll();
+            verify(historyRepository, times(0)).deleteAll();
+            verify(userRepository, times(1)).delete(user);
             Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
         }
 
@@ -517,12 +540,21 @@ class UserServiceTest extends DummyEntity {
             when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
             when(subscriber.isSubscribe(anyLong())).thenReturn(true);
             when(subscriber.cancelSubscription(anyLong())).thenReturn(response);
+            when(bookmarkCategoryRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+            when(bookmarkNewsRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+            when(bookmarkSymbolRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+            when(historyRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
             userService.deactivateAccount(user);
             //then
             verify(userRepository, times(1)).findById(anyLong());
-            verify(customerRepository, times(1)).findCustomerByUserId(anyLong());
+            verify(customerRepository, times(2)).findCustomerByUserId(anyLong());
             verify(subscriber, times(1)).isSubscribe(anyLong());
             verify(subscriber, times(1)).cancelSubscription(anyLong());
+            verify(bookmarkCategoryRepository, times(0)).deleteAll();
+            verify(bookmarkNewsRepository, times(0)).deleteAll();
+            verify(bookmarkSymbolRepository, times(0)).deleteAll();
+            verify(historyRepository, times(0)).deleteAll();
+            verify(userRepository, times(1)).delete(user);
             Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
         }
     }
