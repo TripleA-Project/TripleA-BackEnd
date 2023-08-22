@@ -17,7 +17,7 @@ public class MailTemplate {
                 "                <tr>" +
                 "                    <td style='border-bottom:2px solid #FF9243; padding: 20px 0; width: 100%; font-size: 0;'>" +
                 "                        <div style='display: inline-block; width: 40%; vertical-align: middle; margin:0; padding:0;'>" +
-                "                            <img src='https://imagedelivery.net/gDNaP20ZP5HjgdRwMYWErw/6d3b0669-12af-4f5a-ae1c-646535aa4a00/public' width='24.25' height='21' style='display:inline-block;vertical-align:middle;outline:none;border:none;text-decoration:none;font-size:0;'/>" +
+                "                            <img src='https://stock.moya.ai/logo.png' width='24.25' height='21' style='display:inline-block;vertical-align:middle;outline:none;border:none;text-decoration:none;font-size:0;'/>" +
                 "                            <p style='display:inline-block; vertical-align: middle; font:14px bold; margin:0; padding:0;'>Triple A</p>" +
                 "                        </div>" +
                 "                        <p style='display: inline-block; vertical-align: middle; font-size: 14px; width: 59%; text-align: right; margin:0; padding:0;'>" + description + "</p>" +
@@ -53,7 +53,7 @@ public class MailTemplate {
         String title = "새로운 비밀번호가 발급되었습니다.";
         String description = "비밀번호 발급";
         String contents = "개인정보 수정에서 비밀번호를 변경해주세요.";
-        String link = URL + "me/edit/password";
+        String link = URL + "mypage/edit/password";
         String button = "비밀번호 수정하기";
         return getHtmlTop(description) + template(title, contents, password, false, link, button) + htmlBottom;
     }

@@ -31,4 +31,7 @@ public interface BookmarkSymbolRepository extends JpaRepository<BookmarkSymbol, 
 
     @Query("select bs from BookmarkSymbol bs where bs.user.id=:userId and bs.isDeleted=false")
     List<BookmarkSymbol> findNonDeletedSymbolByUserId(@Param("userId") Long userId);
+
+    @Query("select bs from BookmarkSymbol bs where bs.user=:user")
+    Optional<List<BookmarkSymbol>> findAllByUser(@Param("user") User user);
 }
