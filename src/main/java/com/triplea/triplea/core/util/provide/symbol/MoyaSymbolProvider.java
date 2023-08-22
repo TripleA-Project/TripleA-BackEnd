@@ -1,7 +1,6 @@
 package com.triplea.triplea.core.util.provide.symbol;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.triplea.triplea.core.exception.Exception400;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.dto.symbol.SymbolRequest;
 import okhttp3.HttpUrl;
@@ -64,8 +63,8 @@ public class MoyaSymbolProvider extends SymbolProvider {
                             .marketType(rootNode.path("marketType").asText(null))
                             .build();
                 }
-            }
-            throw new Exception400("symbol", "심볼을 찾을 수 없습니다");
+            }else return null;
+//            throw new Exception400("symbol", "심볼을 찾을 수 없습니다");
         }
         throw new Exception500("MoYa 심볼 조회 API 실패");
     }
