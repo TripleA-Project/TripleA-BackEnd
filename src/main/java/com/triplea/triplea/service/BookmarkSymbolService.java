@@ -77,106 +77,98 @@ public class BookmarkSymbolService {
 
             ApiResponse.BookmarkSymbolDTO[] dtos = response.getBody();
 
-            if (dtos == null)
-                continue;
+            if (dtos != null) {
+                for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
 
-            for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
-
-                if (dto == null)
-                    continue;
-
-                //symbol 글자 완전 일치하는것만 가져온다
-                if (dto.getSymbol().equals(search.toUpperCase())) {
-
-                    LocalDate today = LocalDate.now();
-                    LocalDate twoWeeksAgo = today.minusWeeks(2);
-
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d");
-
-                    String todayStr = today.format(formatter);
-                    String twoWeeksAgoStr = twoWeeksAgo.format(formatter);
-
-                    String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>/prices";
-                    tiingoUrl = tiingoUrl.replace("<ticker>", search);
-                    builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
-                            .queryParam("token", tiingoToken)
-                            .queryParam("startDate", twoWeeksAgoStr)
-                            .queryParam("endDate", todayStr)
-                            .queryParam("sort", "-date");
-
-                    url = builder.toUriString();
-
-                    ResponseEntity<ApiResponse.Tiingo[]> tiingoresponse;
-
-                    try {
-                        tiingoresponse = restTemplate.getForEntity(url, ApiResponse.Tiingo[].class);
-                    } catch (RestClientException e) {
-                        log.error(url, e.getMessage());
-                        throw new Exception500("API 호출 실패");
-                    }
-
-                    ApiResponse.Tiingo[] tiingoList = tiingoresponse.getBody();
-
-                    if (null == tiingoList)
+                    if (dto == null)
                         continue;
 
-                    if (tiingoList.length < 2) {
-                        throw new Exception500("Tiingo API 응답이 2개 이상의 데이터를 포함하지 않습니다.");
-                    }
+                    //symbol 글자 완전 일치하는것만 가져온다
+                    if (dto.getSymbol().equals(search.toUpperCase())) {
 
-                    BookmarkResponse.Price price = BookmarkResponse.Price.builder()
-                            .today(tiingoList[0])
-                            .yesterday(tiingoList[1])
-                            .build();
+                        BookmarkResponse.Price price = getPrice(search);
 
-                    String logo = dto.getLogo();
-                    if (logo == null) {
-                        logo = LogoUtil.makeLogo(search);
-                    }
-                    String symbolcopy = dto.getSymbol();
-                    if (symbolcopy == null)
-                        symbolcopy = symbol;
+                        String logo = dto.getLogo();
+                        if (logo == null) {
+                            logo = LogoUtil.makeLogo(search);
+                        }
+                        String symbolcopy = dto.getSymbol();
+                        if (symbolcopy == null)
+                            symbolcopy = symbol;
 
-                    String companyName = dto.getCompanyName();
-                    if (companyName == null) {
-                        tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
-                        tiingoUrl = tiingoUrl.replace("<ticker>", search);
-                        builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
-                                .queryParam("token", tiingoToken);
+                        String companyName = dto.getCompanyName();
+                        if (companyName == null) {
+                            String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
+                            tiingoUrl = tiingoUrl.replace("<ticker>", search);
+                            builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                                    .queryParam("token", tiingoToken);
 
-                        url = builder.toUriString();
+                            url = builder.toUriString();
 
-                        ResponseEntity<ApiResponse.TiingoSymbol> tiingoSymbolResponse;
+                            ResponseEntity<ApiResponse.TiingoSymbol> tiingoSymbolResponse;
 
-                        try {
-                            tiingoSymbolResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
-                        } catch (RestClientException e) {
-                            log.error(url, e.getMessage());
-                            throw new Exception500("API 호출 실패");
+                            try {
+                                tiingoSymbolResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
+                            } catch (RestClientException e) {
+                                log.error(url, e.getMessage());
+                                throw new Exception500("API 호출 실패");
+                            }
+
+                            if (null == tiingoSymbolResponse.getBody())
+                                continue;
+
+                            companyName = tiingoSymbolResponse.getBody().getName();
                         }
 
-                        if (null == tiingoSymbolResponse.getBody())
-                            continue;
+                        BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
+                                dto.getId(),
+                                symbolcopy,
+                                companyName,
+                                dto.getSector(),
+                                logo,
+                                dto.getMarketType(),
+                                price
+                        );
 
-                        companyName = tiingoSymbolResponse.getBody().getName();
+                        bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
+                        break;
                     }
-
-                    BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
-                            dto.getId(),
-                            symbolcopy,
-                            companyName,
-                            dto.getSector(),
-                            logo,
-                            dto.getMarketType(),
-                            price
-                    );
-
-                    bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
-                    break;
                 }
+            } else {
+                //Moya API에서 검색이 안 되는 경우 Tiingo API에서 조회
+                String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
+                tiingoUrl = tiingoUrl.replace("<ticker>", search);
+                builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                        .queryParam("token", tiingoToken);
+
+                url = builder.toUriString();
+
+                ResponseEntity<ApiResponse.TiingoSymbol> tiingoSymbolResponse;
+
+                try {
+                    tiingoSymbolResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
+                } catch (RestClientException e) {
+                    log.error(url, e.getMessage());
+                    throw new Exception500("API 호출 실패");
+                }
+
+                ApiResponse.TiingoSymbol tiingoSymbols = tiingoSymbolResponse.getBody();
+                String logo = LogoUtil.makeLogo(search);
+                BookmarkResponse.Price price = getPrice(search);
+
+                BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
+                        null,
+                        tiingoSymbols.getTicker(),
+                        tiingoSymbols.getName(),
+                        null,
+                        logo,
+                        tiingoSymbols.getExchangeCode(),
+                        price
+                );
+
+                bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
+//                log.error("symbol: {} 에 대한 API 호출 결과 없음", search);
             }
-
-
         }
 
         return bookmarkSymbolDTOList;
@@ -218,46 +210,7 @@ public class BookmarkSymbolService {
                     //symbol 글자 완전 일치하는것만 가져온다
                     if (dto.getSymbol().equals(search.toUpperCase())) {
 
-                        LocalDate today = LocalDate.now();
-                        LocalDate twoWeeksAgo = today.minusWeeks(2);
-
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d");
-
-                        String todayStr = today.format(formatter);
-                        String twoWeeksAgoStr = twoWeeksAgo.format(formatter);
-
-                        String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>/prices";
-                        tiingoUrl = tiingoUrl.replace("<ticker>", search);
-                        builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
-                                .queryParam("token", tiingoToken)
-                                .queryParam("startDate", twoWeeksAgoStr)
-                                .queryParam("endDate", todayStr)
-                                .queryParam("sort", "-date");
-
-                        url = builder.toUriString();
-
-                        ResponseEntity<ApiResponse.Tiingo[]> tiingoresponse;
-
-                        try {
-                            tiingoresponse = restTemplate.getForEntity(url, ApiResponse.Tiingo[].class);
-                        } catch (RestClientException e) {
-                            log.error(url, e.getMessage());
-                            throw new Exception500("API 호출 실패");
-                        }
-
-                        ApiResponse.Tiingo[] tiingoList = tiingoresponse.getBody();
-
-                        if (null == tiingoList)
-                            continue;
-
-                        if (tiingoList.length < 2) {
-                            throw new Exception500("Tiingo API 응답이 2개 이상의 데이터를 포함하지 않습니다.");
-                        }
-
-                        BookmarkResponse.Price price = BookmarkResponse.Price.builder()
-                                .today(tiingoList[0])
-                                .yesterday(tiingoList[1])
-                                .build();
+                        BookmarkResponse.Price price = getPrice(search);
 
                         String logo = dto.getLogo();
                         if (logo == null) {
@@ -269,7 +222,7 @@ public class BookmarkSymbolService {
 
                         String companyName = dto.getCompanyName();
                         if (companyName == null) {
-                            tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
+                            String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
                             tiingoUrl = tiingoUrl.replace("<ticker>", search);
                             builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
                                     .queryParam("token", tiingoToken);
@@ -293,7 +246,7 @@ public class BookmarkSymbolService {
                         BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
                                 symbol.getId(),
                                 dto.getSymbol(),
-                                dto.getCompanyName(),
+                                companyName,
                                 dto.getSector(),
                                 logo,
                                 dto.getMarketType(),
@@ -305,7 +258,39 @@ public class BookmarkSymbolService {
                     }
                 }
             } else {
-                log.error("symbol: {} 에 대한 API 호출 결과 없음", search);
+                //Moya API에서 검색이 안 되는 경우 Tiingo API에서 조회
+                String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
+                tiingoUrl = tiingoUrl.replace("<ticker>", search);
+                builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                        .queryParam("token", tiingoToken);
+
+                url = builder.toUriString();
+
+                ResponseEntity<ApiResponse.TiingoSymbol> tiingoSymbolResponse;
+
+                try {
+                    tiingoSymbolResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
+                } catch (RestClientException e) {
+                    log.error(url, e.getMessage());
+                    throw new Exception500("API 호출 실패");
+                }
+
+                ApiResponse.TiingoSymbol tiingoSymbols = tiingoSymbolResponse.getBody();
+                String logo = LogoUtil.makeLogo(search);
+                BookmarkResponse.Price price = getPrice(search);
+
+                BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
+                        symbol.getId(),
+                        tiingoSymbols.getTicker(),
+                        tiingoSymbols.getName(),
+                        null,
+                        logo,
+                        tiingoSymbols.getExchangeCode(),
+                        price
+                );
+
+                bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
+//                log.error("symbol: {} 에 대한 API 호출 결과 없음", search);
             }
 
         }
@@ -342,5 +327,47 @@ public class BookmarkSymbolService {
         BookmarkSymbol bookmarkSymbol = bookmarkSymbolRepository.findNonDeletedByIdAndUser(id, user)
                 .orElseThrow(() -> new Exception400("symbol", "해당 Symbol이 존재하지 않습니다."));
         bookmarkSymbol.deleteBookmark();
+    }
+
+    private BookmarkResponse.Price getPrice(String search) {
+        LocalDate today = LocalDate.now();
+        LocalDate twoWeeksAgo = today.minusWeeks(2);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d");
+
+        String todayStr = today.format(formatter);
+        String twoWeeksAgoStr = twoWeeksAgo.format(formatter);
+
+        String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>/prices";
+        tiingoUrl = tiingoUrl.replace("<ticker>", search);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                .queryParam("token", tiingoToken)
+                .queryParam("startDate", twoWeeksAgoStr)
+                .queryParam("endDate", todayStr)
+                .queryParam("sort", "-date");
+
+        String url = builder.toUriString();
+
+        ResponseEntity<ApiResponse.Tiingo[]> tiingoresponse;
+
+        try {
+            tiingoresponse = restTemplate.getForEntity(url, ApiResponse.Tiingo[].class);
+        } catch (RestClientException e) {
+            log.error(url, e.getMessage());
+            throw new Exception500("API 호출 실패");
+        }
+
+        ApiResponse.Tiingo[] tiingoList = tiingoresponse.getBody();
+
+//        if (null == tiingoList) continue;
+
+        if (tiingoList.length < 2) {
+            throw new Exception500("Tiingo API 응답이 2개 이상의 데이터를 포함하지 않습니다.");
+        }
+
+        return BookmarkResponse.Price.builder()
+                .today(tiingoList[0])
+                .yesterday(tiingoList[1])
+                .build();
     }
 }

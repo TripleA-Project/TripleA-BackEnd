@@ -228,6 +228,7 @@ public class UserService {
         user = getUser(user);
         cancelSubscriptionIfSubscribed(user);
         user.deactivateAccount();
+        userRepository.delete(user);
     }
 
     // 새 비밀번호 발급

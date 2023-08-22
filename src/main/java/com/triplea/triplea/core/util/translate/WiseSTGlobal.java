@@ -13,13 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import okhttp3.Headers;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -71,7 +64,7 @@ public class WiseSTGlobal extends Translator {
     public NewsResponse.TranslateOut translateArticle(ApiResponse.Details text){
         if(text == null) return null;
 
-        String[] contents = {text.getTitle(), text.getDescription(), text.getSummary(), text.getContent()};
+        String[] contents = {text.getTitle(), text.getDescription(), text.getSummary()};
         RequestBody requestBody;
         try {
             requestBody = RequestBody.create(OM.writeValueAsString(NewsRequest.TranslateIn.WiseSTGlobal.builder().contents(contents).build()), MEDIATYPE);
@@ -92,7 +85,7 @@ public class WiseSTGlobal extends Translator {
                             .title(node.get(0).asText(null))
                             .description(node.get(1).asText(null))
                             .summary(node.get(2).asText(null))
-                            .content(node.get(3).asText(null))
+                            .content(text.getContent())
                             .build();
                 }
                 throw new Exception500("Response 실패");

@@ -647,7 +647,7 @@ public class NewsService {
                     .title(papagoTranslator.translate(details.getTitle()))
                     .description(papagoTranslator.translate(details.getDescription()))
                     .summary(papagoTranslator.translate(details.getSummary()))
-                    .content(papagoTranslator.translate(details.getContent()))
+                    .content(details.getContent())
                     .build();
         }
     }
