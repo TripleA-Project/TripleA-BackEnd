@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookmarkCategoryRepository extends JpaRepository<BookmarkCategory, Long> {
     @Query("select bc from BookmarkCategory bc join fetch bc.mainCategory mc where bc.user.id=:userId and bc.isDeleted=false")
@@ -16,4 +17,7 @@ public interface BookmarkCategoryRepository extends JpaRepository<BookmarkCatego
 
     @Query("select count(bc) from BookmarkCategory bc where bc.user=:user and bc.isDeleted=false")
     Integer countAllByUser(@Param("user") User user);
+
+    @Query("select bc from BookmarkCategory bc where bc.user=:user")
+    Optional<List<BookmarkCategory>> findAllByUser(@Param("user") User user);
 }

@@ -11,8 +11,12 @@ import com.triplea.triplea.core.util.mail.MailTemplate;
 import com.triplea.triplea.core.util.mail.MailUtils;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
+import com.triplea.triplea.model.bookmark.BookmarkCategoryRepository;
+import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
+import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
+import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +44,11 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
+    private final BookmarkCategoryRepository bookmarkCategoryRepository;
+    private final BookmarkNewsRepository bookmarkNewsRepository;
+    private final BookmarkSymbolRepository bookmarkSymbolRepository;
+    private final HistoryRepository historyRepository;
+
     private final BCryptPasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
     private final RedisService redisService;
@@ -228,6 +237,14 @@ public class UserService {
         user = getUser(user);
         cancelSubscriptionIfSubscribed(user);
         user.deactivateAccount();
+
+        customerRepository.findCustomerByUserId(user.getId()).ifPresent(customerRepository::delete);
+        bookmarkCategoryRepository.findAllByUser(user).ifPresent(bookmarkCategoryRepository::deleteAll);
+        bookmarkNewsRepository.findAllByUser(user).ifPresent(bookmarkNewsRepository::deleteAll);
+        bookmarkSymbolRepository.findAllByUser(user).ifPresent(bookmarkSymbolRepository::deleteAll);
+        historyRepository.findAllByUser(user).ifPresent(historyRepository::deleteAll);
+
+        userRepository.findAllByEmail(user.getEmail()).ifPresent(userRepository::delete);
     }
 
     // 새 비밀번호 발급
