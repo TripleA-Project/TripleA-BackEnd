@@ -645,7 +645,7 @@ public class NewsService {
         } catch (Exception e) {
             return NewsResponse.TranslateOut.builder()
                     .title(papagoTranslator.translate(details.getTitle()))
-                    .description(papagoTranslator.translate(details.getDescription()))
+                    .description(details.getDescription())
                     .summary(papagoTranslator.translate(details.getSummary()))
                     .content(details.getContent())
                     .build();

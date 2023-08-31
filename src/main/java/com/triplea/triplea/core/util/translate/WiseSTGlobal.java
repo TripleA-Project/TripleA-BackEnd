@@ -64,7 +64,7 @@ public class WiseSTGlobal extends Translator {
     public NewsResponse.TranslateOut translateArticle(ApiResponse.Details text){
         if(text == null) return null;
 
-        String[] contents = {text.getTitle(), text.getDescription(), text.getSummary()};
+        String[] contents = {text.getTitle(), text.getSummary()};
         RequestBody requestBody;
         try {
             requestBody = RequestBody.create(OM.writeValueAsString(NewsRequest.TranslateIn.WiseSTGlobal.builder().contents(contents).build()), MEDIATYPE);
@@ -83,7 +83,7 @@ public class WiseSTGlobal extends Translator {
                     JsonNode node = rootNode.path("translation");
                     return NewsResponse.TranslateOut.builder()
                             .title(node.get(0).asText(null))
-                            .description(node.get(1).asText(null))
+                            .description(text.getDescription())
                             .summary(node.get(2).asText(null))
                             .content(text.getContent())
                             .build();
