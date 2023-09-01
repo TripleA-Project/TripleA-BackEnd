@@ -73,6 +73,7 @@ public class UserService {
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .path("/")
+                .domain("moya.ai")
                 .maxAge(1000 * 60 * 60 * 24 * 7)
                 .secure(false) // https로 바꾸면 true 변경
                 .httpOnly(false) // 나중에 true로 변경
