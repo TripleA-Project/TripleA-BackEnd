@@ -1,10 +1,7 @@
 package com.triplea.triplea.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.triplea.triplea.core.exception.Exception400;
-import com.triplea.triplea.core.exception.Exception401;
-import com.triplea.triplea.core.exception.Exception404;
-import com.triplea.triplea.core.exception.Exception500;
+import com.triplea.triplea.core.exception.*;
 import com.triplea.triplea.core.util.CheckMembership;
 import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.core.util.provide.MoyaNewsProvider;
@@ -441,10 +438,11 @@ public class NewsService {
         try (Response response = wiseTranslator.analysis(id, summary)) {
             analysis = wiseTranslator.getAnalysis(response);
             analysis.leftBenefitCount(leftCount);
-        } catch (Exception e) {
+        }catch (Exception e) {
             // 에러로 AI 분석이 실패한 경우 rollback
             count = countsAIBenefit(key, true);
             saveCountsAIBenefit(key, benefitCount, count, true);
+
             throw new Exception500("AI 분석 실패: " + e.getMessage());
         }
         return analysis;
