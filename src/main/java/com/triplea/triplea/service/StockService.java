@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -131,10 +132,6 @@ public class StockService {
             targetDate = nowDateTime.toLocalDate().minusDays(1);
         }
 
-        System.out.println("koreaTime : " + koreaTime);
-        System.out.println("nowDateTime : " + nowDateTime);
-        System.out.println("timeBoundary : " + timeBoundary);
-        System.out.println("targetDate : " + targetDate);
         List<ApiResponse.Tiingo> filteredList = new ArrayList<>();
         String formattedToday = targetDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T00:00:00.000Z";
         for (ApiResponse.Tiingo tiingo : arrTiingo) {
@@ -173,11 +170,19 @@ public class StockService {
         StockResponse.GlobalBuzzDuration globalBuzzDuration = moyaresponse.getBody();
 
         List<StockResponse.Chart> charts = new ArrayList<>();
+        if (resampleFreq.equals("daily")){
+
+        }else if(resampleFreq.equals("weekly")){
+
+        }else if(resampleFreq.equals("monthly")){
+
+        }
         for(ApiResponse.Tiingo tiingo : filteredList){
             for (StockResponse.BuzzData buzzData : globalBuzzDuration.getBuzzDatas()) {
                 if (tiingo.getFormattedDate().equals(buzzData.getPublishedDate())) {
                     // Tiingo와 BuzzData의 날짜가 일치하면 Chart 객체 생성
                     StockResponse.Chart chart = new StockResponse.Chart(tiingo);
+
                     chart.setSentiment(buzzData.getSentiment()); // sentiment 설정
                     chart.setBuzz(buzzData.getCount()); // buzz 설정
                     charts.add(chart); // 생성한 Chart 객체를 charts 리스트에 추가
@@ -195,4 +200,57 @@ public class StockService {
 
         return stockInfoDTO;
     }
+
+    public StockResponse.StockInfoDTO changeBuzz(StockResponse.StockInfoDTO stockInfoDTO, String resampleFreq, User user) {
+        if (resampleFreq.equals("weekly")) {
+            for (StockResponse.Chart chart : stockInfoDTO.getCharts()) {
+                String chartDate = chart.getDate();
+                LocalDateTime dateTime = LocalDateTime.parse(chartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+                LocalDate date = dateTime.toLocalDate();
+                String formattedDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                LocalDate startDate = LocalDate.parse(formattedDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                DayOfWeek dayOfWeek = startDate.getDayOfWeek();
+                String mondayStr = String.valueOf(startDate);
+
+                if (dayOfWeek == DayOfWeek.MONDAY) {
+                    //nothing
+                } else {
+                    LocalDate monday = startDate.minusDays(dayOfWeek.getValue() - DayOfWeek.MONDAY.getValue());
+                    LocalDateTime mondayDateTime = monday.atStartOfDay();
+                    mondayStr = mondayDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                }
+                StockResponse.StockInfoDTO changeBuzz = getChart(stockInfoDTO.getSymbol(), mondayStr, formattedDate, "daily", user);
+                int buzz = 0;
+                for (int i = 0; i < changeBuzz.getCharts().size(); i++) {
+                    buzz += changeBuzz.getCharts().get(i).getBuzz();
+                }
+                chart.setBuzz(buzz);
+            }
+        }else if (resampleFreq.equals("monthly")){
+            for (StockResponse.Chart chart : stockInfoDTO.getCharts()) {
+                String chartDate = chart.getDate();
+                LocalDateTime dateTime = LocalDateTime.parse(chartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+
+
+                int year = dateTime.getYear();
+                int month = dateTime.getMonthValue();
+                String startDate = String.format("%d-%02d-01", year, month); // 월을 2자리 숫자로 포맷
+
+
+
+                String formattedDateStr = chartDate.replace("T", " ").replace("Z", "");
+                String[] parts = formattedDateStr.split(" ");
+                String result = parts[0];
+                StockResponse.StockInfoDTO changeBuzz = getChart(stockInfoDTO.getSymbol(), startDate, result, "daily", user);
+                int buzz = 0;
+                for (int i = 0; i < changeBuzz.getCharts().size(); i++) {
+                    buzz += changeBuzz.getCharts().get(i).getBuzz();
+                }
+                chart.setBuzz(buzz);
+            }
+        }
+
+        return stockInfoDTO;
+    }
+
 }

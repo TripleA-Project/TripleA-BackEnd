@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @Tag(name = "주가")
 @RequestMapping("/api")
 @RestController
@@ -39,7 +41,8 @@ public class StockController {
                                        @Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails
     ){
 
-        StockResponse.StockInfoDTO stockInfoDTO = stockService.getChart(symbol, startDate, endDate, resampleFreq, myUserDetails.getUser());
+        StockResponse.StockInfoDTO stockInfo = stockService.getChart(symbol, startDate, endDate, resampleFreq, myUserDetails.getUser());
+        StockResponse.StockInfoDTO stockInfoDTO = stockService.changeBuzz(stockInfo, resampleFreq, myUserDetails.getUser());
 
         return ResponseEntity.ok().body(new ResponseDTO<>(stockInfoDTO));
     }

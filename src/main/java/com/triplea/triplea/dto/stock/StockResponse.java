@@ -72,6 +72,7 @@ public class StockResponse {
     }
 
     @Getter
+    @Setter
     public static class StockInfoDTO{
 
         private String membership;
