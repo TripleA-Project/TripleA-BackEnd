@@ -24,6 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -117,8 +118,8 @@ public class StockService {
         //엊그제 넘어서면 엊그제로
         //오늘 AM6:30 이후시간 이라면
         //어제 넘어서면 어제로 시간 만들기
-
-        LocalDateTime nowDateTime = LocalDateTime.now();
+        ZoneId koreaTime = ZoneId.of("Asia/Seoul");
+        LocalDateTime nowDateTime = LocalDateTime.now(koreaTime);
         LocalDateTime timeBoundary = nowDateTime.withHour(6).withMinute(30).withSecond(0).withNano(0);
 
         LocalDate targetDate;//tiingo 가장 최신 데이터 날짜
@@ -130,6 +131,10 @@ public class StockService {
             targetDate = nowDateTime.toLocalDate().minusDays(1);
         }
 
+        System.out.println("koreaTime : " + koreaTime);
+        System.out.println("nowDateTime : " + nowDateTime);
+        System.out.println("timeBoundary : " + timeBoundary);
+        System.out.println("targetDate : " + targetDate);
         List<ApiResponse.Tiingo> filteredList = new ArrayList<>();
         String formattedToday = targetDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T00:00:00.000Z";
         for (ApiResponse.Tiingo tiingo : arrTiingo) {
