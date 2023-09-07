@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -54,6 +55,38 @@ public class SymbolService {
         for(ApiResponse.BookmarkSymbolDTO dto : dtos){
             SymbolResponse.SymbolDTO symbolDTO = new SymbolResponse.SymbolDTO(dto);
             symbolDTOList.add(symbolDTO);
+        }
+        boolean flag = false;
+        for(SymbolResponse.SymbolDTO dto : symbolDTOList){
+            if (dto.getSymbol().equals(symbol)){
+                flag = true;
+            }
+        }
+        if (flag == false){
+            System.out.println("flag false if문 들어옴");
+            String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
+            tiingoUrl = tiingoUrl.replace("<ticker>", symbol);
+            builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
+                    .queryParam("token", tiingoToken);
+
+            url = builder.toUriString();
+
+            ResponseEntity<ApiResponse.TiingoSymbol> tiingoresponse;
+            try {
+                tiingoresponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
+            } catch (RestClientException e) {
+                log.error(url, e.getMessage());
+                throw new Exception500("API 호출 실패");
+            }
+
+
+
+            ApiResponse.TiingoSymbol tiingoSymbol = tiingoresponse.getBody();
+
+            SymbolResponse.SymbolDTO symbolDTO = new SymbolResponse.SymbolDTO(null,tiingoSymbol.getTicker(),tiingoSymbol.getName(),null,null,tiingoSymbol.getExchangeCode());
+            symbolDTOList.add(symbolDTO);
+
+
         }
 
         return symbolDTOList;
