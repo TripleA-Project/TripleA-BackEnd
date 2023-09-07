@@ -170,13 +170,7 @@ public class StockService {
         StockResponse.GlobalBuzzDuration globalBuzzDuration = moyaresponse.getBody();
 
         List<StockResponse.Chart> charts = new ArrayList<>();
-        if (resampleFreq.equals("daily")){
 
-        }else if(resampleFreq.equals("weekly")){
-
-        }else if(resampleFreq.equals("monthly")){
-
-        }
         for(ApiResponse.Tiingo tiingo : filteredList){
             for (StockResponse.BuzzData buzzData : globalBuzzDuration.getBuzzDatas()) {
                 if (tiingo.getFormattedDate().equals(buzzData.getPublishedDate())) {

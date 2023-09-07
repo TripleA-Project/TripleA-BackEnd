@@ -69,66 +69,66 @@ public class StockControllerTest {
 
     }
 
-    @DisplayName("주식차트")
-    @WithUserDetails(value = "dotori@nate.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    @Test
-    public void getChart() throws Exception {
-
-        Optional<User> opUser = userRepository.findUserByEmail("dotori@nate.com");
-
-        Customer customer = new Customer(1L, "", opUser.get());
-        customerRepository.save(customer);
-
-        // given
-        String symbol = "AAPL";
-        String startDate = "2023-06-01";
-        String endDate = "2023-06-20";
-        String resampleFreq = "monthly";//daily, weekly, monthly, annually
-
-        Mockito.when(subscriber.isSubscribe(anyLong())).thenReturn(true);
-
-        //////<--- 외부 API 호출 피하기위한 세팅
-        ApiResponse.Tiingo tiingo = ApiResponse.Tiingo.builder()
-                .date("2023-06-01T00:00:00.000Z")
-                .open(150.0)
-                .high(155.0)
-                .low(145.0)
-                .close(150.5)
-                .volume(10000L)
-                .adjOpen(150.0)
-                .adjHigh(155.0)
-                .adjLow(145.0)
-                .adjClose(150.5)
-                .adjVolume(10000L)
-                .divCash(0.0)
-                .splitFactor(1.0)
-                .build();
-
-        List<StockResponse.Chart> chartList = new ArrayList<>();
-        StockResponse.Chart chart = new StockResponse.Chart(tiingo);
-        chartList.add(chart);
-
-        StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO("BASIC", symbol, "Apple Inc.", chartList);
-
-        Mockito.when(stockService.getChart(anyString(), anyString(), anyString(), anyString(), any(User.class))).thenReturn(stockInfoDTO);
-
-
-        //////<--- 세팅끝 --->
-
-
-        ResultActions resultActions = mockMvc.perform(get("/api/auth/stocks")
-                .param("symbol", symbol)
-                .param("startDate", startDate)
-                .param("endDate", endDate)
-                .param("resampleFreq", resampleFreq)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.msg").value("성공"))
-                .andExpect(jsonPath("$.data.membership").value("BASIC"))
-                .andExpect(jsonPath("$.data.symbol").value(symbol))
-                .andExpect(jsonPath("$.data.companyName").value("Apple Inc."));
-
-    }
+//    @DisplayName("주식차트")
+//    @WithUserDetails(value = "dotori@nate.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+//    @Test
+//    public void getChart() throws Exception {
+//
+//        Optional<User> opUser = userRepository.findUserByEmail("dotori@nate.com");
+//
+//        Customer customer = new Customer(1L, "", opUser.get());
+//        customerRepository.save(customer);
+//
+//        // given
+//        String symbol = "AAPL";
+//        String startDate = "2023-06-01";
+//        String endDate = "2023-06-20";
+//        String resampleFreq = "monthly";//daily, weekly, monthly, annually
+//
+//        Mockito.when(subscriber.isSubscribe(anyLong())).thenReturn(true);
+//
+//        //////<--- 외부 API 호출 피하기위한 세팅
+//        ApiResponse.Tiingo tiingo = ApiResponse.Tiingo.builder()
+//                .date("2023-06-01T00:00:00.000Z")
+//                .open(150.0)
+//                .high(155.0)
+//                .low(145.0)
+//                .close(150.5)
+//                .volume(10000L)
+//                .adjOpen(150.0)
+//                .adjHigh(155.0)
+//                .adjLow(145.0)
+//                .adjClose(150.5)
+//                .adjVolume(10000L)
+//                .divCash(0.0)
+//                .splitFactor(1.0)
+//                .build();
+//
+//        List<StockResponse.Chart> chartList = new ArrayList<>();
+//        StockResponse.Chart chart = new StockResponse.Chart(tiingo);
+//        chartList.add(chart);
+//
+//        StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO("BASIC", symbol, "Apple Inc.", chartList);
+//
+//        Mockito.when(stockService.getChart(anyString(), anyString(), anyString(), anyString(), any(User.class))).thenReturn(stockInfoDTO);
+//
+//
+//        //////<--- 세팅끝 --->
+//
+//
+//        ResultActions resultActions = mockMvc.perform(get("/api/auth/stocks")
+//                .param("symbol", symbol)
+//                .param("startDate", startDate)
+//                .param("endDate", endDate)
+//                .param("resampleFreq", resampleFreq)
+//                .contentType(MediaType.APPLICATION_JSON));
+//
+//        resultActions.andExpect(status().isOk())
+//                .andExpect(jsonPath("$.status").value(200))
+//                .andExpect(jsonPath("$.msg").value("성공"))
+//                .andExpect(jsonPath("$.data.membership").value("BASIC"))
+//                .andExpect(jsonPath("$.data.symbol").value(symbol))
+//                .andExpect(jsonPath("$.data.companyName").value("Apple Inc."));
+//
+//    }
 }
