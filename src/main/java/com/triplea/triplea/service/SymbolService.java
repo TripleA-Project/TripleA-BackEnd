@@ -63,7 +63,7 @@ public class SymbolService {
             }
         }
         if (flag == false){
-            System.out.println("flag false if문 들어옴");
+
             String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
             tiingoUrl = tiingoUrl.replace("<ticker>", symbol);
             builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)

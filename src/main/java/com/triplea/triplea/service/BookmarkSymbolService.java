@@ -201,8 +201,9 @@ public class BookmarkSymbolService {
             }
 
             ApiResponse.BookmarkSymbolDTO[] dtos = response.getBody();
-
+            boolean flag = false;
             if (dtos != null) {
+
                 for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
                     if (null == dto)
                         continue;
@@ -256,9 +257,11 @@ public class BookmarkSymbolService {
 
                         bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
                         break;
-                    }
+                    }else flag = true;
                 }
-            } else {
+            }
+            if(flag) {
+
                 //Moya API에서 검색이 안 되는 경우 Tiingo API에서 조회
                 String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
                 tiingoUrl = tiingoUrl.replace("<ticker>", search);
@@ -305,7 +308,11 @@ public class BookmarkSymbolService {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new Exception400("Bad-Request", "잘못된 userID입니다."));
         SymbolRequest.MoyaSymbol symbolInfo = moyaSymbolProvider.getSymbolInfo(symbol);
-        if (symbolInfo == null) symbolInfo = tiingoSymbolProvider.getSymbolInfo(symbol);
+
+        if (symbolInfo.getSymbol() == null) {
+            symbolInfo = tiingoSymbolProvider.getSymbolInfo(symbol);
+        }
+
 
         User.Membership membership = CheckMembership.getMembership(userPS, customerRepository, subscriber);
         if (membership == User.Membership.BASIC) {
@@ -319,7 +326,9 @@ public class BookmarkSymbolService {
         }, () -> bookmarkSymbolRepository.save(BookmarkSymbol.builder()
                 .user(userPS)
                 .symbol(finalSymbol)
+                .isDeleted(false)
                 .build()));
+
     }
 
     // 관심 심볼 삭제

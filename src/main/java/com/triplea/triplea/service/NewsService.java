@@ -436,8 +436,10 @@ public class NewsService {
         // AI 분석 API 요청
         String summary = ai.getSummary();
         try (Response response = wiseTranslator.analysis(id, summary)) {
+
             analysis = wiseTranslator.getAnalysis(response);
             analysis.leftBenefitCount(leftCount);
+
         }catch (Exception e) {
             // 에러로 AI 분석이 실패한 경우 rollback
             count = countsAIBenefit(key, true);
