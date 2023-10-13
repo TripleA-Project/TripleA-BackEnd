@@ -30,6 +30,7 @@ public class StepPaySubscriber {
      * @throws IOException execute
      */
     public Response postCustomer(User user) throws IOException {
+        System.out.println();
         UserRequest.Customer customer = UserRequest.Customer.builder()
                 .name(user.getFullName())
                 .email(user.getEmail())
@@ -42,7 +43,6 @@ public class StepPaySubscriber {
                 .build();
         return CLIENT.newCall(request).execute();
     }
-
     /**
      * step pay 고객 생성 API Response: customerId, customerCode
      * @param getCustomer 고객 생성 API 의 Response
