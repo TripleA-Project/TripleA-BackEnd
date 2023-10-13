@@ -286,9 +286,48 @@ public class UserService {
 
     // 네비게이션 프로필
     public UserResponse.Navigation navigation(Long userId) {
+        User user = getUser(userId);
+        String paymentDate = getCustomerInfo(userId);
 
-        return UserResponse.Navigation.toDTO(getUser(userId));
+        return UserResponse.Navigation.toDTO(user,paymentDate);
     }
+    public String getCustomerInfo(Long userId) {
+        //진행 wlsgod
+        User user = getUser(userId);
+
+        Long customerId = getCustomer(user).getId();
+
+        String nexPaymentDate = "";
+        try (Response response = subscriber.getCustomer(customerId)) {
+
+            if (response.isSuccessful()) {
+                String json = response.body() != null ? response.body().string() : "";
+                if (!json.isEmpty()) {
+
+                    String input = new UserResponse.PaymentDate(json).getPaymentDate();; // 주어진 문자열
+                    String targetKey = "nextPaymentDateTime\":\""; // 찾고자 하는 문자열의 시작 부분
+                    String targetValue = "\""; // 찾고자 하는 문자열의 끝 부분
+
+                    int startIndex = input.indexOf(targetKey);
+                    if (startIndex != -1) {
+                        startIndex += targetKey.length();
+                        int endIndex = input.indexOf(targetValue, startIndex);
+                        if (endIndex != -1) {
+                            nexPaymentDate = input.substring(startIndex, endIndex);
+
+                        }
+                    }
+                    return nexPaymentDate;
+                }
+                throw new Exception500("Step Pay 고객 정보 API Response 실패");
+            }
+            throw new Exception500("Step Pay 고객 정보 API Response 실패");
+        } catch (IOException e) {
+            throw new Exception500("Step Pay 고객 정보 API Response 실패");
+        }
+
+    }
+
 
     private String randomPassword() {
         SecureRandom secureRandom = new SecureRandom();

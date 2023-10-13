@@ -51,19 +51,19 @@ public class SymbolService {
         }
 
         List<SymbolResponse.SymbolDTO> symbolDTOList = new ArrayList<>();
-        ApiResponse.BookmarkSymbolDTO[] dtos = response.getBody();
-        for(ApiResponse.BookmarkSymbolDTO dto : dtos){
+        ApiResponse.BookmarkSymbolDTO[] responseList = response.getBody();
+        for(ApiResponse.BookmarkSymbolDTO dto : responseList){
             SymbolResponse.SymbolDTO symbolDTO = new SymbolResponse.SymbolDTO(dto);
             symbolDTOList.add(symbolDTO);
         }
         boolean flag = false;
+        String moyaSymbol = symbol.toUpperCase();
         for(SymbolResponse.SymbolDTO dto : symbolDTOList){
-            if (dto.getSymbol().equals(symbol)){
+            if (dto.getSymbol().equals(moyaSymbol)){
                 flag = true;
             }
         }
         if (flag == false){
-
             String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>";
             tiingoUrl = tiingoUrl.replace("<ticker>", symbol);
             builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
@@ -71,9 +71,9 @@ public class SymbolService {
 
             url = builder.toUriString();
 
-            ResponseEntity<ApiResponse.TiingoSymbol> tiingoresponse;
+            ResponseEntity<ApiResponse.TiingoSymbol> tiingoResponse;
             try {
-                tiingoresponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
+                tiingoResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
             } catch (RestClientException e) {
                 log.error(url, e.getMessage());
                 throw new Exception500("API 호출 실패");
@@ -81,7 +81,7 @@ public class SymbolService {
 
 
 
-            ApiResponse.TiingoSymbol tiingoSymbol = tiingoresponse.getBody();
+            ApiResponse.TiingoSymbol tiingoSymbol = tiingoResponse.getBody();
 
             SymbolResponse.SymbolDTO symbolDTO = new SymbolResponse.SymbolDTO(null,tiingoSymbol.getTicker(),tiingoSymbol.getName(),null,null,tiingoSymbol.getExchangeCode());
             symbolDTOList.add(symbolDTO);

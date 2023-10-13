@@ -44,6 +44,18 @@ public class StepPaySubscriber {
         return CLIENT.newCall(request).execute();
     }
     /**
+     * stap pay 고객 상세 정보 API Request
+     * */
+    public Response getCustomer(Long customerId) throws IOException {
+        Request request = new Request.Builder()
+                .url("https://api.steppay.kr/api/v1/customers/" + customerId)
+                .get()
+                .addHeader("accept", "*/*")
+                .addHeader("Secret-Token", secretToken)
+                .build();
+        return CLIENT.newCall(request).execute();
+    }
+    /**
      * step pay 고객 생성 API Response: customerId, customerCode
      * @param getCustomer 고객 생성 API 의 Response
      * @param productCode 상품 코드
@@ -84,6 +96,8 @@ public class StepPaySubscriber {
                 .build();
         return CLIENT.newCall(request).execute();
     }
+
+
 
     /**
      * step pay 주문 생성 API Response

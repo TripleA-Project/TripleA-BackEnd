@@ -149,6 +149,7 @@ public class UserController {
     @Operation(summary = "네비게이션 프로필")
     @GetMapping("/auth/user/me")
     public ResponseEntity<?> navigation(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
+
         return ResponseEntity.ok()
                 .body(new ResponseDTO<>(userService.navigation(myUserDetails.getUser().getId())));
     }

@@ -26,6 +26,13 @@ public class UserResponse {
     }
 
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PaymentDate {
+        private String paymentDate;
+    }
+
+    @Getter
     @Builder
     @AllArgsConstructor
     public static class News {
@@ -62,12 +69,14 @@ public class UserResponse {
         private String email;
         private String fullName;
         private Membership membership;
+        private String nextPaymentDate;
 
-        public static Navigation toDTO(User user) {
+        public static Navigation toDTO(User user,String nextPaymentDate) {
             return Navigation.builder()
                     .email(user.getEmail())
                     .fullName(user.getFullName())
                     .membership(user.getMembership())
+                    .nextPaymentDate(nextPaymentDate)
                     .build();
         }
     }

@@ -280,7 +280,7 @@ class UserControllerTest extends DummyEntity {
     void navigation() throws Exception {
         //given
         String accessToken = MyJwtProvider.createAccessToken(user);
-        UserResponse.Navigation navigation = UserResponse.Navigation.toDTO(user);
+        UserResponse.Navigation navigation = UserResponse.Navigation.toDTO(user,"nextPaymentDate");
         //when
         when(userService.navigation(any())).thenReturn(navigation);
         //then

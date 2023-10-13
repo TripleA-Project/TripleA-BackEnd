@@ -1,9 +1,20 @@
 package com.triplea.triplea.core.dummy;
 
+import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.user.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class DummyEntity {
+
+    public Customer newCustomer(User user){
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        return Customer.builder()
+                .id(244319L)
+                .user(user)
+                .customerCode("customer_code")
+                .build();
+    }
+
     public User newUser(String email, String fullName){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return User.builder()
