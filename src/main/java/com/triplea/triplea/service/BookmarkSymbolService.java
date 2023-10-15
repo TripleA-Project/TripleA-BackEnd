@@ -210,7 +210,6 @@ public class BookmarkSymbolService {
 
                     //symbol 글자 완전 일치하는것만 가져온다
                     if (dto.getSymbol().equals(search.toUpperCase())) {
-
                         BookmarkResponse.Price price = getPrice(search);
 
                         String logo = dto.getLogo();
@@ -256,6 +255,8 @@ public class BookmarkSymbolService {
                         );
 
                         bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
+
+                        flag = false;
                         break;
                     }else flag = true;
                 }
@@ -305,6 +306,7 @@ public class BookmarkSymbolService {
     // 관심 심볼 생성
     @Transactional
     public void saveLikeSymbol(Long userId, String symbol) {
+        symbol = symbol.toUpperCase();
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new Exception400("Bad-Request", "잘못된 userID입니다."));
         SymbolRequest.MoyaSymbol symbolInfo = moyaSymbolProvider.getSymbolInfo(symbol);
