@@ -27,7 +27,9 @@ public class TripleAApplication {
                                     DummyEntity dummyEntity) {
 
         User mockUser = dummyEntity.newMockUser(1L, "rla7360@gmail.com", "rladnfka12!@");
+
         Customer mockCustomer = dummyEntity.newCustomer(mockUser);
+        mockCustomer.subscribe(10642L);
         return (args)->{
             userRepository.save(mockUser);
             customerRepository.save(mockCustomer);

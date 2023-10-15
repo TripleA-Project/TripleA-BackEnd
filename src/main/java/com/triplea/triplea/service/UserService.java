@@ -372,6 +372,7 @@ public class UserService {
     }
 
     private void cancelSubscription(Customer customer) {
+
         try (Response response = subscriber.cancelSubscription(customer.getSubscriptionId())) {
             if (response.isSuccessful()) customer.deactivateSubscription();
         } catch (Exception e) {

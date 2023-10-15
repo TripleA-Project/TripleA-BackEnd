@@ -7,7 +7,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class DummyEntity {
 
     public Customer newCustomer(User user){
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return Customer.builder()
                 .id(244319L)
                 .user(user)
@@ -31,7 +30,7 @@ public class DummyEntity {
 
     public User newMockUser(Long id, String email, String fullName){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        return User.builder()
+        User user = User.builder()
                 .id(id)
                 .password(passwordEncoder.encode("Abcdefg123!@#"))
                 .fullName(fullName)
@@ -42,5 +41,8 @@ public class DummyEntity {
                 .profile("profile1")
                 .emailVerified(true)
                 .build();
+        user.changeMembership(User.Membership.PREMIUM);
+
+        return user;
     }
 }
