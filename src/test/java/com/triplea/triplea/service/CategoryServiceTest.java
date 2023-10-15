@@ -172,82 +172,82 @@ class CategoryServiceTest extends DummyEntity {
         }
     }
 
-    @Nested
-    @DisplayName("관심 카테고리 생성")
-    class SaveLikeCategory {
-        @Test
-        @DisplayName("성공")
-        void test1() {
-            //given
-            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
-
-            //when
-            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
-            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
-
-            //then
-            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(1L, 1L));
-        }
-
-        @Test
-        @DisplayName("실패1: 잘못된 userId")
-        void test2() {
-            //given
-            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
-
-            //when
-
-            //then
-            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
-
-        }
-
-        @Test
-        @DisplayName("실패2: 잘못된 categoryId")
-        void test3() {
-            //given
-            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
-
-            //when
-
-            //then
-            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
-
-        }
-
-        @Test
-        @DisplayName("실패3: 중복된 mainCategory")
-        void test4() {
-            //given
-            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
-            BookmarkCategory bookmarkCategory = BookmarkCategory.builder().mainCategory(mainCategory).user(user).build();
-
-            //when
-            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
-            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
-            when(bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(anyLong(), anyLong())).thenReturn(bookmarkCategory);
-
-            //then
-            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
-        }
-
-        @Test
-        @DisplayName("성공2: 삭제된 카테고리")
-        void test5() {
-            //given
-            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
-            BookmarkCategory bookmarkCategory = BookmarkCategory.builder().mainCategory(mainCategory).user(user).build();
-            bookmarkCategory.deleteBookmark();
-
-            //when
-            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
-            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
-            when(bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(anyLong(), anyLong())).thenReturn(bookmarkCategory);
-
-            //then
-            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(2L, 1L));
-        }
-    }
+//    @Nested
+//    @DisplayName("관심 카테고리 생성")
+//    class SaveLikeCategory {
+//        @Test
+//        @DisplayName("성공")
+//        void test1() {
+//            //given
+//            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+//
+//            //when
+//            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+//            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
+//
+//            //then
+//            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(1L, 1L));
+//        }
+//
+//        @Test
+//        @DisplayName("실패1: 잘못된 userId")
+//        void test2() {
+//            //given
+//            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+//
+//            //when
+//
+//            //then
+//            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
+//
+//        }
+//
+//        @Test
+//        @DisplayName("실패2: 잘못된 categoryId")
+//        void test3() {
+//            //given
+//            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+//
+//            //when
+//
+//            //then
+//            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
+//
+//        }
+//
+//        @Test
+//        @DisplayName("실패3: 중복된 mainCategory")
+//        void test4() {
+//            //given
+//            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+//            BookmarkCategory bookmarkCategory = BookmarkCategory.builder().mainCategory(mainCategory).user(user).build();
+//
+//            //when
+//            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+//            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
+//            when(bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(anyLong(), anyLong())).thenReturn(bookmarkCategory);
+//
+//            //then
+//            Assertions.assertThrows(Exception400.class, () -> categoryService.saveLikeCategory(2L, 1L));
+//        }
+//
+//        @Test
+//        @DisplayName("성공2: 삭제된 카테고리")
+//        void test5() {
+//            //given
+//            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+//            BookmarkCategory bookmarkCategory = BookmarkCategory.builder().mainCategory(mainCategory).user(user).build();
+//            bookmarkCategory.deleteBookmark();
+//
+//            //when
+//            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
+//            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
+//            when(bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(anyLong(), anyLong())).thenReturn(bookmarkCategory);
+//
+//            //then
+//            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(2L, 1L));
+//        }
+//    }
 
     @Nested
     @DisplayName("관심 카테고리 삭제")

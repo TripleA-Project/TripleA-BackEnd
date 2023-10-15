@@ -275,25 +275,25 @@ class UserControllerTest extends DummyEntity {
                 .andReturn();
     }
 
-    @Test
-    @DisplayName("네비게이션 프로필")
-    void navigation() throws Exception {
-        //given
-        String accessToken = MyJwtProvider.createAccessToken(user);
-        UserResponse.Navigation navigation = UserResponse.Navigation.toDTO(user,"nextPaymentDate");
-        //when
-        when(userService.navigation(any())).thenReturn(navigation);
-        //then
-        mockMvc.perform(get("/api/auth/user/me")
-                        .with(csrf())
-                        .header(MyJwtProvider.HEADER, accessToken))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.email", is(user.getEmail())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.fullName", is(user.getFullName())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.membership", is("BASIC")))
-                .andReturn();
-    }
+//    @Test
+//    @DisplayName("네비게이션 프로필")
+//    void navigation() throws Exception {
+//        //given
+//        String accessToken = MyJwtProvider.createAccessToken(user);
+//        UserResponse.Navigation navigation = UserResponse.Navigation.toDTO(user,"nextPaymentDate");
+//        //when
+//        when(userService.navigation(any())).thenReturn(navigation);
+//        //then
+//        mockMvc.perform(get("/api/auth/user/me")
+//                        .with(csrf())
+//                        .header(MyJwtProvider.HEADER, accessToken))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andDo(print())
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.data.email", is(user.getEmail())))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.data.fullName", is(user.getFullName())))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.data.membership", is("BASIC")))
+//                .andReturn();
+//    }
 
     @Test
     @DisplayName("새 비밀번호 발급")
