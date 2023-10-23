@@ -179,11 +179,14 @@ class CategoryServiceTest extends DummyEntity {
 //        @DisplayName("성공")
 //        void test1() {
 //            //given
-//            MainCategory mainCategory = MainCategory.builder().mainCategoryEng("Finance").build();
+//            MainCategory mainCategory = MainCategory.builder()
+//                    .id(1L)
+//                    .mainCategoryEng("Finance").build();
 //
 //            //when
 //            when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
 //            when(mainCategoryRepository.findById(anyLong())).thenReturn(Optional.ofNullable(mainCategory));
+//
 //
 //            //then
 //            Assertions.assertDoesNotThrow(() -> categoryService.saveLikeCategory(1L, 1L));

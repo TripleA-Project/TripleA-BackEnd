@@ -287,7 +287,12 @@ public class UserService {
     // 네비게이션 프로필
     public UserResponse.Navigation navigation(Long userId) {
         User user = getUser(userId);
-        String paymentDate = getCustomerInfo(userId);
+        String paymentDate = "";
+        if(user.getMembership().equals(User.Membership.BASIC)){
+             paymentDate = "";
+        }else{
+            paymentDate = getCustomerInfo(userId);
+        }
 
         return UserResponse.Navigation.toDTO(user,paymentDate);
     }
