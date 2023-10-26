@@ -22,6 +22,7 @@ public class Customer {
     private User user;
     @Column(nullable = false)
     private boolean isActive;
+    private String nextPaymentDate;
 
     @Builder
     public Customer(Long id, String customerCode, User user) {
@@ -29,6 +30,9 @@ public class Customer {
         this.customerCode = customerCode;
         this.user = user;
         this.isActive = false;
+    }
+    public void addNextPaymentDate(String nextPaymentDate){
+        this.nextPaymentDate = nextPaymentDate;
     }
 
     public void subscribe(Long subscriptionId){

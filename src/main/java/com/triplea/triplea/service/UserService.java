@@ -33,6 +33,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -297,12 +300,12 @@ public class UserService {
         return UserResponse.Navigation.toDTO(user,paymentDate);
     }
     public String getCustomerInfo(Long userId) {
-        //진행 wlsgod
+
         User user = getUser(userId);
 
         Long customerId = getCustomer(user).getId();
 
-        String nexPaymentDate = "";
+        String nextPaymentDate = "";
         try (Response response = subscriber.getCustomer(customerId)) {
 
             if (response.isSuccessful()) {
@@ -318,17 +321,24 @@ public class UserService {
                         startIndex += targetKey.length();
                         int endIndex = input.indexOf(targetValue, startIndex);
                         if (endIndex != -1) {
-                            nexPaymentDate = input.substring(startIndex, endIndex);
+                            nextPaymentDate = input.substring(startIndex, endIndex);
+                            SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                            SimpleDateFormat targetFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+                            Date date = originalFormat.parse(nextPaymentDate);
+                            nextPaymentDate = targetFormat.format(date);
 
                         }
                     }
-                    return nexPaymentDate;
+                    return nextPaymentDate;
                 }
                 throw new Exception500("Step Pay 고객 정보 API Response 실패");
             }
             throw new Exception500("Step Pay 고객 정보 API Response 실패");
         } catch (IOException e) {
             throw new Exception500("Step Pay 고객 정보 API Response 실패");
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -379,7 +389,6 @@ public class UserService {
     private void cancelSubscription(Customer customer) {
 
         try (Response response = subscriber.cancelSubscription(customer.getSubscriptionId())) {
-            if (response.isSuccessful()) customer.deactivateSubscription();
         } catch (Exception e) {
             throw new Exception500("구독 취소 실패: " + e.getMessage());
         }
@@ -416,12 +425,14 @@ public class UserService {
      * customer 저장
      */
     private void createCustomer(UserRequest.Order order, User user) {
+
         Customer customer = Customer.builder()
                 .id(order.getCustomerId())
                 .customerCode(order.getCustomerCode())
                 .user(user)
                 .build();
         try {
+            customer.addNextPaymentDate(getCustomerInfo(user.getId()));
             customerRepository.save(customer);
         } catch (Exception e) {
             throw new Exception500("고객 저장 실패: " + e.getMessage());

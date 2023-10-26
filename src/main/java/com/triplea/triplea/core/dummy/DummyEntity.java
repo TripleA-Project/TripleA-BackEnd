@@ -11,6 +11,7 @@ public class DummyEntity {
                 .id(244319L)
                 .user(user)
                 .customerCode("customer_code")
+
                 .build();
     }
 
