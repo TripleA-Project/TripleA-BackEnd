@@ -3,6 +3,7 @@ package com.triplea.triplea.controller;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.dto.category.CategoryResponse;
+import com.triplea.triplea.service.BookmarkNewsService;
 import com.triplea.triplea.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,6 +44,7 @@ public class CategoryController {
     public ResponseEntity<?> getLikeCategories(@Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails) {
         List<CategoryResponse> categories = categoryService.getLikeCategories(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(categories));
+
     }
 
     @Operation(summary = "관심 카테고리 생성")

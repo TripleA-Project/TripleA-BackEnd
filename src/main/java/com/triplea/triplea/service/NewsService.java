@@ -425,8 +425,12 @@ public class NewsService {
 
         // 베네핏 설정
         User.Membership membership = CheckMembership.getMembership(user, customerRepository, subscriber);
-        if (membership != User.Membership.PREMIUM) throw new Exception401("유료 회원만 사용할 수 있습니다");
-        String key = "ai_" + user.getEmail(); int benefitCount = 10;
+        int benefitCount = 100;
+        if (membership != User.Membership.PREMIUM) {
+            benefitCount = 10;
+        }
+        String key = "ai_" + user.getEmail();
+
 
         NewsResponse.Analysis analysis;
         // 요청 횟수 redis 에 저장해서 남은 베네핏 수와 비교

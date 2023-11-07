@@ -56,6 +56,7 @@ public class UserController {
                                     HttpServletRequest request) {
         String accessToken = request.getHeader("Authorization");
         String msg = userService.logout(response, accessToken, myUserDetails);
+
         return ResponseEntity.ok()
                 .body(new ResponseDTO<>(msg));
     }

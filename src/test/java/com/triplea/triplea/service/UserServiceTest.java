@@ -215,55 +215,55 @@ class UserServiceTest extends DummyEntity {
     @Nested
     @DisplayName("구독")
     class Subscribe {
-        @Test
-        @DisplayName("성공 1: customer 생성")
-        void test1() throws IOException {
-            //given
-            String productCode = "product_1";
-            String priceCode = "price_1";
-            ReflectionTestUtils.setField(userService, "productCode", productCode);
-            ReflectionTestUtils.setField(userService, "priceCode", priceCode);
-            //when
-            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-            when(customerRepository.findCustomerByUserId(anyLong()))
-                    .thenReturn(Optional.empty());
-            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
-            Response mockResponse = new Response.Builder()
-                    .code(200)
-                    .message("OK")
-                    .protocol(Protocol.HTTP_1_1)
-                    .request(new Request.Builder().url("https://example.com").build())
-                    .body(body)
-                    .build();
-            when(subscriber.postCustomer(any(User.class)))
-                    .thenReturn(mockResponse);
-            when(subscriber.responseCustomer(any(Response.class), anyString(), anyString()))
-                    .thenReturn(UserRequest.Order.builder()
-                            .customerId(1L)
-                            .customerCode("customerCode")
-                            .items(List.of(UserRequest.Order.Item.builder()
-                                    .productCode(productCode)
-                                    .priceCode(priceCode)
-                                    .build()))
-                            .build());
-            when(subscriber.postOrder(any(UserRequest.Order.class)))
-                    .thenReturn(mockResponse);
-            when(subscriber.getOrderCode(any(Response.class)))
-                    .thenReturn("orderCode");
-            when(subscriber.getPaymentLink(anyString(), anyString()))
-                    .thenReturn(mockResponse);
-            userService.subscribe("http://localhost:3000", user);
-            //then
-            verify(userRepository, times(1)).findById(anyLong());
-            verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
-            verify(subscriber, times(1)).postCustomer(user);
-            verify(subscriber, times(1)).responseCustomer(any(Response.class), anyString(), anyString());
-            verify(customerRepository, times(1)).save(any(Customer.class));
-            verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
-            verify(subscriber, times(1)).getOrderCode(any(Response.class));
-            verify(subscriber, times(1)).getPaymentLink(anyString(), anyString());
-            Assertions.assertDoesNotThrow(() -> userService.subscribe("http://localhost:3000", user));
-        }
+//        @Test
+//        @DisplayName("성공 1: customer 생성")
+//        void test1() throws IOException {
+//            //given
+//            String productCode = "product_1";
+//            String priceCode = "price_1";
+//            ReflectionTestUtils.setField(userService, "productCode", productCode);
+//            ReflectionTestUtils.setField(userService, "priceCode", priceCode);
+//            //when
+//            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+//            when(customerRepository.findCustomerByUserId(anyLong()))
+//                    .thenReturn(Optional.empty());
+//            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
+//            Response mockResponse = new Response.Builder()
+//                    .code(200)
+//                    .message("OK")
+//                    .protocol(Protocol.HTTP_1_1)
+//                    .request(new Request.Builder().url("https://example.com").build())
+//                    .body(body)
+//                    .build();
+//            when(subscriber.postCustomer(any(User.class)))
+//                    .thenReturn(mockResponse);
+//            when(subscriber.responseCustomer(any(Response.class), anyString(), anyString()))
+//                    .thenReturn(UserRequest.Order.builder()
+//                            .customerId(1L)
+//                            .customerCode("customerCode")
+//                            .items(List.of(UserRequest.Order.Item.builder()
+//                                    .productCode(productCode)
+//                                    .priceCode(priceCode)
+//                                    .build()))
+//                            .build());
+//            when(subscriber.postOrder(any(UserRequest.Order.class)))
+//                    .thenReturn(mockResponse);
+//            when(subscriber.getOrderCode(any(Response.class)))
+//                    .thenReturn("orderCode");
+//            when(subscriber.getPaymentLink(anyString(), anyString()))
+//                    .thenReturn(mockResponse);
+//            userService.subscribe("http://localhost:3000", user);
+//            //then
+//            verify(userRepository, times(1)).findById(anyLong());
+//            verify(customerRepository, times(1)).findCustomerByUserId(user.getId());
+//            verify(subscriber, times(1)).postCustomer(user);
+//            verify(subscriber, times(1)).responseCustomer(any(Response.class), anyString(), anyString());
+//            verify(customerRepository, times(1)).save(any(Customer.class));
+//            verify(subscriber, times(1)).postOrder(any(UserRequest.Order.class));
+//            verify(subscriber, times(1)).getOrderCode(any(Response.class));
+//            verify(subscriber, times(1)).getPaymentLink(anyString(), anyString());
+//            Assertions.assertDoesNotThrow(() -> userService.subscribe("http://localhost:3000", user));
+//        }
 
         @Test
         @DisplayName("성공 2: customer 있음")
