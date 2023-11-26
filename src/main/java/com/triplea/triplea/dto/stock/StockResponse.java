@@ -11,6 +11,15 @@ public class StockResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class BuzzChart {
+        private List<BuzzData> buzzDataList;
+        private List<Chart> chartList;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Price {
         private StockRequest.TiingoStock today;
         private StockRequest.TiingoStock yesterday;
@@ -81,13 +90,15 @@ public class StockResponse {
 
         private List<Chart> charts;
 
-        public StockInfoDTO(String membership, String symbol, String companyName, List<Chart> charts){
+        private List<BuzzData> buzzDataList;
 
+        public StockInfoDTO(String membership, String symbol, String companyName, List<Chart> charts){
             this.membership = membership;
             this.symbol = symbol;
             this.companyName = companyName;
             this.charts = charts;
         }
+
     }
 
     @Getter
