@@ -173,7 +173,7 @@ public class StepPaySubscriber {
      */
     public Response cancelSubscription(Long subscriptionId) throws IOException {
         //END_OF_PERIOD
-        RequestBody body = RequestBody.create("{\"whenToCancel\":\"END_OF_PERIOD\"}", MEDIATYPE);
+        RequestBody body = RequestBody.create("{\"whenToCancel\":\"NOW\"}", MEDIATYPE);
         Request request = new Request.Builder()
                 .url("https://api.steppay.kr/api/v1/subscriptions/" + subscriptionId + "/cancel")
                 .post(body)

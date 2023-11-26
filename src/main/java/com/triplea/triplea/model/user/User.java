@@ -46,6 +46,8 @@ public class User extends Timestamped {
     @Column(nullable = false)
     private String clientIP;
 
+    private String nextPaymentDate;
+
     public enum Membership {
         BASIC, PREMIUM
     }
@@ -91,6 +93,8 @@ public class User extends Timestamped {
     public void updateNewsLetter(boolean newsLetter) {
         this.newsLetter = newsLetter;
     }
+
+    public void updateNextPaymentDate(String nextPaymentDate){this.nextPaymentDate = nextPaymentDate;}
 
     public void markEmailAsVerified() {
         if (!this.isEmailVerified) this.isEmailVerified = true;

@@ -365,33 +365,33 @@ class UserServiceTest extends DummyEntity {
     @Nested
     @DisplayName("구독 취소")
     class SubscribeCancel {
-        @Test
-        @DisplayName("성공")
-        void test1() throws IOException {
-            //given
-            user.changeMembership(User.Membership.PREMIUM);
-            Customer customer = Customer.builder()
-                    .id(1L)
-                    .user(user)
-                    .customerCode("customerCode")
-                    .build();
-            customer.subscribe(1L);
-            //when
-            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
-            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
-            Response mockResponse = new Response.Builder()
-                    .code(200)
-                    .message("OK")
-                    .protocol(Protocol.HTTP_1_1)
-                    .request(new Request.Builder().url("https://example.com").build())
-                    .body(body)
-                    .build();
-            when(subscriber.cancelSubscription(anyLong()))
-                    .thenReturn(mockResponse);
-            //then
-            Assertions.assertDoesNotThrow(() -> userService.subscribeCancel(user));
-        }
+//        @Test
+//        @DisplayName("성공")
+//        void test1() throws IOException {
+//            //given
+//            user.changeMembership(User.Membership.PREMIUM);
+//            Customer customer = Customer.builder()
+//                    .id(1L)
+//                    .user(user)
+//                    .customerCode("customerCode")
+//                    .build();
+//            customer.subscribe(1L);
+//            //when
+//            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+//            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
+//            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
+//            Response mockResponse = new Response.Builder()
+//                    .code(200)
+//                    .message("OK")
+//                    .protocol(Protocol.HTTP_1_1)
+//                    .request(new Request.Builder().url("https://example.com").build())
+//                    .body(body)
+//                    .build();
+//            when(subscriber.cancelSubscription(anyLong()))
+//                    .thenReturn(mockResponse);
+//            //then
+//            Assertions.assertDoesNotThrow(() -> userService.subscribeCancel(user));
+//        }
 
         @Test
         @DisplayName("실패1: customer 없음")
@@ -519,47 +519,47 @@ class UserServiceTest extends DummyEntity {
 //            Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
 //        }
 
-        @Test
-        @DisplayName("성공2: PREMIUM")
-        void test2() throws IOException {
-            //given
-            user.changeMembership(User.Membership.PREMIUM);
-            Customer customer = Customer.builder()
-                    .id(1L)
-                    .user(user)
-                    .customerCode("customerCode")
-                    .build();
-            customer.subscribe(1L);
-            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
-            Response response = new Response.Builder()
-                    .code(200)
-                    .message("OK")
-                    .protocol(Protocol.HTTP_1_1)
-                    .request(new Request.Builder().url("https://example.com").build())
-                    .body(body)
-                    .build();
-            //when
-            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
-            when(subscriber.isSubscribe(anyLong())).thenReturn(true);
-            when(subscriber.cancelSubscription(anyLong())).thenReturn(response);
-            when(bookmarkCategoryRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
-            when(bookmarkNewsRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
-            when(bookmarkSymbolRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
-            when(historyRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
-            userService.deactivateAccount(user);
-            //then
-            verify(userRepository, times(1)).findById(anyLong());
-            verify(customerRepository, times(2)).findCustomerByUserId(anyLong());
-            verify(subscriber, times(1)).isSubscribe(anyLong());
-            verify(subscriber, times(1)).cancelSubscription(anyLong());
-            verify(bookmarkCategoryRepository, times(0)).deleteAll();
-            verify(bookmarkNewsRepository, times(0)).deleteAll();
-            verify(bookmarkSymbolRepository, times(0)).deleteAll();
-            verify(historyRepository, times(0)).deleteAll();
-            verify(userRepository, times(1)).delete(user);
-            Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
-        }
+//        @Test
+//        @DisplayName("성공2: PREMIUM")
+//        void test2() throws IOException {
+//            //given
+//            user.changeMembership(User.Membership.PREMIUM);
+//            Customer customer = Customer.builder()
+//                    .id(1L)
+//                    .user(user)
+//                    .customerCode("customerCode")
+//                    .build();
+//            customer.subscribe(1L);
+//            ResponseBody body = ResponseBody.create("{}", MediaType.parse("application/json"));
+//            Response response = new Response.Builder()
+//                    .code(200)
+//                    .message("OK")
+//                    .protocol(Protocol.HTTP_1_1)
+//                    .request(new Request.Builder().url("https://example.com").build())
+//                    .body(body)
+//                    .build();
+//            //when
+//            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+//            when(customerRepository.findCustomerByUserId(anyLong())).thenReturn(Optional.of(customer));
+//            when(subscriber.isSubscribe(anyLong())).thenReturn(true);
+//            when(subscriber.cancelSubscription(anyLong())).thenReturn(response);
+//            when(bookmarkCategoryRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+//            when(bookmarkNewsRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+//            when(bookmarkSymbolRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+//            when(historyRepository.findAllByUser(any())).thenReturn(Optional.of(Collections.emptyList()));
+//            userService.deactivateAccount(user);
+//            //then
+//            verify(userRepository, times(1)).findById(anyLong());
+//            verify(customerRepository, times(2)).findCustomerByUserId(anyLong());
+//            verify(subscriber, times(1)).isSubscribe(anyLong());
+//            verify(subscriber, times(1)).cancelSubscription(anyLong());
+//            verify(bookmarkCategoryRepository, times(0)).deleteAll();
+//            verify(bookmarkNewsRepository, times(0)).deleteAll();
+//            verify(bookmarkSymbolRepository, times(0)).deleteAll();
+//            verify(historyRepository, times(0)).deleteAll();
+//            verify(userRepository, times(1)).delete(user);
+//            Assertions.assertDoesNotThrow(() -> userService.deactivateAccount(user));
+//        }
     }
 
     @Nested

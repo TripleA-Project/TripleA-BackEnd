@@ -1,10 +1,12 @@
 package com.triplea.triplea.model.user;
 
+import com.triplea.triplea.model.customer.Customer;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -21,4 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("select u from User u where u.email=:email")
     Optional<User> findAllByEmail(@Param("email") String email);
+
+    @Query("select u from User u where u.nextPaymentDate = :nextPaymentDate")
+    List<User> findAllByNextPaymentDate(@Param("nextPaymentDate")String nextPaymentDate);
 }

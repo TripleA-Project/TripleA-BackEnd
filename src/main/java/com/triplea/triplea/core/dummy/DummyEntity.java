@@ -10,7 +10,7 @@ public class DummyEntity {
         return Customer.builder()
                 .id(244319L)
                 .user(user)
-                .customerCode("customer_code")
+                .customerCode("order_himZHFRQp")
 
                 .build();
     }

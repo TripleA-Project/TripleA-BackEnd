@@ -48,8 +48,8 @@ application:
     from-mail: ${SMTP_FROM}
 
 jwt:
-  subject: ${JWT_SUBJECT}
-  secret: ${JWT_SECRET}
+  subject: triple-a
+  secret: IyRQvqcFu4I3zWZS
 
 moya:
   token: ${MOYA_TOKEN}

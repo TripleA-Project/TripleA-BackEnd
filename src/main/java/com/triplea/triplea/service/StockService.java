@@ -192,7 +192,15 @@ public class StockService {
 
         StockResponse.StockInfoDTO stockInfoDTO = new StockResponse.StockInfoDTO(membership.toString(), symbol, companyName, charts);
 
+
+
         return stockInfoDTO;
+    }
+
+    public void changeChart(List<StockResponse.Chart> charts){
+        for(StockResponse.Chart chart : charts){
+            chart.getDate();
+        }
     }
 
     public StockResponse.StockInfoDTO changeBuzz(StockResponse.StockInfoDTO stockInfoDTO, String resampleFreq, User user) {

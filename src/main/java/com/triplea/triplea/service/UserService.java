@@ -387,8 +387,12 @@ public class UserService {
     }
 
     private void cancelSubscription(Customer customer) {
-
+        String nextpamentDate = getCustomerInfo(customer.getUser().getId());
+        User userPS = getUser(customer.getUser().getId());
+        userPS.updateNextPaymentDate(nextpamentDate);
+        System.out.println(userPS.getNextPaymentDate());
         try (Response response = subscriber.cancelSubscription(customer.getSubscriptionId())) {
+
         } catch (Exception e) {
             throw new Exception500("구독 취소 실패: " + e.getMessage());
         }
