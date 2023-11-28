@@ -178,8 +178,8 @@ public class StockService {
                     // Tiingo와 BuzzData의 날짜가 일치하면 Chart 객체 생성
                     StockResponse.Chart chart = new StockResponse.Chart(tiingo);
 
-//                    chart.setSentiment(buzzData.getSentiment()); // sentiment 설정
-//                    chart.setBuzz(buzzData.getCount()); // buzz 설정
+                    chart.setSentiment(buzzData.getSentiment()); // sentiment 설정
+                    chart.setBuzz(buzzData.getCount()); // buzz 설정
                     charts.add(chart); // 생성한 Chart 객체를 charts 리스트에 추가
                     break;
                 }
