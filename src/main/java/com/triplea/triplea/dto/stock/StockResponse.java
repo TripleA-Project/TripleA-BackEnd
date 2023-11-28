@@ -90,8 +90,6 @@ public class StockResponse {
 
         private List<Chart> charts;
 
-        private List<BuzzData> buzzDataList;
-
         public StockInfoDTO(String membership, String symbol, String companyName, List<Chart> charts){
             this.membership = membership;
             this.symbol = symbol;

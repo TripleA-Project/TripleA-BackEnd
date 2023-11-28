@@ -47,19 +47,4 @@ public class StockController {
         return ResponseEntity.ok().body(new ResponseDTO<>(stockInfoDTO));
     }
 
-
-    @Operation(summary = "주식 차트 조회")
-    @GetMapping("/auth/v2/symbol")
-    public ResponseEntity<?> getSymbolAndBuzz(@RequestParam(value = "symbol") String symbol,
-                                       @RequestParam(value = "startDate") String startDate,
-                                       @RequestParam(value = "endDate") String endDate,
-                                       @RequestParam(value = "resampleFreq") String resampleFreq,
-                                       @Parameter(hidden = true) @AuthenticationPrincipal MyUserDetails myUserDetails
-    ){
-
-        StockResponse.StockInfoDTO stockInfo = stockService.getChartAndBuzz(symbol, startDate, endDate, resampleFreq, myUserDetails.getUser());
-        StockResponse.StockInfoDTO stockInfoDTO = stockService.changeBuzz(stockInfo, resampleFreq, myUserDetails.getUser());
-
-        return ResponseEntity.ok().body(new ResponseDTO<>(stockInfoDTO));
-    }
 }
