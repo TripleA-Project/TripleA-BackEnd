@@ -13,7 +13,7 @@ public class CheckMembership {
     public static User.Membership getMembership(User user, CustomerRepository customerRepository, StepPaySubscriber subscriber) {
         if (user.getMembership() == User.Membership.PREMIUM) {
             Customer customer = getCustomer(user, customerRepository);
-            if (!checkSubscription(customer, subscriber)) customer.deactivateSubscription();
+//            if (!checkSubscription(customer, subscriber)) customer.deactivateSubscription();
         }
         return user.getMembership();
     }
