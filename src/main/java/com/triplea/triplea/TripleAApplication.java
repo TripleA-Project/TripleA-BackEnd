@@ -22,22 +22,22 @@ import java.util.Collections;
 @SpringBootApplication
 public class TripleAApplication {
 
-    @Profile("dev")
-    @Bean
-    CommandLineRunner initDataAdmin(PasswordEncoder passwordEncoder, UserRepository userRepository,
-                                    CustomerRepository customerRepository,
-                                    DummyEntity dummyEntity) {
-
-        User mockUser = dummyEntity.newMockUser(1L, "rla7360@gmail.com", "rladnfka12!@");
-
-        Customer mockCustomer = dummyEntity.newCustomer(mockUser);
-        mockCustomer.addNextPaymentDate("2023-10-23");
-        mockCustomer.subscribe(10748L);
-        return (args)->{
-            userRepository.save(mockUser);
-            customerRepository.save(mockCustomer);
-        };
-    }
+//    @Profile("dev")
+//    @Bean
+//    CommandLineRunner initDataAdmin(PasswordEncoder passwordEncoder, UserRepository userRepository,
+//                                    CustomerRepository customerRepository,
+//                                    DummyEntity dummyEntity) {
+//
+//        User mockUser = dummyEntity.newMockUser(0L, "admin@gmail.com", "admin");
+//
+//        Customer mockCustomer = dummyEntity.newCustomer(mockUser);
+//        mockCustomer.addNextPaymentDate("2023-10-23");
+//        mockCustomer.subscribe(10748L);
+//        return (args)->{
+//            userRepository.save(mockUser);
+//            customerRepository.save(mockCustomer);
+//        };
+//    }
     public static void main(String[] args) {
         SpringApplication.run(TripleAApplication.class, args);
     }

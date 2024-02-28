@@ -5,8 +5,11 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
+import com.triplea.triplea.core.auth.session.MyUserDetailsService;
 import com.triplea.triplea.dto.ResponseDTO;
 import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.model.user.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,9 +24,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
+
 
     public MyJwtAuthorizationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
@@ -44,7 +49,10 @@ public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
             DecodedJWT decodedJWT = MyJwtProvider.verify(jwt);
 
             Long id = decodedJWT.getClaim("id").asLong();
-            User user = User.builder().id(id).build();
+            String role = decodedJWT.getClaim("role").asString();
+
+            User user = User.builder().id(id).role(User.MemberRole.valueOf(role)).build();
+
             MyUserDetails myUserDetails = new MyUserDetails(user);
 
             Authentication authentication =

@@ -169,4 +169,30 @@ public class UserRequest {
         @Pattern(regexp = "^[a-zA-Z]*$|^[가-힣]*$", message = "한글 혹은 영문으로만 작성해주세요")
         private String fullName;
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ChangeRole{
+        @Email
+        @NotBlank
+        private String email;
+
+        @NotBlank
+        private String role;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserSearch{
+
+        @NotBlank
+        private String type;
+
+        @NotBlank
+        private String content;
+    }
 }

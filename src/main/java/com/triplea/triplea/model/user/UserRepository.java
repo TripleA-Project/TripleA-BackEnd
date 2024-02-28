@@ -26,4 +26,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select u from User u where u.nextPaymentDate = :nextPaymentDate")
     List<User> findAllByNextPaymentDate(@Param("nextPaymentDate")String nextPaymentDate);
+
+    @Query("select u from User u where u.membership = 0")
+    List<User> findAllByUserMembershipBasic();
+
+    @Query("select u from User u where u.membership = 1")
+    List<User> findAllByUserMembershipPremium();
 }

@@ -3,7 +3,7 @@ package com.triplea.triplea.model.bookmark;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.triplea.triplea.core.util.timestamp.Timestamped;
 import org.springframework.stereotype.Repository;
-
+import com.triplea.triplea.model.bookmark.QBookmarkNews;
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalTime;

@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataInit extends DummyEntity {
 
-    @Profile("dev")
-    @Bean
-    CommandLineRunner init(CategoryService categoryService) {
-        return args -> {
-            categoryService.insertMainCategories();
-            categoryService.updateMainCategories();
-            categoryService.insertSubCategories();
-        };
-    }
+//    @Profile("dev")
+//    @Bean
+//    CommandLineRunner init(CategoryService categoryService) {
+//        return args -> {
+//            categoryService.insertMainCategories();
+//            categoryService.updateMainCategories();
+//            categoryService.insertSubCategories();
+//        };
+//    }
 }
