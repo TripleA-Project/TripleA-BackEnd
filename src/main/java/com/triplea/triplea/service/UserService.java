@@ -1,5 +1,6 @@
 package com.triplea.triplea.service;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.triplea.triplea.core.auth.jwt.MyJwtProvider;
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.core.exception.Exception400;
@@ -18,6 +19,7 @@ import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
 import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
+import com.triplea.triplea.model.user.UserQuerydslRepository;
 import com.triplea.triplea.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Response;
@@ -35,11 +37,10 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static com.triplea.triplea.core.auth.jwt.MyJwtProvider.verify;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +52,7 @@ public class UserService {
     private final BookmarkNewsRepository bookmarkNewsRepository;
     private final BookmarkSymbolRepository bookmarkSymbolRepository;
     private final HistoryRepository historyRepository;
+    private final UserQuerydslRepository userQuerydslRepository;
 
     private final BCryptPasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
@@ -134,7 +136,10 @@ public class UserService {
     public HttpHeaders refreshToken(String refreshToken) {
         HttpHeaders header = new HttpHeaders();
         if (redisService.existsRefreshToken(refreshToken)) {
-            String accessToken = myJwtProvider.recreationAccessToken(refreshToken);
+            DecodedJWT decodedJWT = verify(refreshToken);
+            Long id = decodedJWT.getClaim("id").asLong();
+            User userPS = userRepository.findById(id).orElseThrow();
+            String accessToken = myJwtProvider.recreationAccessToken(userPS);
             header.add("Authorization", accessToken);
             return header;
         } else {
@@ -153,6 +158,17 @@ public class UserService {
         mailUtils.send(request.getEmail(), MailUtils.MailType.CODE, html);
     }
 
+    public void adminEmail(User user) {
+        User userPS = getUser(user);
+        adminEmailVerification(userPS.getEmail());
+        UUID code = UUID.randomUUID();
+        String key = "code_" + userPS.getEmail();
+        redisTemplate.opsForValue().set(key, code.toString());
+        redisTemplate.expire(key, 3, TimeUnit.MINUTES);
+        String html = MailTemplate.adminSendEmailVerificationCodeTemplate(code.toString());
+        mailUtils.send(userPS.getEmail(), MailUtils.MailType.CODE, html);
+    }
+
     // 이메일 인증 확인
     public String emailVerified(UserRequest.EmailVerify request) {
         String key = "code_" + request.getEmail();
@@ -162,6 +178,15 @@ public class UserService {
         else if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
         else redisTemplate.opsForValue().set(key, emailVerified.toString());
         return emailVerified.toString();
+    }
+    public String adminEmailVerified(UserRequest.EmailVerify request) {
+        String key = "code_" + request.getEmail();
+        String code = redisTemplate.opsForValue().get(key);
+
+        if (code == null) throw new Exception400("code", "인증 코드를 찾을 수 없습니다");
+        else if (!code.equals(request.getCode())) throw new Exception400("code", "인증 코드가 잘못 되었습니다");
+
+        return "로그인 성공";
     }
 
     // 구독
@@ -477,5 +502,64 @@ public class UserService {
         userRepository.findAllByEmail(email).ifPresent(user -> {
             throw new Exception400("email", "이미 존재하는 이메일입니다");
         });
+    }
+    /**
+     * 관리자 이메일 검증
+     * @param email String
+     */
+    private void adminEmailVerification(String email){
+        if(!userRepository.findAllByEmail(email).get().getMemberRole().equals(User.MemberRole.ADMIN)){
+            throw new Exception400("email", "관리자 이메일이 아닙니다.");
+        }
+    }
+
+    public List<UserResponse.UserInfo> userList(){
+        List<User> userList = userRepository.findAll();
+        List<UserResponse.UserInfo> reponseUserList = new ArrayList<>();
+        for(User user : userList){
+            reponseUserList.add(UserResponse.UserInfo.toDTO(user));
+        }
+        return reponseUserList;
+    }
+
+    @Transactional
+    public void changeRole(UserRequest.ChangeRole request){
+        User userPS = userRepository.findUserByEmail(request.getEmail()).orElseThrow(()->
+                new Exception400("email", "이메일에 해당하는 정보가 없습니다.")
+        );
+        if(request.getRole().equals("USER")){
+            userPS.changeMemberRole(User.MemberRole.USER);
+        }else if(request.getRole().equals("ADMIN")){
+            userPS.changeMemberRole(User.MemberRole.ADMIN);
+        }else{
+            throw new Exception400("role", "roleName 확인 바람");
+        }
+    }
+
+    public void deleteUser(Long id){
+        try {
+            userRepository.deleteById(id);
+        }catch (Exception e){
+            throw new Exception400("user", "탈퇴 실패");
+        }
+    }
+
+    public UserResponse.UserListLength userListLength(){
+        int totalUserListLength = userRepository.findAll().size();
+        int basicUserListLength = userRepository.findAllByUserMembershipBasic().size();
+        int premiumUserListLength = userRepository.findAllByUserMembershipPremium().size();
+
+        return UserResponse.UserListLength.toDTO(totalUserListLength, basicUserListLength, premiumUserListLength);
+
+    }
+
+    public List<UserResponse.UserInfo> userSearchList(UserRequest.UserSearch request){
+        List<User> userList = userQuerydslRepository.findUserByType(request);
+        List<UserResponse.UserInfo> userInfoList = new ArrayList<>();
+        for(User user : userList){
+
+            userInfoList.add(UserResponse.UserInfo.toDTO(user));
+        }
+        return userInfoList;
     }
 }

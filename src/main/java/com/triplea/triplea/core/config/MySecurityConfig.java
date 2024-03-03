@@ -5,6 +5,7 @@ import com.triplea.triplea.core.auth.jwt.MyJwtAuthorizationFilter;
 import com.triplea.triplea.core.exception.Exception401;
 import com.triplea.triplea.core.exception.Exception403;
 import com.triplea.triplea.core.util.MyFilterResponseUtil;
+import com.triplea.triplea.model.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -83,6 +84,7 @@ public class MySecurityConfig {
         // 11. 인증, 권한 필터 설정
         http.authorizeRequests()
                 .antMatchers("/api/auth/**").authenticated()
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().permitAll();
         return http.build();
     }

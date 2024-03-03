@@ -38,6 +38,7 @@ public class MyJwtProvider {
                 .withSubject(SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
                 .withClaim("id", user.getId())
+                .withClaim("role", user.getMemberRole().toString())
                 .sign(Algorithm.HMAC512(SECRET));
         return TOKEN_PREFIX + jwt;
     }
@@ -47,17 +48,18 @@ public class MyJwtProvider {
                 .withSubject(SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + REFRESH_EXP))
                 .withClaim("id", user.getId())
+                .withClaim("role", user.getMemberRole().toString())
                 .sign(Algorithm.HMAC512(SECRET));
         return refreshToken;
     }
 
-    public String recreationAccessToken(String refreshToken) {
-        DecodedJWT decodedJWT = verify(refreshToken);
-        Long id = decodedJWT.getClaim("id").asLong();
+    public String recreationAccessToken(User user) {
+
         String jwt = JWT.create()
                 .withSubject(SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
-                .withClaim("id", id)
+                .withClaim("id", user.getId())
+                .withClaim("role", user.getMemberRole().toString())
                 .sign(Algorithm.HMAC512(SECRET));
         System.out.println(jwt);
         return TOKEN_PREFIX + jwt;

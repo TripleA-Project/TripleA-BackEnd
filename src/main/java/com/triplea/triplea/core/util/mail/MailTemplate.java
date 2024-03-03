@@ -49,6 +49,14 @@ public class MailTemplate {
         return getHtmlTop(description) + template(title, contents, code, true, URL, button) + htmlBottom;
     }
 
+    public static String adminSendEmailVerificationCodeTemplate(String code) {
+        String title = "관리자 인증해주세요.";
+        String description = "인증번호 안내";
+        String contents = "아래 인증번호를 비밀번호 입력창에 입력해주세요.";
+        String button = "Triple A로 이동하기";
+        return getHtmlTop(description) + template(title, contents, code, true, URL, button) + htmlBottom;
+    }
+
     public static String sendNewPasswordEmailTemplate(String password) {
         String title = "새로운 비밀번호가 발급되었습니다.";
         String description = "비밀번호 발급";

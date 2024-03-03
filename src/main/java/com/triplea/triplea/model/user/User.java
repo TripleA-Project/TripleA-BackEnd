@@ -1,5 +1,6 @@
 package com.triplea.triplea.model.user;
 
+import com.querydsl.core.annotations.QueryEntity;
 import com.triplea.triplea.core.util.timestamp.Timestamped;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 @Entity
+@QueryEntity
 @Getter
 @NoArgsConstructor
 @Table(name = "user_tb")
@@ -41,6 +43,9 @@ public class User extends Timestamped {
     private Membership membership;
 
     @Column(nullable = false)
+    private MemberRole memberRole;
+
+    @Column(nullable = false)
     private String userAgent;
 
     @Column(nullable = false)
@@ -52,8 +57,16 @@ public class User extends Timestamped {
         BASIC, PREMIUM
     }
 
+    public enum MemberRole {
+        USER(0), ADMIN(1);
+
+        MemberRole(int i) {
+
+        }
+    }
+
     @Builder
-    public User(Long id, String email, String password, String fullName, boolean newsLetter, boolean emailVerified, String userAgent, String clientIP, String profile) {
+    public User(Long id, String email, String password, String fullName, boolean newsLetter, boolean emailVerified, String userAgent, String clientIP, String profile,MemberRole role) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -62,6 +75,7 @@ public class User extends Timestamped {
         this.isEmailVerified = emailVerified;
         this.isActive = true;
         this.membership = Membership.BASIC;
+        this.memberRole = role;
         this.userAgent = userAgent;
         this.clientIP = clientIP;
         this.profile = profile;
@@ -77,6 +91,7 @@ public class User extends Timestamped {
         this.isEmailVerified = emailVerified;
         this.isActive = true;
         this.membership = Membership.BASIC;
+        this.memberRole = MemberRole.USER;
         this.userAgent = userAgent;
         this.clientIP = clientIP;
         this.profile = profile;
@@ -116,4 +131,6 @@ public class User extends Timestamped {
         this.userAgent = userAgent;
         this.clientIP = clientIP;
     }
+
+    public void changeMemberRole(MemberRole memberRole){ this.memberRole = memberRole;}
 }
