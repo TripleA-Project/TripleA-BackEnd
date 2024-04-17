@@ -57,3 +57,16 @@ translate:
   papago:
     client-id: ${PAPAGO_ID}
     client-secret: ${PAPGO_SECRET}
+
+
+cloud:
+  aws:
+    credentials:
+      accessKey: AKIATTXV4E7ZCZIDHIIJ
+      secretKey: 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
+    s3:
+      bucket: tripleatests3
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
