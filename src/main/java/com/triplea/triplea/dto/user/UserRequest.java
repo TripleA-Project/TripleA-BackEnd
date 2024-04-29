@@ -48,6 +48,7 @@ public class UserRequest {
                     .emailVerified(emailVerified)
                     .userAgent(userAgent)
                     .clientIP(ipAddress)
+                    .role(User.MemberRole.USER)
                     .profile(profile)
                     .build();
         }

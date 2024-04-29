@@ -415,7 +415,6 @@ public class UserService {
         String nextpamentDate = getCustomerInfo(customer.getUser().getId());
         User userPS = getUser(customer.getUser().getId());
         userPS.updateNextPaymentDate(nextpamentDate);
-        System.out.println(userPS.getNextPaymentDate());
         try (Response response = subscriber.cancelSubscription(customer.getSubscriptionId())) {
 
         } catch (Exception e) {

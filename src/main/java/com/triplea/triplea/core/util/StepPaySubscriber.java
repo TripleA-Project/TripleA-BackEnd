@@ -30,7 +30,6 @@ public class StepPaySubscriber {
      * @throws IOException execute
      */
     public Response postCustomer(User user) throws IOException {
-        System.out.println();
         UserRequest.Customer customer = UserRequest.Customer.builder()
                 .name(user.getFullName())
                 .email(user.getEmail())

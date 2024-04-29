@@ -21,19 +21,16 @@ public class BookmarkNewsService {
 
     @Transactional
     public void insertBookmark(Long newsid, User user) {
-
         Optional<BookmarkNews> nonDeletedByNewsIdAndUserId = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsid, user.getId());
         if(nonDeletedByNewsIdAndUserId.isPresent()){
             log.error("Attempted to add a bookmark that already exists. newsId: " + newsid + ", user: " + user.getEmail());
             throw new Exception400("BookmarkNews", "news ID " + newsid + " already exists");
         }
-
         BookmarkNews bookmarkNews = BookmarkNews.builder()
                 .newsId(newsid)
                 .user(user)
                 .isDeleted(false)
                 .build();
-
         try {
             bookmarkNewsRepository.save(bookmarkNews);
         } catch (DataAccessException  e) {
@@ -41,19 +38,15 @@ public class BookmarkNewsService {
             throw new Exception500("Database error");
         }
     }
-
     @Transactional
     public void deleteBookmark(Long newsid, User user) {
-
         try{
             Optional<BookmarkNews> bookmarkPS = bookmarkNewsRepository.findNonDeletedByNewsIdAndUserId(newsid, user.getId());
             if(false == bookmarkPS.isPresent()) {
                 log.error("Bookmark not found for news {} and user {}", newsid, user);
                 throw new Exception400("bookmark", "Bookmark not found");
             }
-
-                bookmarkPS.get().deleteBookmark();
-
+            bookmarkPS.get().deleteBookmark();
         }catch(DataAccessException e){
             log.error("Database error when deleting bookmark", e);
             throw new Exception500("Database error");

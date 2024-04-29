@@ -26,13 +26,7 @@ public class Notice {
     private String content;
 
     public void modifyNotice(String title, String content){
-        System.out.println("=========");
-        System.out.println(title);
-        System.out.println(content);
-        System.out.println("=========");
         this.title = title;
         this.content = content;
-        System.out.println(this.title);
-        System.out.println(this.content);
     }
 }

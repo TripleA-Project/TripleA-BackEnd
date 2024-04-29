@@ -61,7 +61,6 @@ public class MyJwtProvider {
                 .withClaim("id", user.getId())
                 .withClaim("role", user.getMemberRole().toString())
                 .sign(Algorithm.HMAC512(SECRET));
-        System.out.println(jwt);
         return TOKEN_PREFIX + jwt;
     }
 

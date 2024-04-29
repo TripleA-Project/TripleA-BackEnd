@@ -52,21 +52,14 @@ public class BookmarkSymbolService {
 
     @Transactional(readOnly = true)
     public List<BookmarkResponse.BookmarkSymbolDTO> recommendBookmarkSymbol() {
-
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOList = new ArrayList<>();
-
         List<String> symbolList = bookmarkSymbolRepository.findMostFrequentSymbols();
-
         for (String symbol : symbolList) {
-
             String search = symbol;
-
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
                     .queryParam("token", moyaToken)
                     .queryParam("search", search);
-
             String url = builder.toUriString();
-
             ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> response;
             try {
                 response = restTemplate.getForEntity(url, ApiResponse.BookmarkSymbolDTO[].class);
@@ -74,20 +67,13 @@ public class BookmarkSymbolService {
                 log.error(url, e.getMessage());
                 throw new Exception500("API 호출 실패");
             }
-
             ApiResponse.BookmarkSymbolDTO[] dtos = response.getBody();
-
             if (dtos != null) {
                 for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
-
-                    if (dto == null)
-                        continue;
-
+                    if (dto == null) continue;
                     //symbol 글자 완전 일치하는것만 가져온다
                     if (dto.getSymbol().equals(search.toUpperCase())) {
-
                         BookmarkResponse.Price price = getPrice(search);
-
                         String logo = dto.getLogo();
                         if (logo == null) {
                             logo = LogoUtil.makeLogo(search);
@@ -140,22 +126,17 @@ public class BookmarkSymbolService {
                 tiingoUrl = tiingoUrl.replace("<ticker>", search);
                 builder = UriComponentsBuilder.fromHttpUrl(tiingoUrl)
                         .queryParam("token", tiingoToken);
-
                 url = builder.toUriString();
-
                 ResponseEntity<ApiResponse.TiingoSymbol> tiingoSymbolResponse;
-
                 try {
                     tiingoSymbolResponse = restTemplate.getForEntity(url, ApiResponse.TiingoSymbol.class);
                 } catch (RestClientException e) {
                     log.error(url, e.getMessage());
                     throw new Exception500("API 호출 실패");
                 }
-
                 ApiResponse.TiingoSymbol tiingoSymbols = tiingoSymbolResponse.getBody();
                 String logo = LogoUtil.makeLogo(search);
                 BookmarkResponse.Price price = getPrice(search);
-
                 BookmarkResponse.BookmarkSymbolDTO bookmarkSymbolDTO = new BookmarkResponse.BookmarkSymbolDTO(
                         null,
                         tiingoSymbols.getTicker(),
@@ -165,33 +146,23 @@ public class BookmarkSymbolService {
                         tiingoSymbols.getExchangeCode(),
                         price
                 );
-
                 bookmarkSymbolDTOList.add(bookmarkSymbolDTO);
 //                log.error("symbol: {} 에 대한 API 호출 결과 없음", search);
             }
         }
-
         return bookmarkSymbolDTOList;
-
     }
 
     @Transactional(readOnly = true)
     public List<BookmarkResponse.BookmarkSymbolDTO> getLikedBookmarkSymbol(User user) {
-
         List<BookmarkResponse.BookmarkSymbolDTO> bookmarkSymbolDTOList = new ArrayList<>();
-
         List<BookmarkSymbol> symbolList = bookmarkSymbolRepository.findNonDeletedSymbolByUserId(user.getId());
-
         for (BookmarkSymbol symbol : symbolList) {
-
             String search = symbol.getSymbol();
-
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://api.moya.ai/stock")
                     .queryParam("token", moyaToken)
                     .queryParam("search", search);
-
             String url = builder.toUriString();
-
             ResponseEntity<ApiResponse.BookmarkSymbolDTO[]> response;
             try {
                 response = restTemplate.getForEntity(url, ApiResponse.BookmarkSymbolDTO[].class);
@@ -199,15 +170,12 @@ public class BookmarkSymbolService {
                 log.error(url, e.getMessage());
                 throw new Exception500("API 호출 실패");
             }
-
             ApiResponse.BookmarkSymbolDTO[] dtos = response.getBody();
             boolean flag = false;
             if (dtos != null) {
-
                 for (ApiResponse.BookmarkSymbolDTO dto : dtos) {
                     if (null == dto)
                         continue;
-
                     //symbol 글자 완전 일치하는것만 가져온다
                     if (dto.getSymbol().equals(search.toUpperCase())) {
                         BookmarkResponse.Price price = getPrice(search);
