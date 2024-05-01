@@ -534,7 +534,7 @@ public class UserService {
             throw new Exception400("role", "roleName 확인 바람");
         }
     }
-
+    @Transactional
     public void deleteUser(Long id){
         try {
             userRepository.deleteById(id);

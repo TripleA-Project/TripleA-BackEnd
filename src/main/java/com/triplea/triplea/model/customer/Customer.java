@@ -17,7 +17,7 @@ public class Customer {
     @Column(nullable = false)
     private String customerCode;
     private Long subscriptionId;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     @Column(nullable = false)
