@@ -1,4 +1,4 @@
-package com.triplea.triplea.model.enperience;
+package com.triplea.triplea.model.experience;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

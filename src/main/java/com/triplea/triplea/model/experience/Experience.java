@@ -1,9 +1,11 @@
-package com.triplea.triplea.model.enperience;
+package com.triplea.triplea.model.experience;
 
 import com.triplea.triplea.core.util.timestamp.Timestamped;
 import com.triplea.triplea.model.user.User;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -11,6 +13,7 @@ import java.util.Date;
 @Entity
 @Getter
 @NoArgsConstructor
+@SuperBuilder
 @Table(name = "experience_tb")
 public class Experience extends Timestamped {
     @Id
@@ -21,12 +24,13 @@ public class Experience extends Timestamped {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(unique = true, nullable = false, length = 60)
-    private String email;
-
     @Column(nullable = false)
     private Date endDate;
 
     @Column(nullable = false)
-    private boolean use_at;
+    private boolean useAt;
+
+    public void updateEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
 }
