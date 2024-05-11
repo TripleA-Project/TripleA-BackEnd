@@ -23,10 +23,10 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
         BooleanBuilder builder = new BooleanBuilder();
 
         if(request.getType().equals("fullName")){
-            builder.and(user.fullName.like(request.getContent()));
+            builder.and(user.fullName.like("%"+request.getContent()+ "%"));
         }
         if(request.getType().equals("email")){
-            builder.and(user.email.like(request.getContent()));
+            builder.and(user.email.like("%"+request.getContent()+ "%"));
         }
         if(request.getType().equals("membership")){
             builder.and(user.membership.eq(User.Membership.valueOf(request.getContent())));

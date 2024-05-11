@@ -77,7 +77,7 @@ public class AdminController {
 
     @Operation(summary = "유저 검색")
     @GetMapping("/admin/user/list/search")
-    public ResponseEntity<?> userDelete(@RequestParam("type") String type, @RequestParam("content")String content) {
+    public ResponseEntity<?> userListSearch(@RequestParam("type") String type, @RequestParam("content")String content) {
         UserRequest.UserSearch request = UserRequest.UserSearch.builder().type(type).content(content).build();
         return ResponseEntity.ok().body(new ResponseDTO<>(userService.userSearchList(request)));
     }
