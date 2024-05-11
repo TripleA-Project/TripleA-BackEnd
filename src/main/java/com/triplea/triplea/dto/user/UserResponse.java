@@ -73,14 +73,16 @@ public class UserResponse {
         private Membership membership;
         private User.MemberRole memberRole;
         private String nextPaymentDate;
+        private boolean freeTrial;
 
-        public static Navigation toDTO(User user,String nextPaymentDate) {
+        public static Navigation toDTO(User user,String nextPaymentDate, boolean freeTrial) {
             return Navigation.builder()
                     .email(user.getEmail())
                     .fullName(user.getFullName())
                     .membership(user.getMembership())
                     .memberRole(user.getMemberRole())
                     .nextPaymentDate(nextPaymentDate)
+                    .freeTrial(freeTrial)
                     .build();
         }
     }

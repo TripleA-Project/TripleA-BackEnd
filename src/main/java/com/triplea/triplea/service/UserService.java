@@ -318,11 +318,13 @@ public class UserService {
     public UserResponse.Navigation navigation(Long userId) {
         User user = getUser(userId);
         String paymentDate = "";
+        boolean freeTrial = false;
         if(user.getMembership().equals(User.Membership.BASIC)){
             if(experienceService.isUserInFreeExperiencePeriod(userId)){
                 user.changeMembership(User.Membership.PREMIUM);
                 Experience experiencePS = experienceService.findExperienceByUserId(userId);
                 paymentDate = String.valueOf(experiencePS.getEndDate());
+                freeTrial = true;
             }else{
                 paymentDate = "";
             }
@@ -330,7 +332,7 @@ public class UserService {
             paymentDate = getCustomerInfo(userId);
         }
 
-        return UserResponse.Navigation.toDTO(user,paymentDate);
+        return UserResponse.Navigation.toDTO(user,paymentDate, freeTrial);
     }
     public String getCustomerInfo(Long userId) {
 
