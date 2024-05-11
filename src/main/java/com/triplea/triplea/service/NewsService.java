@@ -429,9 +429,10 @@ public class NewsService {
         // 베네핏 설정
         User.Membership membership = CheckMembership.getMembership(user, customerRepository, subscriber);
         int benefitCount = 100;
-        if (membership != User.Membership.PREMIUM) {
+        if (membership != User.Membership.PREMIUM && !experienceService.isUserInFreeExperiencePeriod(user.getId())) {
             benefitCount = 10;
         }
+
         String key = "ai_" + user.getEmail();
 
 
