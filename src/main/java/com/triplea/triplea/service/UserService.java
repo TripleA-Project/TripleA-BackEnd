@@ -480,7 +480,7 @@ public class UserService {
                 () -> new Exception401("잘못된 접근입니다"));
     }
 
-    private User getUser(Long userId) {
+    public User getUser(Long userId) {
         User userPS = userRepository.findById(userId).orElseThrow(
                 () -> new Exception400("bad-request", "잘못된 요청입니다.")
         );

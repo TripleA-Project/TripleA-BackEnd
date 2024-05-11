@@ -79,6 +79,7 @@ public class NewsService {
     private final WiseSTGlobal wiseTranslator;
     private final RedisTemplate<String, String> redisTemplate;
     private final CheckMembership checkMembership;
+    private final ExperienceService experienceService;
 
     private final int globalNewsMaxSize = 100;
     @Value("${moya.token}")
@@ -357,7 +358,7 @@ public class NewsService {
                 .price(price)
                 .build();
 
-        // 일반 회원 베네핏 설정
+        // 일반 회원 베네핏 설정 여기로와
         User.Membership membership = CheckMembership.getMembership(user, customerRepository, subscriber);
         String key = "news_" + user.getEmail(); int benefitCount = 10;
         List<Long> newsId = getNewsIdForBasicMembership(details.getDescription(), membership, key, benefitCount, id);
@@ -367,6 +368,8 @@ public class NewsService {
 
         // 남은 Benefit Count: User 의 Membership 이 PREMIUM 이면 null
         Integer leftBenefitCount = leftBenefitsForBasicMembership(membership, newsId, benefitCount);
+
+        if(experienceService.isUserInFreeExperiencePeriod(user.getId())) leftBenefitCount = null;
         UserResponse.News userMembership = UserResponse.News.builder()
                 .membership(user.getMembership())
                 .leftBenefitCount(leftBenefitCount)
