@@ -43,9 +43,9 @@ public class ExperienceController {
     }
 
     @Operation(summary = "무료체험 삭제")
-    @PostMapping("/experience/delete/{id}")
-    public ResponseEntity<?> experienceDelete(@PathVariable("id")Long id, Errors errors) {
+    @DeleteMapping("/experience/delete/{id}")
+    public ResponseEntity<?> experienceDelete(@PathVariable("id")Long id) {
         experienceService.deleteExperience(id);
-        return ResponseEntity.ok().body(new ResponseDTO<>("무료체험 수정 성공"));
+        return ResponseEntity.ok().body(new ResponseDTO<>("무료체험 삭제 성공"));
     }
 }

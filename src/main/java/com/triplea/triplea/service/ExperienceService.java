@@ -52,7 +52,7 @@ public class ExperienceService {
         Experience experiencePS = findExperienceByUserId(userPS.getId());
         if(experiencePS == null) throw new Exception500("무료체험 중인 회원이 아닙니다.");
         try{
-            experienceRepository.deleteById(id);
+            experienceRepository.delete(experiencePS);
         }catch (Exception e){
             throw new Exception500("무료체험 삭제 중 오류가 생겼습니다.");
         }
