@@ -68,7 +68,7 @@ public class ExperienceService {
         return currentDate.compareTo(endDate) < 0;
     }
 
-    private Experience findExperienceByUserId(Long userId) {
+    public Experience findExperienceByUserId(Long userId) {
         return experienceRepository.findByUser(userId);
     }
 }

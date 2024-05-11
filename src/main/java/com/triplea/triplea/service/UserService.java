@@ -17,6 +17,7 @@ import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
 import com.triplea.triplea.model.bookmark.BookmarkSymbolRepository;
 import com.triplea.triplea.model.customer.Customer;
 import com.triplea.triplea.model.customer.CustomerRepository;
+import com.triplea.triplea.model.experience.Experience;
 import com.triplea.triplea.model.history.HistoryRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserQuerydslRepository;
@@ -53,6 +54,7 @@ public class UserService {
     private final BookmarkSymbolRepository bookmarkSymbolRepository;
     private final HistoryRepository historyRepository;
     private final UserQuerydslRepository userQuerydslRepository;
+    private final ExperienceService experienceService;
 
     private final BCryptPasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
@@ -317,7 +319,13 @@ public class UserService {
         User user = getUser(userId);
         String paymentDate = "";
         if(user.getMembership().equals(User.Membership.BASIC)){
-             paymentDate = "";
+            if(experienceService.isUserInFreeExperiencePeriod(userId)){
+                user.changeMembership(User.Membership.PREMIUM);
+                Experience experiencePS = experienceService.findExperienceByUserId(userId);
+                paymentDate = String.valueOf(experiencePS.getEndDate());
+            }else{
+                paymentDate = "";
+            }
         }else{
             paymentDate = getCustomerInfo(userId);
         }
