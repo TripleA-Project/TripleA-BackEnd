@@ -2,11 +2,8 @@ package com.triplea.triplea.model.experience;
 
 import com.triplea.triplea.core.util.timestamp.Timestamped;
 import com.triplea.triplea.model.user.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -25,14 +22,23 @@ public class Experience extends Timestamped {
     private User user;
 
     @Column(nullable = false)
+    private Date startDate;
+
+    @Column(nullable = false)
     private Date endDate;
 
-    public void updateEndDate(Date endDate) {
+    private String memo;
+
+    public void updateDate(Date startDate, Date endDate, String memo) {
+        this.startDate = startDate;
         this.endDate = endDate;
+        if(memo != null && !memo.isEmpty()) this.memo = memo;
     }
 
-    public Experience(User user, Date endDate) {
+    public Experience(User user, Date startDate, Date endDate, String memo) {
         this.user = user;
+        this.startDate = startDate;
         this.endDate = endDate;
+        this.memo = memo;
     }
 }

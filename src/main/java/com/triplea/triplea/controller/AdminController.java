@@ -3,6 +3,7 @@ package com.triplea.triplea.controller;
 
 import com.triplea.triplea.core.auth.session.MyUserDetails;
 import com.triplea.triplea.dto.ResponseDTO;
+import com.triplea.triplea.dto.experience.ExperienceRequest;
 import com.triplea.triplea.dto.notice.NoticeRequest;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.service.NoticeService;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.text.ParseException;
 
 @Tag(name = "관리자")
 @RequestMapping("/api")
@@ -132,5 +134,12 @@ public class AdminController {
     public ResponseEntity<?> fileUpload(MultipartFile file) {
 
         return ResponseEntity.ok().body(new ResponseDTO<>(noticeService.fileUpload(file)));
+    }
+
+    @Operation(summary = "무료체험유저 리스트")
+    @PostMapping("/admin/user/freeTier/list")
+    public ResponseEntity<?> userFreeTierList(@RequestBody(required = false) ExperienceRequest.Search search) throws ParseException {
+
+        return ResponseEntity.ok().body(new ResponseDTO<>(userService.userFreeTierInfoList(search)));
     }
 }

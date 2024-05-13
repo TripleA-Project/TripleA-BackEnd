@@ -11,7 +11,10 @@ public class ExperienceRequest {
         @NotBlank
         private Long id;
         @NotBlank
-        private Date endDate;
+        private Date freeTierStartDate;
+        @NotBlank
+        private Date freeTierEndDate;
+        private String memo;
     }
 
     @Getter
@@ -19,6 +22,16 @@ public class ExperienceRequest {
         @NotBlank
         private Long id;
         @NotBlank
-        private Date endDate;
+        private Date freeTierStartDate;
+        @NotBlank
+        private Date freeTierEndDate;
+        private String memo;
+    }
+
+    @Getter
+    public static class Search {
+        private String type;
+        private String content;
+        private Boolean freeTier;
     }
 }

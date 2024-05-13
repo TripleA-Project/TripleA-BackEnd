@@ -1,6 +1,7 @@
 package com.triplea.triplea.dto.user;
 
 import com.querydsl.core.annotations.QueryProjection;
+import com.triplea.triplea.model.experience.Experience;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.User.Membership;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.net.URL;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 public class UserResponse {
@@ -74,8 +76,10 @@ public class UserResponse {
         private User.MemberRole memberRole;
         private String nextPaymentDate;
         private boolean freeTrial;
+        private Date freeTierStartDate;
+        private Date freeTierEndDate;
 
-        public static Navigation toDTO(User user,String nextPaymentDate, boolean freeTrial) {
+        public static Navigation toDTO(User user,String nextPaymentDate, boolean freeTrial, Experience experience) {
             return Navigation.builder()
                     .email(user.getEmail())
                     .fullName(user.getFullName())
@@ -83,6 +87,8 @@ public class UserResponse {
                     .memberRole(user.getMemberRole())
                     .nextPaymentDate(nextPaymentDate)
                     .freeTrial(freeTrial)
+                    .freeTierStartDate(experience.getStartDate())
+                    .freeTierEndDate(experience.getEndDate())
                     .build();
         }
     }
@@ -131,6 +137,31 @@ public class UserResponse {
                     .totalUserLength(totalUserLength)
                     .basicUserLength(basicUserLength)
                     .premiumLength(premiumLength)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserFreeTierInfo {
+        private Long id;
+        private String email;
+        private String fullName;
+        private boolean freeTier;
+        private Date freeTierStartDate;
+        private Date freeTierEndDate;
+        private String memo;
+        public static UserFreeTierInfo toDTO(User user,boolean freeTier, Experience experience) {
+            return UserFreeTierInfo.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .freeTier(freeTier)
+                    .freeTierStartDate(experience.getStartDate())
+                    .freeTierEndDate(experience.getEndDate())
+                    .memo(experience.getMemo())
                     .build();
         }
     }

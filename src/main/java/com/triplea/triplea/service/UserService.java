@@ -10,6 +10,7 @@ import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.core.util.StepPaySubscriber;
 import com.triplea.triplea.core.util.mail.MailTemplate;
 import com.triplea.triplea.core.util.mail.MailUtils;
+import com.triplea.triplea.dto.experience.ExperienceRequest;
 import com.triplea.triplea.dto.user.UserRequest;
 import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.bookmark.BookmarkCategoryRepository;
@@ -319,11 +320,12 @@ public class UserService {
         User user = getUser(userId);
         String paymentDate = "";
         boolean freeTrial = false;
+        Experience experiencePS = new Experience();
         if(user.getMembership().equals(User.Membership.BASIC)){
             if(experienceService.isUserInFreeExperiencePeriod(userId)){
                 user.changeMembership(User.Membership.PREMIUM);
-                Experience experiencePS = experienceService.findExperienceByUserId(userId);
-                paymentDate = String.valueOf(experiencePS.getEndDate());
+                 experiencePS = experienceService.findExperienceByUserId(userId);
+
                 freeTrial = true;
             }else{
                 paymentDate = "";
@@ -332,7 +334,7 @@ public class UserService {
             paymentDate = getCustomerInfo(userId);
         }
 
-        return UserResponse.Navigation.toDTO(user,paymentDate, freeTrial);
+        return UserResponse.Navigation.toDTO(user,paymentDate, freeTrial,experiencePS);
     }
     public String getCustomerInfo(Long userId) {
 
@@ -528,6 +530,16 @@ public class UserService {
         for(User user : userList){
             reponseUserList.add(UserResponse.UserInfo.toDTO(user));
         }
+        return reponseUserList;
+    }
+    public List<UserResponse.UserFreeTierInfo> userFreeTierInfoList(ExperienceRequest.Search request) throws ParseException {
+        List<Experience> experienceList = experienceService.getExperienceList(request);
+        List<UserResponse.UserFreeTierInfo> reponseUserList = new ArrayList<>();
+        for (Experience experience : experienceList) {
+            User userPS = experience.getUser();
+            reponseUserList.add(UserResponse.UserFreeTierInfo.toDTO(userPS, experienceService.isUserInFreeExperiencePeriod(userPS.getId()), experience));
+        }
+
         return reponseUserList;
     }
 

@@ -3,6 +3,7 @@ package com.triplea.triplea.service;
 import com.triplea.triplea.core.exception.Exception500;
 import com.triplea.triplea.dto.experience.ExperienceRequest;
 import com.triplea.triplea.model.experience.Experience;
+import com.triplea.triplea.model.experience.ExperienceQuerydslRepository;
 import com.triplea.triplea.model.experience.ExperienceRepository;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.UserRepository;
@@ -10,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ import java.util.Date;
 public class ExperienceService {
     private final UserRepository userRepository;
     private final ExperienceRepository experienceRepository;
+    private final ExperienceQuerydslRepository experienceQuerydslRepository;
 
     @Transactional
     public void insertExperience(ExperienceRequest.Insert insert){
@@ -26,7 +30,7 @@ public class ExperienceService {
         if(experiencePS != null) throw new Exception500("이미 무료체험을 받은 적이 있는 회원입니다.");
         try{
 
-            Experience experience = new Experience(userPS, insert.getEndDate());
+            Experience experience = new Experience(userPS, insert.getFreeTierStartDate(),insert.getFreeTierEndDate(), insert.getMemo());
             experienceRepository.save(experience);
         }catch (Exception e){
             throw new Exception500("무료체험 등록 중 오류가 생겼습니다.");
@@ -40,7 +44,7 @@ public class ExperienceService {
         Experience experiencePS = findExperienceByUserId(userPS.getId());
         if(experiencePS == null) throw new Exception500("무료체험 중인 회원이 아닙니다.");
         try{
-            experiencePS.updateEndDate(update.getEndDate());
+            experiencePS.updateDate(update.getFreeTierStartDate(), update.getFreeTierEndDate(), update.getMemo());
         }catch (Exception e){
             throw new Exception500("무료체험 수정 중 오류가 생겼습니다.");
         }
@@ -62,13 +66,18 @@ public class ExperienceService {
 
         Experience experiencePS = findExperienceByUserId(userId);
         if(experiencePS == null) return false;
+        Date startDate = experiencePS.getStartDate();
         Date endDate = experiencePS.getEndDate();
         Date currentDate = new Date();
 
-        return currentDate.compareTo(endDate) < 0;
+        return currentDate.after(startDate) && currentDate.before(endDate);
     }
 
     public Experience findExperienceByUserId(Long userId) {
         return experienceRepository.findByUser(userId);
+    }
+
+    public List<Experience> getExperienceList(ExperienceRequest.Search search) throws ParseException {
+        return experienceQuerydslRepository.findExperienceList(search);
     }
 }
