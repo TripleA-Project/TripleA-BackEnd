@@ -23,7 +23,6 @@ import com.triplea.triplea.dto.user.UserResponse;
 import com.triplea.triplea.model.bookmark.BookmarkNews;
 import com.triplea.triplea.model.bookmark.BookmarkNewsQuerydslRepository;
 import com.triplea.triplea.model.bookmark.BookmarkNewsRepository;
-import com.triplea.triplea.model.category.Category;
 import com.triplea.triplea.model.category.CategoryRepository;
 import com.triplea.triplea.model.category.MainCategory;
 import com.triplea.triplea.model.category.MainCategoryRepository;
@@ -307,27 +306,16 @@ public class NewsService {
         // 카테고리 조회
         MainCategory mainCategory = mainCategoryRepository.findById(id).orElseThrow(
                 () -> new Exception404("카테고리를 찾을 수 없습니다"));
-        List<Category> categoryList = categoryRepository.findCategoriesByMainCategory(mainCategory.getId());
-        int cureentSize = size * page.intValue();
-        for(int i = 0; i < size; i++){
-            if(newsIds.size() > cureentSize) break;
-            try (Response categoryResponse = newsProvider.getNewsIdByCategory(categoryList.get(i).getCategory())) {
-                // 해당 카테고리의 모든 NewsId 값을 가져옴
-                newsIds.addAll(newsProvider.getNewsId(categoryResponse));
-            } catch (Exception e) {
-                throw new Exception500("카테고리 조회 실패: " + e.getMessage());
-            }
-        }
-//        categoryRepository.findCategoriesByMainCategory(mainCategory.getId())
-//                .forEach(category -> {
-//                    // 대분류 카테고리에 해당하는 모든 카테고리로 API 요청
-//                    try (Response categoryResponse = newsProvider.getNewsIdByCategory(category.getCategory())) {
-//                        // 해당 카테고리의 모든 NewsId 값을 가져옴
-//                        newsIds.addAll(newsProvider.getNewsId(categoryResponse));
-//                    } catch (Exception e) {
-//                        throw new Exception500("카테고리 조회 실패: " + e.getMessage());
-//                    }
-//                });
+        categoryRepository.findCategoriesByMainCategory(mainCategory.getId())
+                .forEach(category -> {
+                    // 대분류 카테고리에 해당하는 모든 카테고리로 API 요청
+                    try (Response categoryResponse = newsProvider.getNewsIdByCategory(category.getCategory())) {
+                        // 해당 카테고리의 모든 NewsId 값을 가져옴
+                        newsIds.addAll(newsProvider.getNewsId(categoryResponse));
+                    } catch (Exception e) {
+                        throw new Exception500("카테고리 조회 실패: " + e.getMessage());
+                    }
+                });
 
         NewsRequest.Page pages = getPages(size, page, newsIds);
         List<NewsResponse.NewsDTO> newsList = getNewsByPage(pages, newsIds, user);
@@ -523,48 +511,26 @@ public class NewsService {
 
         // pagination 구현
         List<Long> newsIdsSubset = newsIds.subList(startIndex, endIndex);
-        List<NewsResponse.NewsDTO> newsDTOList = new ArrayList<>();
-        SymbolRequest.MoyaSymbol moyaSymbol = new SymbolRequest.MoyaSymbol();
-        for(Long newsId : newsIdsSubset) {
-            try (Response newsResponse = newsProvider.getNewsById(newsId)) {
-                ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
-                if(moyaSymbol.getSymbol() != null && !moyaSymbol.getSymbol().equals(newsDetails.getSymbol()))
-                    moyaSymbol = moyaSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
-                if (moyaSymbol == null || moyaSymbol.getCompanyName() == null)
-                    moyaSymbol = tiingoSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
-                String companyName = moyaSymbol.getCompanyName();
-                String logo = moyaSymbolProvider.getLogo(moyaSymbol);
-                newsDTOList.add(NewsResponse.NewsDTO.builder()
-                        .details(newsDetails)
-                        .companyName(companyName)
-                        .logo(logo)
-                        .bookmark(getBookmark(newsId, user))
-                        .build());
-            } catch (IOException e) {
-                throw new Exception500("뉴스 조회 실패: " + e.getMessage());
-            }
-        }
-        return newsDTOList;
-//        return newsIdsSubset.stream()
-//                .map(newsId -> {
-//                    // 뉴스 ID로 뉴스 조회
-//                    try (Response newsResponse = newsProvider.getNewsById(newsId)) {
-//                        ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
-//                        moyaSymbol = moyaSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
-//                        if (moyaSymbol == null || moyaSymbol.getCompanyName() == null)
-//                            moyaSymbol = tiingoSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
-//                        String companyName = moyaSymbol.getCompanyName();
-//                        String logo = moyaSymbolProvider.getLogo(moyaSymbol);
-//                        return NewsResponse.NewsDTO.builder()
-//                                .details(newsDetails)
-//                                .companyName(companyName)
-//                                .logo(logo)
-//                                .bookmark(getBookmark(newsId, user))
-//                                .build();
-//                    } catch (IOException e) {
-//                        throw new Exception500("뉴스 조회 실패: " + e.getMessage());
-//                    }
-//                }).collect(Collectors.toList());
+        return newsIdsSubset.stream()
+                .map(newsId -> {
+                    // 뉴스 ID로 뉴스 조회
+                    try (Response newsResponse = newsProvider.getNewsById(newsId)) {
+                        ApiResponse.Details newsDetails = newsProvider.getNewsDetails(newsResponse);
+                        SymbolRequest.MoyaSymbol moyaSymbol = moyaSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
+                        if (moyaSymbol == null || moyaSymbol.getCompanyName() == null)
+                            moyaSymbol = tiingoSymbolProvider.getSymbolInfo(newsDetails.getSymbol());
+                        String companyName = moyaSymbol.getCompanyName();
+                        String logo = moyaSymbolProvider.getLogo(moyaSymbol);
+                        return NewsResponse.NewsDTO.builder()
+                                .details(newsDetails)
+                                .companyName(companyName)
+                                .logo(logo)
+                                .bookmark(getBookmark(newsId, user))
+                                .build();
+                    } catch (IOException e) {
+                        throw new Exception500("뉴스 조회 실패: " + e.getMessage());
+                    }
+                }).collect(Collectors.toList());
     }
 
     /**
