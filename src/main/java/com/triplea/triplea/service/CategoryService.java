@@ -32,6 +32,7 @@ public class CategoryService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final StepPaySubscriber subscriber;
+    private final ExperienceService experienceService;
     private String[] categories;
     private HashMap<String, String> hm = new HashMap<>();
 
@@ -671,7 +672,7 @@ public class CategoryService {
                 .orElseThrow(() -> new Exception400("Bad-Request", "해당 Category가 존재하지 않습니다."));
         BookmarkCategory bookmarkCategoryPS = bookmarkCategoryRepository.findBookmarkCategoryByMainCategory(id, userId);
         User.Membership membership = CheckMembership.getMembership(userPS, customerRepository, subscriber);
-        if (membership == User.Membership.BASIC) {
+        if (membership == User.Membership.BASIC && !experienceService.isUserInFreeExperiencePeriod(userPS.getId())) {
             Integer count = bookmarkCategoryRepository.countAllByUser(userPS);
             if (count >= 3) throw new Exception400("benefit", "혜택을 모두 소진했습니다");
         }

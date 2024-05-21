@@ -41,6 +41,7 @@ public class BookmarkSymbolService {
     private final StepPaySubscriber subscriber;
     private final MoyaSymbolProvider moyaSymbolProvider;
     private final TiingoSymbolProvider tiingoSymbolProvider;
+    private final ExperienceService experienceService;
 
     @Value("${moya.token}")
     private String moyaToken;
@@ -285,7 +286,7 @@ public class BookmarkSymbolService {
 
 
         User.Membership membership = CheckMembership.getMembership(userPS, customerRepository, subscriber);
-        if (membership == User.Membership.BASIC) {
+        if (membership == User.Membership.BASIC && !experienceService.isUserInFreeExperiencePeriod(userPS.getId())) { //
             Integer count = bookmarkSymbolRepository.countAllByUser(userPS);
             if (count >= 3) throw new Exception400("benefit", "혜택을 모두 소진했습니다");
         }

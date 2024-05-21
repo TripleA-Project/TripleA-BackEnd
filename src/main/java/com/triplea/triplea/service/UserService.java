@@ -528,6 +528,8 @@ public class UserService {
         List<User> userList = userRepository.findAll();
         List<UserResponse.UserInfo> reponseUserList = new ArrayList<>();
         for(User user : userList){
+            UserResponse.UserInfo userInfo = UserResponse.UserInfo.toDTO(user);
+            if(experienceService.isUserInFreeExperiencePeriod(userInfo.getId())) userInfo.setMembership(User.Membership.PREMIUM);
             reponseUserList.add(UserResponse.UserInfo.toDTO(user));
         }
         return reponseUserList;

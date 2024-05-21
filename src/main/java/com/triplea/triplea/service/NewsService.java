@@ -368,12 +368,20 @@ public class NewsService {
 
         // 남은 Benefit Count: User 의 Membership 이 PREMIUM 이면 null
         Integer leftBenefitCount = leftBenefitsForBasicMembership(membership, newsId, benefitCount);
+        UserResponse.News userMembership = null;
+        if(experienceService.isUserInFreeExperiencePeriod(user.getId())) {
+            leftBenefitCount = null;
+            userMembership = UserResponse.News.builder()
+                    .membership(User.Membership.PREMIUM)
+                    .leftBenefitCount(leftBenefitCount)
+                    .historyNewsIds(newsId).build();
+        }else{
+            userMembership = UserResponse.News.builder()
+                    .membership(user.getMembership())
+                    .leftBenefitCount(leftBenefitCount)
+                    .historyNewsIds(newsId).build();
+        }
 
-        if(experienceService.isUserInFreeExperiencePeriod(user.getId())) leftBenefitCount = null;
-        UserResponse.News userMembership = UserResponse.News.builder()
-                .membership(user.getMembership())
-                .leftBenefitCount(leftBenefitCount)
-                .historyNewsIds(newsId).build();
 
         return NewsResponse.Details.builder()
                 .user(userMembership)

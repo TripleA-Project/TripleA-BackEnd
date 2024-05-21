@@ -4,10 +4,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import com.triplea.triplea.model.experience.Experience;
 import com.triplea.triplea.model.user.User;
 import com.triplea.triplea.model.user.User.Membership;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.net.URL;
 import java.time.ZonedDateTime;
@@ -94,6 +91,7 @@ public class UserResponse {
     }
 
     @Getter
+    @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor

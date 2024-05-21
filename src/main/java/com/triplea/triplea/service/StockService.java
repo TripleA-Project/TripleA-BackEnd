@@ -37,6 +37,7 @@ import java.util.Optional;
 public class StockService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper OM;
+    private final ExperienceService experienceService;
 
     @Value("${tiingo.token}")
     private String tiingoToken;
@@ -90,6 +91,7 @@ public class StockService {
                 membership = User.Membership.PREMIUM;
             }
         }
+        if(experienceService.isUserInFreeExperiencePeriod(user.getId())) membership = User.Membership.PREMIUM;
 
         String tiingoUrl = "https://api.tiingo.com/tiingo/daily/<ticker>/prices";
         tiingoUrl = tiingoUrl.replace("<ticker>", symbol);
